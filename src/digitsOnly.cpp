@@ -54,6 +54,19 @@ const byte fontBold[][6] PROGMEM = {
 	{0x0E, 0x9F, 0x91, 0x91, 0xFF, 0x7E}, // 9 57
 	{0x00, 0x66, 0x66, 0x00, 0x00, 0x00} // : 58
 };
+const byte fontBold2[][6] PROGMEM = {
+	{0x7e, 0xa1, 0x91, 0xff, 0xad, 0x7e}, // 0 48
+	{0x00, 0x82, 0xff, 0xad, 0xff, 0x80}, // 1
+	{0xe2, 0xd1, 0xa9, 0x97, 0xcd, 0xc6}, // 2
+	{0x42, 0xc3, 0x89, 0xff, 0xad, 0x76}, // 3
+	{0x18, 0x14, 0x12, 0xff, 0xad, 0xff}, // 4
+	{0x4f, 0x89, 0x89, 0xfb, 0xab, 0x73}, // 5
+	{0x7e, 0x89, 0x89, 0xfb, 0xab, 0x72}, // 6
+	{0xc3, 0xa1, 0x51, 0x2f, 0x15, 0x0f}, // 7
+	{0x76, 0x89, 0x89, 0xff, 0xad, 0x76}, // 8
+	{0x4e, 0xd1, 0x91, 0xff, 0xb5, 0x7e}, // 9 57
+	{0x00, 0x66, 0x66, 0x00, 0x00, 0x00} // : 58
+};
 const byte fontWide[][6] PROGMEM = {
 	{0x7E, 0xA1, 0x91, 0x89, 0x85, 0x7E}, // 0 48
 	{0x00, 0x84, 0x82, 0xFF, 0x80, 0x80}, // 1
@@ -172,8 +185,11 @@ int16_t drawMedium(const char c, int16_t x, uint8_t font_style, uint8_t index, i
 				cw = c == ':' ? 4: 5;
 				break;
 			case FONT_BOLD:
+			case FONT_BOLD2:
 			case FONT_WIDE:
-				font = font_style == FONT_BOLD ? (byte*)fontBold: (byte*)fontWide;
+				font = gs.tiny_clock == FONT_BOLD ? (byte*)fontBold:
+					gs.tiny_clock == FONT_BOLD2 ? (byte*)fontBold2:
+					(byte*)fontWide;
 				fontWidth = 6;
 				cw = c == ':' ? 4: 6;
 				break;
@@ -214,7 +230,7 @@ int16_t drawMedium(const char c, int16_t x, uint8_t font_style, uint8_t index, i
 int16_t printMedium(const char* txt, uint8_t font, int16_t pos, uint8_t limit, uint8_t start_char, int8_t offset) {
 	if( screenIsFree ) clearALL();
 	int16_t i = start_char;
-	if( txt[0]==' ' && gs.tiny_clock != FONT_TINY ) pos += gs.tiny_clock==FONT_BOLD || gs.tiny_clock==FONT_WIDE ? -1:
+	if( txt[0]==' ' && gs.tiny_clock != FONT_TINY ) pos += gs.tiny_clock>=FONT_BOLD && gs.tiny_clock<=FONT_WIDE ? -1:
 		gs.tiny_clock==FONT_HIGHT ? -2: 1;
 	if( txt[0]=='1' && gs.tiny_clock == FONT_TINY ) pos -= 1;
 	while (txt[i] != '\0' && i<limit) {

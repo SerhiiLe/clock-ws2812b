@@ -2,9 +2,11 @@
 #define dfplayer_h
 
 // возвращает, играет ли сейчас плейер
-boolean mp3_isPlay();
+bool mp3_isPlay();
 // устанавливает громкость (t= от 1 до 30). p - запоминать ли уровень (p=false - не запоминать)
 void mp3_volume(uint8_t t, boolean p=true);
+// инициализация Serial для dfPlayer.
+void dfSerialInit();
 // инициализация плейера
 void mp3_init();
 // Проверка данных от плейера

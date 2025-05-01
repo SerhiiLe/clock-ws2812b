@@ -2,8 +2,8 @@
  * @file main.cpp
  * @author Serhii Lebedenko (slebedenko@gmail.com)
  * @brief Clock
- * @version 2.2.3
- * @date 2025-03-31
+ * @version 2.3.0
+ * @date 2025-05-01
  * 
  * @copyright Copyright (c) 2021,2022,2023,2024,2025
  */
@@ -125,6 +125,7 @@ void setup() {
 	#endif
 	pinMode(PIN_RELAY, OUTPUT);
 	digitalWrite(PIN_RELAY, RELAY_OFF);
+	dfSerialInit();
 	delay(RELAY_OP_TIME); // задержка на время срабатывания (выключения) рэле. А вообще должно было стоять рэле LOW и тогда после старта оно бы сразу было выключено.
 	display_setup();
 	randomSeed(analogRead(PIN_PHOTO_SENSOR)+analogRead(PIN_PHOTO_SENSOR));
@@ -701,9 +702,9 @@ void loop() {
 		if(!fl_timeNotSync && screenIsFree && clockDate.isReady()) {
 			uint32_t date_color = gs.show_date_color > 0 ? gs.show_date_color: gs.show_date_color0;
 			if(gs.tiny_date) {
-				if(gs.show_date_short) printTinyText(dateCurrentTextShort(timeString, true), date_color);
+				if(gs.show_date_short & 1) printTinyText(dateCurrentTextShort(timeString, true), date_color);
 				else  printTinyText(dateCurrentTextTinyFull(timeString), date_color, 1);
-			} else initRString(gs.show_date_short ? dateCurrentTextShort(timeString): dateCurrentTextLong(timeString), date_color);
+			} else initRString(gs.show_date_short & 1 ? dateCurrentTextShort(timeString): dateCurrentTextLong(timeString), date_color);
 		}
 	}
 
@@ -711,6 +712,7 @@ void loop() {
 	if(!fl_demo && screenIsFree && clockTimer.isReady()) {
 		switch (gs.tiny_clock) {
 			case FONT_BOLD: // толстый шрифт
+			case FONT_BOLD2: // гибридный толстый
 			case FONT_WIDE: // широкий
 				clockCurrentText(timeString, gs.t12h);
 				changeDots(timeString);

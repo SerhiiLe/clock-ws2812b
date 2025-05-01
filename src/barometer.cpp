@@ -93,7 +93,7 @@ float getHumidity() {
 }
 
 const char* currentPressureTemp (char *a, bool fl_tiny) {
-	char ft[100] = {0};
+	char ft[100] = "";
 	if(ws.forecast) {
 		int16_t trend = forecaster_getTrend();
 		int8_t cast = forecaster_getCast();
@@ -117,7 +117,7 @@ const char* currentPressureTemp (char *a, bool fl_tiny) {
 		float h = Humidity;
 
 		// есть датчик влажности (BME280 или AHTX0), вывести её
-		char ht[20] = {0};
+		char ht[20] = "";
 		if( fl_barometerIsInit & 12 ) {
 			if(fl_tiny)
 				sprintf_P(ht, PSTR("\n%5.1f%% h"), h);
@@ -125,7 +125,7 @@ const char* currentPressureTemp (char *a, bool fl_tiny) {
 				sprintf_P(ht, PSTR(" %1.1f%%h"), h);
 		}
 		// есть датчик давления (BMP180,BMP280,BME280), вывести его
-		char pt[20] = {0};
+		char pt[20] = "";
 		if( fl_barometerIsInit & 7 ) {
 			if(fl_tiny)
 				sprintf_P(pt, PSTR("\n%4i hPa"), p);

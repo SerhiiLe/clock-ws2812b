@@ -14,27 +14,27 @@
 	#define PIN_LED 6 // LED матрица
 	#define PIN_PHOTO_SENSOR A0 // фоторезистор
 	#define PIN_BUTTON 1 // кнопка управления
-	#define PIN_MOTION 10 // детектор движения
+	#define PIN_MOTION 10 // детектор движения. Закомментировать, если не подключен
 	// #define PIN_5V 3 // детектор наличия питания (5 Вольт). Закомментировать, если не подключен
 	#define PIN_RELAY 7 // реле выключатель питания матрицы
-	#define LED_MOTION 5 // светодиод индикатор движения. Закомментировать для вывода на матрицу.
-	#define SRX 20 // hardware serial RX DFPlayer. Закомментировать, если не подключен
-	#define STX 21 // hardware serial TX DFPlayer
+	// #define LED_MOTION 5 // светодиод индикатор движения. Закомментировать для вывода на матрицу.
+	#define SRX 20 // hardware serial RX -> TX on DFPlayer. Закомментировать, если не подключен
+	#define STX 21 // hardware serial TX -> RX on DFPlayer
 	// -> SDA 8 // I2C SDA Для справки, определены в Arduino
 	// -> SCL 9 // I2C SCL
-	#define BAT_LEVEL 4 // напряжение аккумулятора
+	// #define BAT_LEVEL 4 // напряжение аккумулятора
 #elif ESP32 == 1 // ESP32
 	#define PIN_PHOTO_SENSOR 36 // "VP" - фоторезистор
 	#define PIN_BUTTON 19 // кнопка управления
-	#define PIN_MOTION 18 // детектор движения
+	#define PIN_MOTION 18 // детектор движения. Закомментировать, если не подключен
 	#define PIN_RELAY 26 // реле выключатель питания матрицы
 	#if USE_I2C == 0
 		// ------8<------ old, compatible with ESP8266 Wemos D1 mini
 		#define PIN_LED 22 // LED матрица
 		#define LED_MOTION 17 // светодиод индикатор движения. Закомментировать для вывода на матрицу.
 		#define PIN_5V 21 // детектор наличия питания (5 Вольт). Закомментировать, если не подключен
-		#define SRX 23 // software serial RX DFPlayer. Закомментировать, если не подключен
-		#define STX 5 // software serial TX DFPlayer
+		#define SRX 23 // hardware serial RX DFPlayer. Закомментировать, если не подключен
+		#define STX 5 // hardware serial TX DFPlayer
 		// ------8<------
 	#else
 		// ------8<------ new, for esp32
@@ -51,7 +51,7 @@
 #else // ESP8266
 	#define PIN_PHOTO_SENSOR A0 // фоторезистор
 	#define PIN_BUTTON 12 // кнопка управления
-	#define PIN_MOTION 14 // детектор движения
+	#define PIN_MOTION 14 // детектор движения. Закомментировать, если не подключен
 	#define SRX 13 // software serial RX DFPlayer. Закомментировать, если не подключен
 	#define STX 15 // software serial TX DFPlayer
 	#if USE_I2C == 0
@@ -83,6 +83,16 @@
 #define USE_RTC 1	// использовать аппаратный чип RTC (часы). 0 - только интернет, 1 - использовать
 #define USE_BMP 1	// использовать датчик давления/температуры (BMP180). 0 - не использовать, 1 - использовать
 
+/*** тип плейера dfPlayer mp3 ***/
+
+// надо выбрать один тип, остальные закомментировать!
+#define Mp3ChipType Mp3ChipOriginal			// большинство чипов
+// #define Mp3ChipType Mp3ChipMH2024K16SS		// чип MH2024K16SS
+// #define Mp3ChipType Mp3ChipIncongruousNoAck	// редкие чипы без поддержки Ack
+
+// время ожидания ответа от модуля при обычной работе. Нужно только в редких случаях, для медленных чипов.
+#define Mp3ChipTimeout 900
+
 /*** ограничение потребления матрицей ***/
 
 #define BRIGHTNESS 50		// стандартная максимальная яркость (0-255)
@@ -109,7 +119,7 @@
 
 /*** зарезервированное количество объектов в настройках. Занимают много места. ***/
 
-#define MAX_ALARMS 9	// количество возможных будильников
+#define MAX_ALARMS 9	// количество возможных будильников (больше 9 может вызвать проблемы с памятью)
 #define MAX_RUNNING 9	// количество возможных бегущих строк (больше 9 может вызвать проблемы с памятью)
 #define MAX_SENSORS 10	// количество слотов для регистрации удалённых сенсоров
 

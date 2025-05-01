@@ -416,7 +416,7 @@ void save_settings() {
 	set_simple_int(F("tiny_clock"), gs.tiny_clock, 0, 8);
 	set_simple_int(F("dots_style"), gs.dots_style, 0, 11);
 	set_simple_checkbox(F("t12h"), gs.t12h);
-	set_simple_checkbox(F("date_short"), gs.show_date_short);
+	set_simple_int(F("date_short"), gs.show_date_short, 0, 3);
 	set_simple_checkbox(F("tiny_date"), gs.tiny_date);
 	if( set_simple_int(F("date_period"), gs.show_date_period, 20, 1439) )
 		clockDate.setInterval(1000U * gs.show_date_period);
@@ -932,6 +932,30 @@ const char* print_full_platform_info(char* buf) {
 			break;
 		case 6: // ESP32-H2
 			cpu = "ESP32-H2";
+			break;
+		case 12: // ESP32-C2
+			cpu = "ESP32-C2";
+			break;
+        case 13: // ESP32-C6
+			cpu = "ESP32-C6";
+			break;
+        case 16: // ESP32-H2
+			cpu = "ESP32-H2";
+			break;
+        case 18: // ESP32-P4
+			cpu = "ESP32-P4";
+			break;
+		case 20: // ESP32-C61
+			cpu = "ESP32-C61";
+			break;
+		case 23: // ESP32-C5
+			cpu = "ESP32-C5";
+			break;
+		case 25: // ESP32-H21
+			cpu = "ESP32-H21";
+			break;
+		case 28: // ESP32-H4
+			cpu = "ESP32-H4";
 			break;
 		default:
 			cpu = "unknown";

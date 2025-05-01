@@ -237,6 +237,18 @@ extern bool fl_tiny_clock;
 extern bool screenIsFree;
 extern uint8_t hue_shift;
 
+// номера шрифтов для циферблата
+#define FONT_NORMAL 0
+#define FONT_HIGHT 1
+#define FONT_BOLD 2
+#define FONT_BOLD2 3
+#define FONT_WIDE 4
+#define FONT_NARROW 5
+#define FONT_NARROW2 6
+#define FONT_DIGIT 7
+#define FONT_DIGIT2 8
+#define FONT_TINY 9
+
 #ifdef ESP32
 #define SPIFFS LittleFS
 #define FORMAT_LITTLEFS_IF_FAILED true

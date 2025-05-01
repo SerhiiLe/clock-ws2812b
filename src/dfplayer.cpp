@@ -1,3 +1,5 @@
+// экспериментальная реализация проигрывателя, срисовано с примеров  Makuna/DFMiniMp3
+
 /*
 	Работа с платой DFPlayer mini.
 	Получить стабильную работу согласно документации не получилось.
@@ -13,20 +15,6 @@
 #include <Arduino.h>
 #include "defines.h"
 #include "dfplayer.h"
-#ifdef SRX
-	#if ESP32C3 == 1 // ESP32-c3
-		#include <HardwareSerial.h>
-		HardwareSerial mp3Serial(0);
-	#elif ESP32 == 1 // ESP32
-		#include <HardwareSerial.h>
-		HardwareSerial mp3Serial(2);
-	#else // ESP8266
-		#include <SoftwareSerial.h>
-		EspSoftwareSerial::UART mp3Serial;
-	#endif
-	#include <DFRobotDFPlayerMini.h>
-	DFRobotDFPlayerMini dfPlayer;
-#endif
 
 int mp3_all = 0;
 int mp3_current = 1;
@@ -35,22 +23,149 @@ bool mp3_isInit = false;
 bool mp3_isReady = false;
 
 #ifdef SRX
-// плата установлена, описание функций
+// плата установлена, подготовка к инициализации драйвера
 
+// #define DfMiniMp3Debug Serial // Для вывода обмена данных с dfPlayer в консоль
+#include <DFMiniMp3E.h>
+
+// callback class для асинхронных вызовов из драйвера
+class Mp3Notify {
+public:
+    // required type
+    typedef void TargetType;
+
+    // required method even though it doesn't do anything
+    static void SetTarget(TargetType*) { }
+
+    static void PrintlnSourceAction(DfMp3_PlaySources source, const char* action) {
+        if (source & DfMp3_PlaySources_Sd) {
+            LOG(print, PSTR("SD Card, "));
+        }
+        if (source & DfMp3_PlaySources_Usb) {
+            LOG(print, PSTR("USB Disk, "));
+        }
+        if (source & DfMp3_PlaySources_Flash) {
+            LOG(print, PSTR("Flash, "));
+        }
+        LOG(println, action);
+    }
+
+    // required method
+    static void OnError(uint16_t errorCode) {
+        // see DfMp3_Error for code meaning
+		LOG(printf_P, PSTR("DFPlayerError: %u "), errorCode);
+		switch (errorCode) {
+			case DfMp3_Error_Busy:				//  busy
+				LOG(println, PSTR("Card not found"));
+				break;
+			case DfMp3_Error_Sleeping:			//  frame not received    sleep
+				LOG(println, PSTR("Sleeping"));
+				break;
+			case DfMp3_Error_SerialWrongStack:	//  verification error    frame not received
+				LOG(println, PSTR("Get wrong stack"));
+				break;
+			case DfMp3_Error_CheckSumNotMatch:	//                        checksum
+				LOG(println, PSTR("Check sum not match"));
+				break;
+			case DfMp3_Error_FileIndexOut:		//  folder out of scope   track out of scope
+				LOG(println, PSTR("File index out of bound"));
+				break;
+			case DfMp3_Error_FileMismatch:		//  folder not found      track not found
+				LOG(println, PSTR("Cannot find file"));
+				break;
+			case DfMp3_Error_Advertise:			//                        only allowed while playing     advertisement not allowed
+				LOG(println, PSTR("Advertisement not allowed"));
+				break;
+			case DfMp3_Error_SdReadFail:		//                        SD card failed
+				LOG(println, PSTR("SD card failed"));
+				break;
+			case DfMp3_Error_FlashReadFail:		//                        Flash mem failed
+				LOG(println, PSTR("Flash mem failed"));
+				break;
+			case DfMp3_Error_EnteredSleep:		//                        entered sleep
+				LOG(println, PSTR("Entered sleep"));
+				break;
+			case DfMp3_Error_RxTimeout:
+				mp3_isInit = false;
+				LOG(println, PSTR("Rx timeout"));
+				break;
+			case DfMp3_Error_PacketSize:
+				LOG(println, PSTR("Packet size mismatch"));
+				break;
+			case DfMp3_Error_PacketHeader:
+				LOG(println, PSTR("Packet header broken"));
+				break;
+			case DfMp3_Error_PacketChecksum:
+				LOG(println, PSTR("Packed checksum error"));
+				break;
+			case DfMp3_Error_General:
+				LOG(println, PSTR("General error"));
+				break;
+			default:
+				LOG(println, PSTR("Unknown error"));
+				break;
+		}
+	}
+
+    // required method
+    static void OnPlayFinished([[maybe_unused]] DfMp3_PlaySources source, uint16_t track) {
+		LOG(printf_P, PSTR("Number: %i. Play Finished!\n"), track);
+		// dfPlayer.stop();
+	}
+
+    // required method
+    static void OnPlaySourceOnline(DfMp3_PlaySources source) {
+        PrintlnSourceAction(source, "online");
+		mp3_isInit = true;
+		mp3_reread();
+    }
+
+    // required method
+    static void OnPlaySourceInserted(DfMp3_PlaySources source) {
+        PrintlnSourceAction(source, "inserted");
+		delay(10);
+		mp3_reread();
+    }
+
+    // required method
+    static void OnPlaySourceRemoved(DfMp3_PlaySources source) {
+        PrintlnSourceAction(source, "removed");
+		mp3_all = 0;
+    }
+};
+
+// Подготовка объекта драйвера dfPlayer (dfmp3)
+
+#if ESP32 == 1
+		#define mp3Serial Serial1
+#else // ESP8266
+	#include <SoftwareSerial.h>
+	EspSoftwareSerial::UART mp3Serial;
+	// SoftwareSerial mp3Serial(SRX, STX); // если не хочется устанавливать EspSoftSerial. Работает менее стабильно.
+#endif
+
+typedef DFMiniMp3<Mp3Notify, Mp3ChipType, Mp3ChipTimeout>DfMp3;
+DfMp3 dfmp3;
+
+// инициализация происходит в момент первого обращения.
 void checkInit() {
 	if( ! mp3_isInit || timeoutMp3Timer.isReady() ) mp3_init();
 }
 
-boolean mp3_isPlay() {
+// проверка играет ли dfPlayer
+bool mp3_isPlay() {
 	checkInit();
-	return dfPlayer.readState() & 1;
+	DfMp3_Status status = dfmp3.getStatus();
+	return status.state == DfMp3_StatusState_Playing;
+	// return dfPlayer.readState() & 1;
 }
 
+// обновление номера трека, который сейчас играет
 void mp3_update() {
 	if(mp3_isPlay() || mp3_current>mp3_all ) {
 		int mp3_new = mp3_current;
 		for(uint8_t cnt = 0; cnt < 10; cnt++) {
-			mp3_new = dfPlayer.readCurrentFileNumber();
+			mp3_new = dfmp3.getCurrentTrack(DfMp3_PlaySource_Sd);
 			if( mp3_new > mp3_all ) {
 				delay(20);
 				continue;
@@ -61,69 +176,88 @@ void mp3_update() {
 	}
 }
 
-// DFPlayer медленный и любит при каждом чихе отваливаться, по этому много проверок и задержек. Некрасиво, но работает достаточно устойчиво.
+void dfSerialInit() {
+	// в ESP32 функции не привязаны к ножкам, инициализация указывает какие ножки задействовать и отключает их от другого функционала
+	#if ESP32 == 1
+		mp3Serial.begin(9600, SERIAL_8N1, SRX, STX);
+	#else
+		mp3Serial.begin(9600, SWSERIAL_8N1, SRX, STX, false); // EspSoftwareSerial
+		// mp3Serial.begin(9600); // SoftwareSerial
+	#endif
+}
 
+// DFPlayer медленный и любит при каждом чихе отваливаться, по этому много проверок и задержек. Некрасиво, но работает достаточно устойчиво.
 void mp3_init() {
 	LOG(println, PSTR("init mp3 player"));
 	if( mp3_isInit ) {
 		mp3Serial.flush();
-		dfPlayer.reset();
+		dfmp3.reset();
 	} else {
-		#if ESP32 == 1
-			mp3Serial.begin(9600, SERIAL_8N1, SRX, STX);
-		#else
-			mp3Serial.begin(9600, SWSERIAL_8N1, SRX, STX, false);
-		#endif
-		dfPlayer.setTimeOut(1000);
-		mp3_isReady = dfPlayer.begin(mp3Serial);
+		mp3Serial.flush();
+		mp3_isReady = dfmp3.begin(mp3Serial);
+		LOG(printf_P, PSTR("mp3_isReady: %i\n"), mp3_isReady);
 		if(mp3_isReady) {
 			mp3_isInit = true;
+			LOG(printf_P, PSTR("Software Version %u\n"), dfmp3.getSoftwareVersion());
+			delay(10);
+			dfmp3.setPlaybackSource(DfMp3_PlaySource_Sd);
+			delay(10);
 			mp3_reread();
 		}
 	}
 	if(mp3_isReady) {
-		dfPlayer.EQ(DFPLAYER_EQ_NORMAL);
+		delay(10);
+		dfmp3.setEq(DfMp3_Eq_Normal);
 		delay(10);
 		mp3_volume(1,false);
 	}
-	if(dfPlayer.readCurrentFileNumber()>mp3_all) {
-		dfPlayer.start();
+	if(dfmp3.getCurrentTrack(DfMp3_PlaySource_Sd)>mp3_all) {
+		// dfmp3.start();
 		delay(10);
 		mp3_update();
-		dfPlayer.stop();
-		delay(10);
+		// dfmp3.stop();
+		// delay(10);
 	}
 }
 
 void mp3_volume(uint8_t t, boolean p) {
 	checkInit();
-	int cur = 0, old = 0, cnt = 0;
-	while(true) {
-		cur = dfPlayer.readVolume();
-		if( cur==t ) {
-			if (p) cur_Volume = t;
-			break;
-		}
-		if( cur==old || cur<0 || cur>30 ) {
-			if( cnt++ > 20 ) {
-				mp3_init();
-				delay(80);
-				cnt = 0;
-				old = 0;
+	dfmp3.setVolume(t);
+	if (p) cur_Volume = t;
+	delay(10);
+
+	// этот блок не должен исполняться, если всё нормально. Но жалко выкидывать.
+	if( dfmp3.getVolume() != t ) {
+		int cur = 0, old = 0, cnt = 0;
+		delay(10);
+		while(true) {
+			cur = dfmp3.getVolume();
+			if( cur==t ) {
+				if (p) cur_Volume = t;
+				break;
 			}
-			delay(20);
-			continue;
-		} else cnt = 0;
-		old=cur;
-		if( cur<t ) {
-			dfPlayer.volumeUp();
-			delay(10);
-		}
-		if( cur>t ) {
-			dfPlayer.volumeDown();
-			delay(10);
+			if( cur==old || cur<0 || cur>30 ) {
+				if( cnt++ > 20 ) {
+					mp3_init();
+					delay(80);
+					cnt = 0;
+					old = 0;
+				}
+				delay(20);
+				continue;
+			} else cnt = 0;
+			old=cur;
+			if( cur<t ) {
+				dfmp3.increaseVolume();
+				delay(10);
+			}
+			if( cur>t ) {
+				dfmp3.decreaseVolume();
+				delay(10);
+			}
 		}
 	}
+
 	timeoutMp3Timer.reset();
 }
 
@@ -132,20 +266,27 @@ void mp3_play(int t) {
 	if( mp3_all == 0 ) return;
 	if( t < 1 || t > mp3_all ) return;
 	LOG(printf_P, PSTR("want track: %i\n"),t);
+	dfmp3.playGlobalTrack(t);
+	delay(10);
+
+	// дальше два блока, которые не должны исполняться, если всё правильно настроено. Оставлено потому, что жалко выкидывать.
 	if( ! mp3_isPlay() ) {
-		dfPlayer.start();
+		dfmp3.start();
 		delay(100);
-	}
-	if(dfPlayer.readCurrentFileNumber() != t) {
+	} else delay(10);
+
+	// чувствую себя Трампом:"Этого не должно было случится!".
+	if(dfmp3.getCurrentTrack(DfMp3_PlaySource_Sd) != t) {
 		int cur = 0, old = 0, cnt = 0;
+		delay(10);
 		while(true) {
-			cur = dfPlayer.readCurrentFileNumber();
+			cur = dfmp3.getCurrentTrack(DfMp3_PlaySource_Sd);
 			LOG(printf_P, PSTR("track: %i\n"),cur);
 			if( cur==t ) break;
 			if( cur==old || cur<=0 || cur > mp3_all ) {
 				if( cnt++ > 20 ) {
 					mp3_init();
-					dfPlayer.start();
+					dfmp3.start();
 					delay(80);
 					cnt = 0;
 					old = 0;
@@ -156,20 +297,21 @@ void mp3_play(int t) {
 			old=cur;
 			if( cur<t ) {
 				if( t-cur < (mp3_all >> 1) )
-					dfPlayer.next();
+					dfmp3.nextTrack();
 				else
-					dfPlayer.previous();
+					dfmp3.prevTrack();
 				delay(10);
 			}
 			if (cur>t) {
 				if( cur-t < (mp3_all >> 1) )
-					dfPlayer.previous();
+					dfmp3.prevTrack();
 				else
-					dfPlayer.next();
+					dfmp3.nextTrack();
 				delay(10);
 			}
 		}
 	}
+
 	mp3_volume(cur_Volume);
 	mp3_current = t;
 	timeoutMp3Timer.reset();
@@ -177,131 +319,60 @@ void mp3_play(int t) {
 
 void mp3_reread() {
 	checkInit();
-	mp3_all = dfPlayer.readFileCounts();
+	mp3_all = dfmp3.getTotalTrackCount(DfMp3_PlaySource_Sd);
 	// mp3_isReady = mp3_all == 0 ? false: true;
 }
 
 void mp3_start() {
 	checkInit();
-	dfPlayer.start();
+	dfmp3.start();
 }
 
 void mp3_pause() {
 	checkInit();
-	dfPlayer.pause();
+	dfmp3.pause();
 }
 
 void mp3_stop() {
 	checkInit();
-	dfPlayer.stop();
+	dfmp3.stop();
 }
 
 void mp3_enableLoop() {
 	checkInit();
-	dfPlayer.enableLoop();
+	dfmp3.setRepeatPlayCurrentTrack(true);
 }
 
 void mp3_disableLoop() {
 	checkInit();
-	dfPlayer.disableLoop();
+	dfmp3.setRepeatPlayCurrentTrack(false);
 }
 
 void mp3_enableLoopAll() {
 	checkInit();
-	dfPlayer.enableLoopAll();
+	dfmp3.setRepeatPlayAllInRoot(true);
 }
 
 void mp3_disableLoopAll() {
 	checkInit();
-	dfPlayer.disableLoopAll();
+	dfmp3.setRepeatPlayAllInRoot(false);
 }
 
 void mp3_randomAll() {
 	checkInit();
-	dfPlayer.randomAll();
+	dfmp3.playRandomTrackFromAll();
 }
 
-void mp3_messages(uint8_t type, int value) {
-switch (type) {
-	case TimeOut:
-		LOG(println, PSTR("Time Out!"));
-		mp3_isInit = false;
-		break;
-	case WrongStack:
-		LOG(println, PSTR("Stack Wrong!"));
-		mp3_isInit = false;
-		break;
-	case DFPlayerCardInserted:
-		LOG(println, PSTR("Card Inserted!"));
-		break;
-	case DFPlayerCardRemoved:
-		LOG(println, PSTR("Card Removed!"));
-		mp3_all = 0;
-		break;
-	case DFPlayerCardOnline:
-		LOG(println, PSTR("Card Online!"));
-		mp3_reread();
-		break;
-	case DFPlayerUSBInserted:
-		LOG(println, PSTR("USB Inserted!"));
-		break;
-	case DFPlayerUSBRemoved:
-		LOG(println, PSTR("USB Removed!"));
-		break;
-	case DFPlayerPlayFinished:
-		LOG(printf_P, PSTR("Number: %i. Play Finished!\n"),value);
-		dfPlayer.stop();
-		break;
-	case DFPlayerFeedBack:
-		LOG(printf_P, PSTR("Feedback: %i. Play Finished!\n"),value);
-		if(value<mp3_all) mp3_current = value;
-		// dfPlayer.stop();
-		break;
-	case DFPlayerError:
-		LOG(print, PSTR("DFPlayerError:"));
-		switch (value) {
-			case Busy:
-				LOG(println, PSTR("Card not found"));
-				break;
-			case Sleeping:
-				LOG(println, PSTR("Sleeping"));
-				break;
-			case SerialWrongStack:
-				LOG(println, PSTR("Get Wrong Stack"));
-				break;
-			case CheckSumNotMatch:
-				LOG(println, PSTR("Check Sum Not Match"));
-				break;
-			case FileIndexOut:
-				LOG(println, PSTR("File Index Out of Bound"));
-				break;
-			case FileMismatch:
-				LOG(println, PSTR("Cannot Find File"));
-				break;
-			case Advertise:
-				LOG(println, PSTR("In Advertise"));
-				break;
-			default:
-				LOG(printf_P, PSTR("Unknown error: %i\n"),value);
-				break;
-		}
-		break;
-	default:
-		LOG(printf_P, PSTR("Unknown: %i, val: %i\n"),type,value);
-		break;
-	}
-}
-
+// проверка сообщений от dfPlayer.
 void mp3_check() {
-	if (dfPlayer.available()) {
-		mp3_messages(dfPlayer.readType(), dfPlayer.read()); //Print the detail message from DFPlayer to handle different errors and states.
-	}
+	dfmp3.loop();
 }
 
 #else
 // заглушки, если плата DFPlayer не установлена
-boolean mp3_isPlay() {return true;}
+bool mp3_isPlay() {return true;}
 void mp3_volume(uint8_t t, boolean p) {}
+void dfSerialInit() {}
 void mp3_init() {mp3_isInit = true; mp3_isReady = true;}
 void mp3_check() {}
 void mp3_play(int t) {}
