@@ -33,13 +33,11 @@ bool barometer_init() {
 	} else 
 	if( bmp2.begin(address_bme280) ) {
 		fl_barometerIsInit = 2;
-		uint32_t type = bmp2.sensorID();
-		LOG(printf_P, PSTR("BMP280 found, type: 0x%02X\n"), type);
+		LOG(printf_P, PSTR("BMP280 found, type: 0x%02X\n"), bmp2.sensorID());
 	} else
 	if( bme.begin(address_bme280) ) {
 		fl_barometerIsInit = 4;
-		uint32_t type = bme.sensorID();
-		LOG(printf_P, PSTR("BME280 found, type: 0x%02X\n"), type);
+		LOG(printf_P, PSTR("BME280 found, type: 0x%02X\n"), bme.sensorID());
 		return true;
 	}
 	if( aht.begin() ) {
