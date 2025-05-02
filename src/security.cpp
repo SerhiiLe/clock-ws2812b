@@ -118,7 +118,7 @@ void inMsg(FB_msg& msg) {
 	char buf[100];
 
 	// выводим ID чата, имя юзера и текст сообщения
-	LOG(printf_P, PSTR("From telegram:%s;%s;%s;%s;%s.\n"),msg.chatID,msg.username,msg.first_name,msg.ID,msg.text);
+	LOG(printf_P, PSTR("From telegram:%s;%s;%s;%li;%s.\n"),msg.chatID.c_str(),msg.username.c_str(),msg.first_name.c_str(),msg.ID,msg.text.c_str());
 
 	if(last_telegram == 0 && ts.tb_rate > ts.tb_accelerated) {
 		telegramTimer.setInterval(1000U * ts.tb_accelerated);
