@@ -94,10 +94,13 @@ bool load_config_main() {
 	// double latitude = doc["data"][0];
 	// double longitude = doc["data"][1];
 
+	gs.language = doc[F("language")];
 	gs.str_hello = doc[F("str_hello")].as<String>();
+	gs.clock_name = doc[F("clock_name")].as<String>();
 	gs.max_alarm_time = doc[F("max_alarm_time")];
 	gs.run_allow = doc[F("run_allow")];
 	gs.run_begin = doc[F("run_begin")];
+	gs.dsp_off = doc[F("dsp_off")];
 	gs.run_end = doc[F("run_end")];
 	gs.wide_font = doc[F("wide_font")];
 	gs.show_move = doc[F("show_move")];
@@ -159,11 +162,14 @@ void save_config_main() {
 
 	JsonDocument doc; // временный буфер под объект json
 
+	doc[F("language")] = gs.language;
 	doc[F("str_hello")] = gs.str_hello;
+	doc[F("clock_name")] = gs.clock_name;
 	doc[F("max_alarm_time")] = gs.max_alarm_time;
 	doc[F("run_allow")] = gs.run_allow;
 	doc[F("run_begin")] = gs.run_begin;
 	doc[F("run_end")] = gs.run_end;
+	doc[F("dsp_off")] = gs.dsp_off;
 	doc[F("wide_font")] = gs.wide_font;
 	doc[F("show_move")] = gs.show_move;
 	doc[F("delay_move")] = gs.delay_move;
@@ -246,7 +252,6 @@ bool load_config_telegram() {
 	ts.use_move = doc[F("use_move")];
 	ts.use_brightness = doc[F("use_brightness")];
 	ts.pin_code = doc[F("pin_code")].as<String>();
-	ts.clock_name = doc[F("clock_name")].as<String>();
 	ts.sensor_timeout = doc[F("sensor_timeout")];
 	ts.tb_name = doc[F("tb_name")].as<String>();
 	ts.tb_chats = doc[F("tb_chats")].as<String>();
@@ -269,7 +274,6 @@ void save_config_telegram() {
 	doc[F("use_move")] = ts.use_move;
 	doc[F("use_brightness")] = ts.use_brightness;
 	doc[F("pin_code")] = ts.pin_code;
-	doc[F("clock_name")] = ts.clock_name;
 	doc[F("sensor_timeout")] = ts.sensor_timeout;
 	doc[F("tb_name")] = ts.tb_name;
 	doc[F("tb_chats")] = ts.tb_chats;
@@ -670,10 +674,22 @@ bool load_config_weather() {
 	ws.wind_direction2 = doc[F("wind_direction2")];
 	ws.wind_gusts = doc[F("wind_gusts")];
 	ws.pressure_dir = doc[F("pressure_dir")];
+	ws.altitude = doc[F("altitude")];
 	ws.forecast = doc[F("forecast")];
+	ws.forecast_days = doc[F("forecast_days")];
+	ws.sync_forecast_period = doc[F("sync_forecast_period")];
+	ws.show_forecast_period = doc[F("show_forecast_period")];
+	ws.color_modeF = doc[F("color_modeF")];
+	ws.colorF = text_to_color(doc[F("colorF")]);
+	ws.weather_codeF = doc[F("weather_codeF")];
+	ws.temperatureF = doc[F("temperatureF")];
+	ws.wind_speedF = doc[F("wind_speedF")];
+	ws.wind_directionF = doc[F("wind_directionF")];
 
 	syncWeatherTimer.setInterval(60000U * ws.sync_weather_period);
 	messages[MESSAGE_WEATHER].timer.setInterval(1000U * ws.show_weather_period);
+	syncForecastTimer.setInterval(3600000U * ws.sync_forecast_period);
+	messages[MESSAGE_FORECAST].timer.setInterval(1000U * ws.show_forecast_period);
 	return true;
 }
 
@@ -706,7 +722,17 @@ void save_config_weather() {
 	doc[F("wind_direction2")] = ws.wind_direction2;
 	doc[F("wind_gusts")] = ws.wind_gusts;
 	doc[F("pressure_dir")] = ws.pressure_dir;
+	doc[F("altitude")] = ws.altitude;
 	doc[F("forecast")] = ws.forecast;
+	doc[F("forecast_days")] = ws.forecast_days;
+	doc[F("sync_forecast_period")] = ws.sync_forecast_period;
+	doc[F("show_forecast_period")] = ws.show_forecast_period;
+	doc[F("color_modeF")] = ws.color_modeF;
+	doc[F("colorF")] = color_to_text(ws.colorF);
+	doc[F("weather_codeF")] = ws.weather_codeF;
+	doc[F("temperatureF")] = ws.temperatureF;
+	doc[F("wind_speedF")] = ws.wind_speedF;
+	doc[F("wind_directionF")] = ws.wind_directionF;
 
 	File configFile = LittleFS.open(F("/weather.json"), "w"); // открытие файла на запись
 	if (!configFile) {

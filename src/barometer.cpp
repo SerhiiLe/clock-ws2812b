@@ -13,6 +13,7 @@
 #include "defines.h"
 #include "forecaster.h"
 #include "webClient.h"
+#include "barometer_translation.h"
 
 Adafruit_BMP085 bmp0;
 Adafruit_BMP280 bmp2;
@@ -92,7 +93,7 @@ float getHumidity() {
 
 const char* currentPressureTemp (char *a, bool fl_tiny) {
 	char ft[100] = "";
-	if(ws.forecast) {
+	if(ws.pressure_dir) {
 		int16_t trend = forecaster_getTrend();
 		int8_t cast = forecaster_getCast();
 		if(fl_tiny)
@@ -133,11 +134,11 @@ const char* currentPressureTemp (char *a, bool fl_tiny) {
 		if(fl_tiny)
 			sprintf_P(a, PSTR(" %+1.1f\xc2\xb0\x43%s%s%s"), t, ht, pt, ft);
 		else
-			sprintf_P(a, PSTR("%+1.1f\xc2\xb0\x43%s%s%s"), t, ht, pt, ft);
+			sprintf_P(a, PSTR("%s: %+1.1f\xc2\xb0\x43%s%s%s"), txt_inRoom[gs.language], t, ht, pt, ft);
 		return a;
 
 	}
-	else if(ws.forecast) {
+	else if(ws.pressure_dir) {
 		// если нет аппаратных датчиков, то вывести показания с сервера
 		if(fl_tiny)
 			sprintf_P(a, PSTR("%4i hPa%s"), weatherGetPressure(), ft);

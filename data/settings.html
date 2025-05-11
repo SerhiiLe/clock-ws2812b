@@ -28,6 +28,20 @@
 					</div>
 					<div class="one i b center">Общие настройки</div>
 					<div class="row">
+						<div>Язык отображения (display language)</span></div>
+						<div>
+							<select name="language">
+								<option value="0">English</option>
+								<option value="1">Русский</option>
+								<option value="2">Українська</option>
+							</select>
+						</div>
+					</div>
+					<div class="row">
+						<div>Название часов в локальной сети (mDNS)</div>
+						<div class="nb">http://<input name="clock_name" type="text" value="clock">.local</div>
+					</div>
+					<div class="row">
 						<div>Текст, который будет прокручен после включения часов</div>
 						<div><input name="str_hello" type="text" value="" class="m"></div>
 					</div>
@@ -52,6 +66,10 @@
 					<div class="row timerun">
 						<div>Время окончания ночного режима</div>
 						<div><input type="time" name="run_begin" value="00:00"></div>
+					</div>
+					<div class="row timerun2">
+						<div>Выключать дисплей во время ночного режима</div>
+						<div><input name="dsp_off" type="checkbox" value="1"></div>
 					</div>
 					<div class="row">
 						<div>Использовать широкий шрифт</div>
@@ -85,6 +103,18 @@
 					<div class="row">
 						<div>Периодичность синхронизации ntp. (1-255 часов)</div>
 						<div><input name="sync_time_period" type="number" value="8"></div>
+					</div>
+					<div class="one">
+						<div class="i b center">Координаты местности</div>
+						<div class="small">Нужно для определения времени восхода и захода солнца, установки часового пояса и летнего времени, получения погоды из интернета.</div>
+					</div>
+					<div class="row">
+						<div>Широта (LAT.itude)</div>
+						<div><input name="latitude" type="text" value="0.0" inputmode="decimal" pattern="[\-+]?[0-9]*[\.,]?[0-9]+" class="m"></div>
+					</div>
+					<div class="row">
+						<div>Долгота (LON.gitude)</div>
+						<div><input name="longitude" type="text" value="0.0" inputmode="decimal" pattern="[\-+]?[0-9]*[\.,]?[0-9]+" class="m"></div>
 					</div>
 					<div class="one i b center">Отображение времени и даты</div>
 					<div class="row">
@@ -133,8 +163,8 @@
 							<select name="date_short">
 								<option value="0">Нет</option>
 								<option value="1">Да</option>
-								<option value="2">Нет/3</option>
-								<option value="3">Да/3</option>
+								<option value="2">Нет/alt</option>
+								<option value="3">Да/alt</option>
 							</select>
 						</div>
 					</div>
@@ -244,14 +274,6 @@
 						<div>+ к яркости (от 1 до 255)</div>
 						<div><input name="br_add" type="number" value="1"></div>
 					</div>
-					<div class="row bright3">
-						<div>Широта (LAT.itude)</div>
-						<div><input name="latitude" type="text" value="0.0" inputmode="decimal" pattern="[\-+]?[0-9]*[.,]?[0-9]+" class="m"></div>
-					</div>
-					<div class="row bright3">
-						<div>Долгота (LON.gitude)</div>
-						<div><input name="longitude" type="text" value="0.0" inputmode="decimal" pattern="[\-+]?[0-9]*[.,]?[0-9]+" class="m"></div>
-					</div>
 					<div class="row br_time">
 						<div>Время начала увеличения яркости</div>
 						<div><input type="time" name="br_begin" value="00:00"></div>
@@ -326,11 +348,16 @@
 function show_run_block() {
 	switch(document.forms["settings"].elements["run_allow"].value) {
 		case "0":
+			toggle_by_class("timerun2",false);
+			toggle_by_class("timerun",false);
+			break;
 		case "2":
 			toggle_by_class("timerun",false);
+			toggle_by_class("timerun2",true);
 			break;
 		default:
 			toggle_by_class("timerun",true);
+			toggle_by_class("timerun2",true);
 	}
 }
 function show_color_block1() {
@@ -393,7 +420,6 @@ function show_bright_add_block() {
 	switch(document.forms["settings"].elements["boost_mode"].value) {
 		case "0":
 			toggle_by_class("bright2",false);
-			toggle_by_class("bright3",false);
 			toggle_by_class("br_time",false);
 			break;
 		case "1":
@@ -401,12 +427,10 @@ function show_bright_add_block() {
 		case "3":
 		case "4":
 			toggle_by_class("bright2",true);
-			toggle_by_class("bright3",true);
 			toggle_by_class("br_time",false);
 			break;
 		default:
 			toggle_by_class("bright2",true);
-			toggle_by_class("bright3",false);
 			toggle_by_class("br_time",true);
 	}
 }

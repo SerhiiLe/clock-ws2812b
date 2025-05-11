@@ -29,9 +29,11 @@
 #include "clock.h"
 #include "wifi_init.h"
 #include "webClient.h"
+#include "forecaster.h"
+#include "web_translation.h"
 
 #define HPP(txt, ...) HTTP.client().printf_P(PSTR(txt), __VA_ARGS__)
-const char* PROGMEM txt_save = "save";
+const char PROGMEM txt_save[] = "save";
 
 #ifdef ESP32
 WebServer HTTP(80);
@@ -54,6 +56,7 @@ void show_quote();
 void save_weather();
 void show_weather();
 void show_sensors();
+void show_forecast();
 void show();
 void sysinfo();
 void play();
@@ -124,6 +127,7 @@ void web_process() {
 		HTTP.on(F("/save_weather"), save_weather);
 		HTTP.on(F("/show_weather"), show_weather);
 		HTTP.on(F("/show_sensors"), show_sensors);
+		HTTP.on(F("/show_forecast"), show_forecast);
 		HTTP.on(F("/show"), show);
 		HTTP.on(F("/sysinfo"), sysinfo);
 		HTTP.on(F("/play"), play);
@@ -136,7 +140,7 @@ void web_process() {
 		HTTP.on(F("/registration"), registration);
 		HTTP.on(F("/status"), show_status);
 		HTTP.on(F("/who"), [](){
-			text_send(ts.clock_name);
+			text_send(gs.clock_name);
 		});
 		HTTP.onNotFound([](){
 			if(!fileSend(HTTP.uri()))
@@ -147,9 +151,9 @@ void web_process() {
 		LOG(println, PSTR("HTTP server started"));
 
 		#ifdef ESP32
-		if(MDNS.begin(ts.clock_name.c_str())) {
+		if(MDNS.begin(gs.clock_name)) {
 		#else // ESP8266
-		if(MDNS.begin(ts.clock_name, WiFi.localIP())) {
+		if(MDNS.begin(gs.clock_name.c_str(), WiFi.localIP())) {
 		#endif
 			MDNS.addService("http", "tcp", 80);
 			fl_mdns = true;
@@ -398,11 +402,23 @@ void save_settings() {
 	if(is_no_auth()) return;
 	need_save = false;
 
+	if( set_simple_int(F("language"), gs.language, 0, 2) ) {
+		if( ws.weather ) syncWeatherTimer.setNext(100);
+		if( qs.enabled ) quoteUpdateTimer.setNext(500);
+		if( ws.forecast ) syncForecastTimer.setNext(1000);
+	};
 	set_simple_string(F("str_hello"), gs.str_hello);
+	if(set_simple_string(F("clock_name"), gs.clock_name))
+		#ifdef ESP32
+			if(fl_mdns)	MDNS.setInstanceName(gs.clock_name);
+		#else // ESP8266
+			if(fl_mdns)	MDNS.setHostname(gs.clock_name.c_str());
+		#endif
 	set_simple_int(F("max_alarm_time"), gs.max_alarm_time, 1, 30);
 	set_simple_int(F("run_allow"), gs.run_allow, 0, 2);
 	set_simple_time(F("run_begin"), gs.run_begin);
 	set_simple_time(F("run_end"), gs.run_end);
+	set_simple_checkbox(F("dsp_off"), gs.dsp_off);
 	set_simple_checkbox(F("wide_font"), gs.wide_font);
 	set_simple_checkbox(F("show_move"), gs.show_move);
 	set_simple_int(F("delay_move"), gs.delay_move, 0, 10);
@@ -497,12 +513,6 @@ void save_telegram() {
 	set_simple_checkbox(F("use_move"), ts.use_move);
 	set_simple_checkbox(F("use_brightness"), ts.use_brightness);
 	set_simple_string(F("pin_code"), ts.pin_code);
-	if( set_simple_string(F("clock_name"), ts.clock_name) )
-		#ifdef ESP32
-		if(fl_mdns)	MDNS.setInstanceName(ts.clock_name.c_str());
-		#else // ESP8266
-		if(fl_mdns)	MDNS.setHostname(ts.clock_name.c_str());
-		#endif
 	set_simple_int(F("sensor_timeout"), ts.sensor_timeout, 1, 16000);
 	set_simple_string(F("tb_name"), ts.tb_name);
 	if( set_simple_string(F("tb_chats"), ts.tb_chats) )
@@ -584,7 +594,7 @@ void maintence() {
 	String name = "t";
 	if( HTTP.hasArg(name) ) {
 		int t = constrain(HTTP.arg(name).toInt(), 0, 255);
-		initRString(PSTR("Сброс"));
+		initRString(PSTR("Reset"),1,3);
 		if(t == 96) {
 			// сброс всех настроек (кроме wifi)
 			for(uint8_t i=0; i<=6; i++)
@@ -644,7 +654,7 @@ void save_alarm() {
 		mp3_stop();
 		fl_playStarted = false;
 	}
-	initRString(PSTR("Будильник установлен"));
+	initRString(txt_alarmOn[gs.language]);
 }
 
 // отключение будильника
@@ -658,7 +668,7 @@ void off_alarm() {
 			alarms[target].settings &= ~(512U);
 			save_config_alarms();
 			text_send_P(one);
-			initRString(PSTR("Будильник отключён"));
+			initRString(txt_alarmOff[gs.language]);
 		}
 	} else
 		text_send_P(zero);
@@ -703,7 +713,7 @@ void save_text() {
 	HTTP.send(303);
 	delay(1);
 	if( need_save ) save_config_texts();
-	initRString(PSTR("Текст установлен"));
+	initRString(txt_textOn[gs.language]);
 }
 
 // отключение бегущей строки
@@ -717,7 +727,7 @@ void off_text() {
 			texts[target].repeat_mode &= ~(512U);
 			save_config_texts();
 			text_send_P(one);
-			initRString(PSTR("Текст отключён"));
+			initRString(txt_textOff[gs.language]);
 		}
 	} else
 		text_send_P(zero);
@@ -1032,7 +1042,7 @@ void sysinfo() {
 	HPP("\"FullVersion\":\"%s\",", ESP.getFullVersion().c_str());
 	#endif
 	HPP("\"CpuFreqMHz\":%i,", ESP.getCpuFreqMHz());
-	HPP("\"BuildTime\":\"%s %s\"}", F(__DATE__), F(__TIME__));
+	HPP("\"BuildTime\":\"%s %s\"}", PSTR(__DATE__), PSTR(__TIME__));
 	#ifdef ESP8266
 	HTTP.client().stop();
 	#endif
@@ -1227,7 +1237,9 @@ void save_weather() {
 	if(is_no_auth()) return;
 	need_save = false;
 	bool need_weather = false;
+	bool need_forecast = false;
 	bool fl_change_color = false;
+	bool fl_change_colorF = false;
 
 	set_simple_checkbox(F("sensors"), ws.sensors);
 	set_simple_int(F("term_period"), ws.term_period, 20, 60000);
@@ -1257,9 +1269,25 @@ void save_weather() {
 	set_simple_checkbox(F("wind_direction2"), ws.wind_direction2);
 	set_simple_checkbox(F("wind_gusts"), ws.wind_gusts);
 	set_simple_checkbox(F("pressure_dir"), ws.pressure_dir);
-	set_simple_checkbox(F("forecast"), ws.forecast);
+	if( set_simple_int(F("altitude"), ws.altitude, -1000, 12000) )
+		forecaster_setH(ws.altitude);
+	need_forecast = set_simple_checkbox(F("forecast"), ws.forecast);
+	set_simple_int(F("forecast_days"), ws.forecast_days, 1, FORECAST_DAYS);
+	if(set_simple_int(F("sync_forecast_period"), ws.sync_forecast_period, 1, 12))
+		syncForecastTimer.setInterval(3600000U * ws.sync_forecast_period);
+	if(set_simple_int(F("show_forecast_period"), ws.show_forecast_period, 30, 3600))
+		messages[MESSAGE_FORECAST].timer.setInterval(1000U * ws.show_forecast_period);
+	if(set_simple_int(F("color_modeF"), ws.color_modeF, 0, 4))
+		fl_change_colorF = true;
+	if(set_simple_color(F("colorF"), ws.colorF))
+		fl_change_colorF = true;
+	set_simple_checkbox(F("weather_codeF"), ws.weather_codeF);
+	set_simple_checkbox(F("temperatureF"), ws.temperatureF);
+	set_simple_checkbox(F("wind_speedF"), ws.wind_speedF);
+	set_simple_checkbox(F("wind_directionF"), ws.wind_directionF);
 
 	if(fl_change_color) messages[MESSAGE_WEATHER].color = ws.color_mode > 0 ? ws.color_mode: ws.color;
+	if(fl_change_colorF) messages[MESSAGE_FORECAST].color = ws.color_modeF > 0 ? ws.color_modeF: ws.colorF;
 
 	HTTP.sendHeader(F("Location"),"/");
 	HTTP.send(303);
@@ -1272,6 +1300,13 @@ void save_weather() {
 			messages[MESSAGE_WEATHER].text = String(generate_weather_string(txt));
 		} else {
 			messages[MESSAGE_WEATHER].count = 0;
+		}
+		if( ws.forecast ) {
+			if( need_forecast ) syncForecastTimer.setNext(1000);
+			char txt[512];
+			messages[MESSAGE_FORECAST].text = String(generate_forecast_string(txt));
+		} else {
+			messages[MESSAGE_FORECAST].count = 0;
 		}
 	}
 	// initRString(PSTR("Настройки сохранены"));
@@ -1291,10 +1326,16 @@ void show_weather() {
 	text_send(String(generate_weather_string(txt)));
 }
 
+void show_forecast() {
+	if(is_no_auth()) return;
+	char txt[512];
+	text_send(String(generate_forecast_string(txt)));
+}
+
 void show_status() {
 	// char buf[100];
 	HTTP.client().print(PSTR("HTTP/1.1 200\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n{"));
-	HPP("\"hostname\":\"%s\",", ts.clock_name);
+	HPP("\"hostname\":\"%s\",", gs.clock_name.c_str());
 	HPP("\"is_auth\":%i,", HTTP.authenticate(gs.web_login.c_str(), gs.web_password.c_str()) && gs.web_password.length() > 0 ? 1 : 0);
 	HPP("\"use_i2c\":%i,", USE_I2C);
 	HPP("\"use_rtc\":%i,", USE_RTC);

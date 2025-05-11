@@ -26,6 +26,8 @@ extern uint8_t eeprom_chip;
 extern uint8_t rtc_chip;
 extern uint8_t address_bme280;
 extern unsigned long last_time_display;
+extern bool fl_action_move;
+extern bool fl_run_allow;
 
 // таймеры должны быть доступны в разных местах
 #include "timerMinim.h"
@@ -42,6 +44,7 @@ extern timerMinim showTermTimer;
 extern timerMinim syncWeatherTimer;
 extern timerMinim quoteUpdateTimer;
 extern timerMinim forecasterTimer;
+extern timerMinim syncForecastTimer;
 
 // управление плейером
 extern int mp3_all;
@@ -52,10 +55,13 @@ extern bool mp3_isInit;
 /*** определение глобальных перемененных, которые станут настройками ***/
 // файл config.json
 struct Global_Settings {
+	uint8_t language = DEFAULT_LANGUAGE; // язык отображения
 	String str_hello = "Start"; // строка которая выводится в момент запуска часов
+	String clock_name = "clock"; // название часов для mDNS
 	uint8_t max_alarm_time = 5; // максимальное время работы будильника
 	uint8_t run_allow = 0; // режим работы бегущей строки
 	uint16_t run_begin = 0; // время начала работы бегущей строки
+	uint8_t dsp_off = 1; // выключать дисплей во время ночного режима
 	uint16_t run_end = 1439; // время окончания работы бегущей строки
 	uint8_t wide_font = 0; // использовать обычный широкий шрифт
 	uint8_t show_move = 1; // включение светодиода датчика движения
@@ -106,7 +112,6 @@ struct Telegram_Settings {
 	uint8_t use_move = 1; // использовать датчик движения как датчик сигнализации
 	uint8_t use_brightness = 1; // использовать датчик освещения как датчик сигнализации
 	String pin_code = "def555"; // пин-код доступа к отправке сообщений в телеграм другим устройствам
-	String clock_name = "clock"; // название часов для mDNS
 	uint16_t sensor_timeout = 20; // время в течении которого сенсор считается действующим, в минутах
 	String tb_name = ""; // имя бота, адрес. Свободная строка, только для справки
 	String tb_chats = ""; // чаты из которых разрешено принимать команды
@@ -171,8 +176,17 @@ struct Weather_Settings {
 	uint8_t wind_direction2 = 1;
 	uint8_t wind_gusts = 1;
 	uint8_t pressure_dir = 1;
-	uint8_t forecast = 1;
 	int16_t altitude = 50;
+	uint8_t forecast = 1;
+	uint8_t forecast_days = 2;
+	uint8_t sync_forecast_period = 6;
+	uint8_t show_forecast_period = 120;
+	uint8_t color_modeF = 0; // режим цвета, как везде (0 )
+	uint32_t colorF = 0xFFFFFF; // по умолчанию - белый
+	uint8_t weather_codeF = 1;
+	uint8_t temperatureF = 1;
+	uint8_t wind_speedF = 1;
+	uint8_t wind_directionF = 1;
 };
 extern Weather_Settings ws;
 
@@ -219,8 +233,9 @@ extern temp_text messages[];
 #define MESSAGE_WEB 0       // номер сообщения отправленного через WEB или MQTT
 #define MESSAGE_WEATHER 1   // номер сообщения с информацией о погоде
 #define MESSAGE_QUOTE 2     // номер сообщения с цитатой
+#define MESSAGE_FORECAST 3   // номер сообщения с прогнозом погоды
 // и того:
-#define MAX_TMP_MESSAGES 3	// количество слотов для временных строк
+#define MAX_TMP_MESSAGES 4	// количество слотов для временных строк
 
 /*** определение массива сенсоров (внешних устройств, входящих в сеть) ***/
 
@@ -236,6 +251,8 @@ extern const byte fontSemicolon[][4] PROGMEM;
 extern bool fl_tiny_clock;
 extern bool screenIsFree;
 extern uint8_t hue_shift;
+
+#define LANGUAGES 3 // количество языков, нужно для проверки корректности при компиляции, но не для работы
 
 // номера шрифтов для циферблата
 #define FONT_NORMAL 0

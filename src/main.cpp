@@ -2,8 +2,8 @@
  * @file main.cpp
  * @author Serhii Lebedenko (slebedenko@gmail.com)
  * @brief Clock
- * @version 2.3.2
- * @date 2025-05-02
+ * @version 2.4.0
+ * @date 2025-05-11
  * 
  * @copyright Copyright (c) 2021,2022,2023,2024,2025
  */
@@ -35,6 +35,7 @@
 #include "webClient.h"
 #include "rtc.h"
 #include "barometer.h"
+#include "forecaster.h"
 #include "nvram.h"
 
 #if SENSOR_BUTTON == 1
@@ -58,6 +59,7 @@ timerMinim syncWeatherTimer(60000U * ws.sync_weather_period); // таймер о
 timerMinim quoteUpdateTimer(900000U * (qs.update+1));	// периодичность обновления цитат
 timerMinim showTermTimer(1000U * ws.term_period);	// таймер для показа информации о температуре
 timerMinim forecasterTimer(1800000U); // время обновления данных для предсказателя погоды, всегда 30 минут
+timerMinim syncForecastTimer(3600000U * ws.sync_forecast_period); // периодичность обновления погоды на три дня
 
 // файловая система подключена
 bool fs_isStarted = false;
@@ -287,6 +289,7 @@ bool boot_check() {
 		case 14: // Сброс таймеров обновления погоды и цитат, для быстрого первого запроса
 			syncWeatherTimer.setNext(5000);
 			quoteUpdateTimer.setNext(9000);
+			syncForecastTimer.setNext(15000);
 			break;
 
 		default:
@@ -359,6 +362,8 @@ void network_pool() {
 			if(qs.enabled && quoteUpdateTimer.isReady()) quoteUpdate();
 			// обновление погоды с сервера
 			if(ws.weather && syncWeatherTimer.isReady()) weatherUpdate();
+			// обновление прогноза погоды
+			if(ws.forecast && syncForecastTimer.isReady()) weatherUpdate(FORECAST);
 			// при сбоях сети повтор будет не раньше, чем новое время синхронизации, а до тех пор выводится старая информация
 		}
 		// если был отправлен запрос на NTP сервер, то подождать и выполнить операции, как будто он выполнился
@@ -599,7 +604,15 @@ void loop() {
 			save_log_file(SEC_TEXT_MOVE);
 		}
 	}
+	#else
+	// заглушка, чтобы отключать экран даже, если нет датчика движения, но активен ночной режим. Просто отключать пока не закончится ночной режим.
+	if((gs.dsp_off && ! fl_run_allow) == fl_allowLEDS) fl_allowLEDS = !(gs.dsp_off && ! fl_run_allow);
 	#endif
+
+	// обновление данных (температура и давление) для автономного предсказания погоды, не путать с интернетом
+	if(forecasterTimer.isReady()) {
+		forecaster_update_data();
+	}
 
 	if(autoBrightnessTimer.isReady() && fl_5v) {
 		int16_t cur_brightness = analogRead(PIN_PHOTO_SENSOR);

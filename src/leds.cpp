@@ -196,11 +196,15 @@ void display_tick(bool clear) {
 		if( clear ) FastLED.clearData();
 		drawString();
 	}
-
+	// питания 5V нет и нет разрешения на отображение - матрица не запитана и нет смысла выводить
 	if(!fl_allowLEDS) return;
+	// нет отдельного светодиода для индикации движения, засветить нижний левый светодиод зелёным
 	#ifndef LED_MOTION
 	if(fl_led_motion) drawPixelXY(WIDTH - 1, 0, CRGB::Green);
 	#endif
+ 	// выключение матрицы в ночном режиме и нет движения - погасить все светодиоды
+	if(gs.dsp_off && !fl_action_move && !fl_run_allow && !fl_led_motion) FastLED.clearData();
+
 	unsigned long start = 0;
 	// вывод часто срывается, по этому выводить кадр пока не получится. Признак неудачи - отклонение > 25%
 	do {

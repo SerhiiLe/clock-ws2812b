@@ -57,7 +57,7 @@
 					</div>
 					<div class="row">
 						<div>Корректировка показаний температуры (-100..+100)</div>
-						<div><input name="term_cor" type="text" value="0.0" inputmode="decimal" pattern="[-+]?[0-9]*[.,]?[0-9]+"></div>
+						<div><input name="term_cor" type="text" value="0.0" inputmode="decimal" pattern="[\-+]?[0-9]*[\.,]?[0-9]+"></div>
 					</div>
 					<div class="row">
 						<div>Корректировка показаний давления (-1000..+1000)</div>
@@ -80,8 +80,8 @@
 						<p id="cur_weather"></p>
 					</fieldset>
 					<div class="row">
-						<div>Периодичность обновления информации о погоде (&gt;15 мин.)</div>
-						<div>
+						<div>Периодичность обновления информации о погоде</div>
+						<div class="nb">
 							<select name="sync_weather_period">
 								<option value="15">15</option>
 								<option value="30">30</option>
@@ -155,20 +155,83 @@
 						</div>
 					</fieldset>
 				</div>
-				<div class="forecast">
+				<div class="predict">
 					<div class="one i b center">Автономный прогноз погоды</div>
 					<div class="row">
-						<div>Показывать изменение атмосферного давления</div>
-						<div><input name="pressure_dir" type="checkbox" value="1"></div>
-					</div>
-					<div class="row">
-						<div>Краткосрочный прогноз на основе атмосферного давления</div>
-						<div><input name="forecast" type="checkbox" value="1" onchange="show_altitude_block()"></div>
+						<div>Показывать изменение атмосферного давления и краткосрочный прогноз</div>
+						<div><input name="pressure_dir" type="checkbox" value="1" onchange="show_altitude_block()"></div>
 					</div>
 					<div class="row altitude">
 						<div>Высота местности над уровнем моря в метрах (можно посмотреть в гугле)</div>
 						<div><input name="altitude" type="number" value="60"></div>
 					</div>
+				</div>
+				<div class="one i b center">Прогноз погоды из Internet</div>
+				<div class="row">
+					<div>Использовать прогноз погоды из&nbsp;<a href="https://open-meteo.com/en/docs" target="_blank" class="nb">https://open-meteo.com</a>
+						<br><span class="small">(надо указать координаты в <a href="settings.html" target="_blank">настройках</a>)</span></div>
+					<div><input name="forecast" type="checkbox" value="1" onchange="show_forecast_block()"></div>
+				</div>
+				<div class="forecast">
+					<fieldset style="margin-bottom: 1em;">
+						<legend>Погода из Internet сейчас:</legend>
+						<p id="cur_forecast"></p>
+					</fieldset>
+					<div class="row">
+						<div>Количество дней (1-3):</div>
+						<div><input type="number" name="forecast_days" value="2"></div>
+					</div>
+					<div class="row">
+						<div>Периодичность обновления информации о погоде</div>
+						<div class="nb">
+							<select name="sync_forecast_period">
+								<option value="1">1</option>
+								<option value="3">3</option>
+								<option value="6">6</option>
+								<option value="12">12</option>
+							</select>
+							часов
+						</div>
+					</div>
+					<div class="row">
+						<div>Периодичность вывода погоды на экран (30-3600):</div>
+						<div class="nb"><input type="number" name="show_forecast_period" value="120"> секунд</div>
+					</div>
+					<div class="row">
+						<div>Режим цвета для погоды</div>
+						<div>
+							<select name="color_modeF" onchange="show_color_block('colorF', 'color_modeF')">
+								<option value="0">Один</option>
+								<option value="1">Радуга</option>
+								<option value="2">Радуга2</option>
+								<option value="3">Разные</option>
+								<option value="4">Разные2</option>
+							</select>
+						</div>
+					</div>
+					<div class="row colorF">
+						<div>Цвет цифр (<span class="red">RR</span><span class="green">GG</span><span class="blue">BB</span>)</div><div class="color_demo" id="color"></div>
+						<div class="fix"><input name="colorF" type="color" value="#FFFFFF" oninput="color_demo(this)"></div>
+					</div>
+					<fieldset>
+						<legend>Отображать:</legend>
+						<div class="row">
+							<div>Расшифровку погоды</div>
+							<div><input name="weather_codeF" type="checkbox" value="1"></div>
+						</div>
+						<div class="row">
+							<div>Температуру</div>
+							<div><input name="temperatureF" type="checkbox" value="1"></div>
+						</div>
+						<div class="row">
+							<div>Скорость ветра</div>
+							<div><input name="wind_speedF" type="checkbox" value="1"></div>
+						</div>
+						<div class="row">
+							<div>Направление ветра</div>
+							<div><input name="wind_directionF" type="checkbox" value="1"></div>
+						</div>
+					</fieldset>
 				</div>
 				<button>Сохранить</button>
 			</form>
@@ -186,27 +249,33 @@ function show_sensors_block() {
 		toggle_by_class("sensors",true);
 	else
 		toggle_by_class("sensors",false);
-	show_forecast_block();
+	show_predict_block();
 }
 function show_weather_block() {
 	if(document.forms["settings"].elements["weather"].checked)
 		toggle_by_class("weather",true);
 	else
 		toggle_by_class("weather",false);
-	show_forecast_block();
+	show_predict_block();
 }
-function show_forecast_block() {
+function show_predict_block() {
 	if(document.forms["settings"].elements["weather"].checked ||
 		document.forms["settings"].elements["sensors"].checked)
-		toggle_by_class("forecast",true);
+		toggle_by_class("predict",true);
 	else
-		toggle_by_class("forecast",false);
+		toggle_by_class("predict",false);
 }
 function show_altitude_block() {
-	if(document.forms["settings"].elements["forecast"].checked)
+	if(document.forms["settings"].elements["pressure_dir"].checked)
 		toggle_by_class("altitude",true);
 	else
 		toggle_by_class("altitude",false);
+}
+function show_forecast_block() {
+	if(document.forms["settings"].elements["forecast"].checked)
+		toggle_by_class("forecast",true);
+	else
+		toggle_by_class("forecast",false);
 }
 function start() {
 	if (typeof ajaxRequest !== "undefined") {
@@ -214,9 +283,11 @@ function start() {
 			show_sensors_block();
 			show_weather_block();
 			show_altitude_block();
+			show_forecast_block();
 			init_color_demo();
 			show_color_block();
 			show_color_block('color00', 'term_color_mode');
+			show_color_block('colorF', 'color_modeF')
 			$g("shadow").style.display = "none";
 		});
 		ajaxRequest("show_sensors", "GET", null, function(ajaxResp) {
@@ -224,6 +295,9 @@ function start() {
 		}, dummy);
 		ajaxRequest("show_weather", "GET", null, function(ajaxResp) {
 			$g("cur_weather").innerHTML = ajaxResp.responseText;
+		}, dummy);
+		ajaxRequest("show_forecast", "GET", null, function(ajaxResp) {
+			$g("cur_forecast").innerHTML = ajaxResp.responseText;
 		}, dummy);
 	} else setTimeout(start, 100);
 }
