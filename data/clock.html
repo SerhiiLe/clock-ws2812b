@@ -16,8 +16,8 @@
 <html>
 	<body>
 		<div class="head">
-			Управление часами.
-			<div>установка даты и времени</div>
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="am_time">Setting the time</div>
 		</div>
 		<div class="content">
 			<form action="clock" autocomplete="off" method="post" name="clock">
@@ -26,24 +26,24 @@
 				<table class="params">
 					<tbody>
 						<tr>
-							<td>Время</td>
+							<td i18="time">Time</td>
 							<td><input type="time" name="time" value="00:00"></td>
 						</tr>
 						<tr>
-							<td>Дата</td>
+							<td i18="date">Date</td>
 							<td><input type="date" name="date" value="0000-00-00" style="width: auto;"></td>
 						</tr>
 					</tbody>
 				</table>
-				<button>Сохранить</button>
-				<button onclick="set_browser_time();">Из броузера</button>
-				<button onclick="document.clock.t.value = 2;">Запросить NTP</button>
+				<button i18="save">Save</button>
+				<button onclick="set_browser_time();" i18="cs_browser">From the browser</button>
+				<button onclick="document.clock.t.value = 2;" i18="cs_ntp">Request NTP</button>
 			</form>
 		</div>
 		<div class="footer">
-			<a href="maintenance.html">Вернуться</a>
+			<a href="maintenance.html" i18="return">Return</a>
 		</div>
-		<div id="shadow"><div>Загрузка...</div></div>
+		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
 function t10(t) {
@@ -59,7 +59,7 @@ function set_browser_time() {
 function start() {
 	if (typeof ajaxRequest !== "undefined") {
 		fill_settings("clock","clock", () => {
-			$g("shadow").style.display = "none";
+			localization(null, ()=> {$g("shadow").style.display = "none";});
 		});
 	} else setTimeout(start, 100);
 }

@@ -12,8 +12,8 @@
 <html>
 	<body>
 		<div class="head">
-			Управление часами.
-			<div>обновление прошивки</div>
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="am_update">Firmware update</div>
 		</div>
 		<div style="text-align: center;">
 			<form method='POST' action='/update' enctype='multipart/form-data'>
@@ -28,7 +28,15 @@
 			</form>
 		</div>
 		<div class="footer">
-			<a href="maintenance.html">Вернуться</a>
+			<a href="maintenance.html" i18="return">Return</a>
 		</div>
 	</body>
+<script type="text/javascript" encoding="UTF-8">
+function start() {
+	if (typeof ajaxRequest !== "undefined") {
+		localization(null, null);
+	} else setTimeout(start, 100);
+}
+start();
+</script>
 </html>

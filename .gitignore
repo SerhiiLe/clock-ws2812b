@@ -4,5 +4,6 @@
 .vscode/launch.json
 .vscode/ipch
 data/*.json
-data/log*
+!data/localization_*.json
+data/log*.txt
 lib

@@ -16,15 +16,15 @@
 <html>
 	<body>
 		<div class="head">
-			Управление часами.
-			<div>настройка режима бегущей строки</div>
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="set_run_str">setting up the ticker mode</div>
 		</div>
 		<div class="content">
 			<table class="params" id="list">
 				<thead>
 					<tr>
-						<th>Текст</th>
-						<th>Вкл.</th>
+						<th i18="text">Text</th>
+						<th i18="on">On</th>
 					</tr>
 				</thead>
 				<tbody id="list_items">
@@ -36,58 +36,59 @@
 					<div class="holder narrow">
 						<div class="one"><input type="text" name="text" value="" class="long"></div>
 						<div class="row">
-							<div>Периодичность показа в секундах (30..3600)</div>
+							<div i18="disp_freq">Display frequency in seconds (30..3600)</div>
 							<div><input name="period" value="60"></div>
 						</div>
 						<div class="row">
-							<div>Режим цвета</div>
+							<div i18="color_mode">Color mode</div>
 							<div>
 								<select name="color_mode" onchange="show_color_block()">
-									<option value="0">Один</option>
-									<option value="1">Радуга</option>
-									<option value="2">Радуга2</option>
-									<option value="3">Разные</option>
-									<option value="4">Разные2</option>
+									<option value="0" i18="one">One</option>
+									<option value="1" i18="rainbow">Rainbow</option>
+									<option value="2"><span i18="rainbow">Rainbow</span> 2</option>
+									<option value="3" i18="different">Different</option>
+									<option value="4"><span i18="different">Different</span> 2</option>
 								</select>
 							</div>
 						</div>
 						<div class="row color0">
-							<div>Цвет цифр (<span class="red">RR</span><span class="green">GG</span><span class="blue">BB</span>)</div><div class="color_demo" id="color"></div>
+							<div><span i18="color_text">Text color</span> (<span class="red">RR</span><span class="green">GG</span><span class="blue">BB</span>)</div><div class="color_demo" id="color"></div>
 							<div class="fix"><input name="color" type="color" value="#FFFFFF" oninput="color_demo(this)"></div>
 						</div>
 						<div class="row">
-							<div>Режим повтора</div>
+							<div i18="repeat_mode">Repeat mode</div>
 							<div>
 								<select name="rmode" id="rmode" onchange="select_days()">
-									<option value="0">всегда</option>
-									<option value="1">по дате</option>
-									<option value="2">по дням</option>
-									<option value="3">1 день</option>
+									<option value="0" i18="always">always</option>
+									<option value="1" i18="by_date">by date</option>
+									<option value="2" i18="by_days">by days</option>
+									<option value="3" i18="1_day">1 day</option>
 								</select>
 							</div>
 						</div>
 						<div class="row sel_day">
-							<div>Число месяца (от 1 до 31)</div>
+							<div i18="day_mon">Day of the month (1 to 31)</div>
 							<div><input type="number" name="sel_day" value="1"></div>
 						</div>
-						<div class="row sel_days"><div>Понедельник</div><div><input type="checkbox" name="mo" value="1"></div></div>
-						<div class="row sel_days"><div>Вторник</div><div><input type="checkbox" name="tu" value="1"></div></div>
-						<div class="row sel_days"><div>Среда</div><div><input type="checkbox" name="we" value="1"></div></div>
-						<div class="row sel_days"><div>Четверг</div><div><input type="checkbox" name="th" value="1"></div></div>
-						<div class="row sel_days"><div>Пятница</div><div><input type="checkbox" name="fr" value="1"></div></div>
-						<div class="row sel_days"><div>Суббота</div><div><input type="checkbox" name="sa" value="1"></div></div>
-						<div class="row sel_days"><div>Воскресенье</div><div><input type="checkbox" name="su" value="1"></div></div>
+						<div class="row sel_days"><div i18="mon">Monday</div><div><input type="checkbox" name="Mo" value="1"></div></div>
+						<div class="row sel_days"><div i18="tue">Tuesday</div><div><input type="checkbox" name="Tu" value="1"></div></div>
+						<div class="row sel_days"><div i18="wed">Wednesday</div><div><input type="checkbox" name="We" value="1"></div></div>
+						<div class="row sel_days"><div i18="thu">Thursday</div><div><input type="checkbox" name="Th" value="1"></div></div>
+						<div class="row sel_days"><div i18="fri">Friday</div><div><input type="checkbox" name="Fr" value="1"></div></div>
+						<div class="row sel_days"><div i18="sat">Saturday</div><div><input type="checkbox" name="Sa" value="1"></div></div>
+						<div class="row sel_days"><div i18="sun">Sunday</div><div><input type="checkbox" name="Su" value="1"></div></div>
 					</div>
-					<button>Сохранить</button>
+					<button i18="save">Save</button>
 				</form>
 			</div>
 		</div>
 		<div class="footer">
-			<a href="index.html" id="return">Вернуться</a>
+			<a href="index.html" id="return" i18="return">Return</a>
 		</div>
-		<div id="shadow"><div>Загрузка...</div></div>	
+		<div id="shadow"><div>Loading...</div></div>	
 	</body>
 <script type="text/javascript" encoding="UTF-8">
+const days = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 function show_edit(i) {
 	// if(! $g("e"+i).checked) return;
 	var f = document.forms["settings"];
@@ -102,7 +103,6 @@ function show_edit(i) {
 	f.elements["rmode"].selectedIndex = t;
 	select_days();
 	var bit = 1;
-	var days = ["su","mo","tu","we","th","fr","sa"];
 	for(t=0; t<7; t++) {
 		if(doc[i].r & bit) f.elements[days[t]].checked = true;
 		else f.elements[days[t]].checked = false;
@@ -140,23 +140,25 @@ function start() {
 				var sp2 = $e("div",{class:"small top_line"});
 				switch((doc[i].r >> 7) & 3) {
 					case 1:
-						sp2.innerHTML = "каждого " + (doc[i].r >> 10) + "-го числа";
+						const suffix = ["st", "nd", "rd", "th"];
+						var si = (doc[i].r >> 10) - 1;
+						if(si>3) si = 3;
+						sp2.innerHTML = "<span i18='every'>every</span> " + (doc[i].r >> 10) + "<span i18='every_d_mon'>" + suffix[si] + " day of the month</span>";
 						break;
 					case 2:
-						var days = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
 						var bit = 2;
-						sp2.innerHTML = "По:";
+						sp2.innerHTML = "<span i18='on_d'>On:</span>";
 						for(var t=1; t<7; t++) {
-							if(doc[i].r & bit) sp2.innerHTML += " "+days[t];
+							if(doc[i].r & bit) sp2.innerHTML += " <span i18='"+days[t]+"'>"+days[t]+"</span>";
 							bit = bit << 1;
 						}
-						if(doc[i].r & 1) sp2.innerHTML += " "+days[0];
+						if(doc[i].r & 1) sp2.innerHTML += " <span i18='"+days[0]+"'>"+days[0]+"</span>";
 						break;
 					case 3:
-						sp2.innerHTML = "до конца дня";
+						sp2.innerHTML = "<span i18='until_end_day'>until the end of the day</span>";
 						break;
 					default:
-						sp2.innerHTML = "пока включён";
+						sp2.innerHTML = "<span i18='while_on'>while on</span>";
 				}
 				var fl = doc[i].r & 512;
 				var td1 = $em("td",[sp1,sp2],{class:(fl?"on":"off"),id:"t"+i,onclick:"show_edit("+i+")"});
@@ -164,7 +166,7 @@ function start() {
 				if(fl) input.checked = true;
 				li.appendChild($em("tr",[td1,$ee("td",input)]));
 			}
-			$g("shadow").style.display = "none";
+			localization(null, ()=> {$g("shadow").style.display = "none";});
 		}, dummy);
 	} else setTimeout(start, 100);
 }

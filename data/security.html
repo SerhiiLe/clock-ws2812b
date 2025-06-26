@@ -16,21 +16,21 @@
 <html>
 	<body>
 		<div class="head">
-			Управление часами.
-			<div>охранные функции</div>
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="sm_title">security functions</div>
 		</div>
 		<div class="menu">
-			<a href="#" onclick="onoff('security'); return false;">Режим охраны (<span id="security"></span>)</a>
-			<a href="telegram.html">Настройки</a>
-			<a href="sensors.html">Датчики</a>
-			<a href="#" onclick="show_log(); return false;">Последние события</a>
-			<a href="#" onclick="show_allLog(); return false;">Все события</a>
+			<a href="#" onclick="onoff('security'); return false;"><span i18="sm_sec">Security mode</span> (<span id="security"></span>)</a>
+			<a href="telegram.html" i18="settings">Settings</a>
+			<a href="sensors.html" i18="sm_sensors">Sensors</a>
+			<a href="#" onclick="show_log(); return false;" i18="sm_last">Latest events</a>
+			<a href="#" onclick="show_allLog(); return false;" i18="sm_all">All events</a>
 		</div>
 		<div id="log" class="logs"></div>
 		<div class="footer">
-			<a href="index.html">Вернуться</a>
+			<a href="index.html" i18="return">Return</a>
 		</div>
-		<div id="shadow"><div>Загрузка...</div></div>
+		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
 var doc = {};
@@ -102,7 +102,7 @@ function start() {
 		ajaxRequest("security.json","GET",null, function(ajaxResp) {
 			doc = JSON.parse(ajaxResp.responseText);
 			$g("security").innerHTML = doc["sec_enable"] ? "On": "Off";
-			$g("shadow").style.display = "none";
+			localization(null, ()=> {$g("shadow").style.display = "none";});
 		}, dummy);
 	} else setTimeout(start, 100);
 }

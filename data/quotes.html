@@ -16,26 +16,26 @@
 <html>
 	<body>
 		<div class="head">
-			Управление часами.
-			<div>настройка цитат</div>
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="quote_settings">setting up quotes</div>
 		</div>
-		<div class="content holder narrow">
+		<div class="content holder">
 			<form action="save_quote" autocomplete="off" method="post" name="settings">
 				<div class="row">
-					<div>Включить отображение цитат:</div>
-					<div><input type="checkbox" name="enabled" value="1" onchange="show_all_block()"></div>
+					<div i18="q_enable">Enable display of quotes</div>
+					<div><input type="checkbox" name="enabled" value="1" onchange="show_block('enabled','all')"></div>
 				</div>
 				<div class="all">
 					<fieldset>
-						<legend>Текущий текст</legend>
+						<legend i18="q_now">Current text</legend>
 						<p id="cur_text"></p>
 					</fieldset>
 					<div class="row">
-						<div>Периодичность вывода цитаты на экран (30-3600):</div>
-						<div class="nb"><input type="number" name="period" value="120"> секунд</div>
+						<div i18="q_d_int">Frequency of displaying a quote on the screen (30-3600)</div>
+						<div class="nb"><input type="number" name="period" value="120"> <span i18="seconds">seconds</span></div>
 					</div>
 					<div class="row">
-						<div>Обновлять текст каждые:</div>
+						<div i18="q_poll">Update quote every</div>
 						<div>
 							<select name="update">
 								<option value="0">15</option>
@@ -43,61 +43,61 @@
 								<option value="2">45</option>
 								<option value="3">60</option>
 							</select>
-							минут
+							<span i18="minutes">minutes</span>
 						</div>
 					</div>
 					<div class="row">
-						<div>Режим цвета</div>
+						<div i18="color_mode">Color mode</div>
 						<div>
 							<select name="color_mode" onchange="show_color_block()">
-								<option value="0">Один</option>
-								<option value="1">Радуга</option>
-								<option value="2">Радуга2</option>
-								<option value="3">Разные</option>
-								<option value="4">Разные2</option>
+								<option value="0" i18="one">One</option>
+								<option value="1" i18="rainbow">Rainbow</option>
+								<option value="2"><span i18="rainbow">Rainbow</span> 2</option>
+								<option value="3" i18="different">Different</option>
+								<option value="4"><span i18="different">Different</span> 2</option>
 							</select>
 						</div>
 					</div>
 					<div class="row color0">
-						<div>Цвет цифр (<span class="red">RR</span><span class="green">GG</span><span class="blue">BB</span>)</div><div class="color_demo" id="color"></div>
+						<div><span i18="color_text">Text color</span> (<span class="red">RR</span><span class="green">GG</span><span class="blue">BB</span>)</div><div class="color_demo" id="color"></div>
 						<div class="fix"><input name="color" type="color" value="#FFFFFF" oninput="color_demo(this)"></div>
 					</div>
 					<div class="row">
-						<div>Сервер цитат:</div>
+						<div i18="q_server">Quotes server</div>
 						<select name="server" onchange="show_own_block()">
 							<option value="0">forismatic.com</option>
 							<option value="1">ultragenerator.com</option>
-							<option value="2">Свой</option>
+							<option value="2" i18="own">Own</option>
 						</select>
 					</div>
 					<div class="row">
-						<div>Язык цитат: <span class="small">(В зависимости от сервера может принимать разные значения, или вообще отсутствовать. Надо пробовать.)</span></div>
+						<div i18="q_lang">Language of quotations <span class="small">(<span i18="q_lang2">Depending on the server, it may take different values, or be absent altogether. You need to try.</span>)</span></div>
 						<select name="lang">
-							<option value="0">нет</option>
+							<option value="0" i18="none">none</option>
 							<option value="1">en</option>
 							<option value="2">ru</option>
 							<option value="3">uk</option>
 						</select>
 					</div>
 					<div class="one own">
-						<div>Свой сервер:
-							<span class="small">(https запросы выполняются очень медленно и вызывают заметное замирание часов, при возможности лучше использовать http)</span>
+						<div><span i18="q_own_s">Your own server</span>
+							<span class="small">(<span i18="q_oun_s2">https requests are very slow and cause noticeable clock freezes, it is better to use http if possible</span>)</span>
 						</div>
 						<input class="long" type="text" name="url" placeholder="http://api.forismatic.com/api/1.0/">
 					</div>
 					<div class="one own">
-						<div>Параметры: <span class="small">(код языка можно вписать прямо сюда или оставить "=" в конце)</span></span></div>
+						<div><span i18="q_param">Parameters</span> <span class="small">(<span i18="q_param2">You can enter the language code directly here or leave the "=" at the end</span>)</span></span></div>
 						<input class="long" type="text" name="params" placeholder="method=getQuote&format=text&lang=">
 					</div>
 					<div class="row own">
-						<div>Тип запроса:</div>
+						<div i18="q_req_t">Request type</div>
 						<select name="method">
 							<option value="0">GET</option>
 							<option value="1">POST</option>
 						</select>
 					</div>
 					<div class="row own">
-						<div>Результат возвращается в:</div>
+						<div i18="q_result">The result is returned to</div>
 						<select name="type" onchange="show_fields_block()">
 							<option value="0">Text</option>
 							<option value="1">JSON</option>
@@ -106,31 +106,25 @@
 					</div>
 					<div class="fields">
 						<div class="one own">
-							<div>Название поля с цитатой:</div>
+							<div i18="q_field">Quote field name</div>
 							<input class="long" type="text" name="quote_field" placeholder="quote">
 						</div>
 						<div class="one own">
-							<div>Название поля с автором <span class="small">(или пусто, если не надо)</span>:</span></div>
+							<div><span i18="q_author">Field name with author</span> <span class="small">(<span i18="q_author2">or empty if not needed</span>)</span>:</span></div>
 							<input class="long" type="text" name="author_field" placeholder="quoteAuthor">
 						</div>
 					</div>
 				</div>
-				<button>Сохранить</button>
+				<button i18="save">Save</button>
 			</form>
 		</div>
 		<div class="footer">
-			<a href="index.html" id="return">Вернуться</a>
+			<a href="index.html" id="return" i18="return">Return</a>
 		</div>
 		<div id="debug"><div>
-		<div id="shadow"><div>Загрузка...</div></div>
+		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
-function show_all_block() {
-	if(document.forms["settings"].elements["enabled"].checked)
-		toggle_by_class("all",true);
-	else
-		toggle_by_class("all",false);
-}
 function show_own_block() {
 	switch(document.forms["settings"].elements["server"].value) {
 		case "2":
@@ -152,11 +146,11 @@ function start() {
 			$g("cur_text").innerHTML = ajaxResp.responseText;
 			fill_settings("quote.json","settings", () => {
 				show_own_block();
-				show_all_block();
+				show_block('enabled','all');
 				init_color_demo();
 				show_color_block();
 				show_fields_block();
-				$g("shadow").style.display = "none";
+				localization(null, ()=> {$g("shadow").style.display = "none"});
 			});
 		}, dummy);
 	} else setTimeout(start, 100);

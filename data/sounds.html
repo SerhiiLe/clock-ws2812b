@@ -16,15 +16,15 @@
 <html>
 	<body>
 		<div class="head">
-			Управление часами.
-			<div>прослушивание звуков</div>
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="snd_listen">listening to sounds</div>
 		</div>
 		<div class="content">
 			<table class="generic">
 				<tr>
 					<td colspan="2" class="center">
 						<input type="number" value="1" name="cur" class="big ss" id="cur" onkeypress="sendTr(event)" onfocus="fl_busy=true;" onfocusout="fl_busy=false;">
-						 из <span id="col">0</span> <span id="status"></span>
+						 <span i18="from">from</span> <span id="col">0</span> <span id="status"></span>
 					</td>
 				</tr>
 				<tr>
@@ -32,19 +32,19 @@
 					<td><button onclick="send(2)">&gt;&gt;</button></td>
 				</tr>
 				<tr>
-					<td><button onclick="send(3)">играть</button></td>
-					<td><button onclick="send(4)">пауза</button></td>
+					<td><button onclick="send(3)" i18="snd_play">play</button></td>
+					<td><button onclick="send(4)" i18="snd_pause">pause</button></td>
 				</tr>
 				<tr>
 					<td>
 						<select name="repeat" oninput="send(5)" id="repeat">
-							<option value="0">не повторять</option>
-							<option value="1">повторять одну</option>
-							<option value="2">повторять все</option>
-							<option value="3">случайная</option>
+							<option value="0" i18="snd_no_rep">do not repeat</option>
+							<option value="1" i18="snd_rep_one">repeat one</option>
+							<option value="2" i18="snd_rep_all">repeat all</option>
+							<option value="3" i18="snd_random">random</option>
 						</select>
 					</td>
-					<td><button onclick="send(6)">остановить</button></td>
+					<td><button onclick="send(6)" i18="snd_stop">stop</button></td>
 				</tr>
 				<!-- <tr>
 					<td><button onclick="send(7)">Тише</button></td>
@@ -53,7 +53,7 @@
 				<tr>
 					<td colspan="2">
 						<div>
-							громкость: <span id="volume">0</span> <span id="wait"></span>
+							<span i18="volume">volume</span>: <span id="volume">0</span> <span id="wait"></span>
 						</div>
 						<input type="range" min="1" max="30" step="1" value="15" class="long" id="vol" oninput="sendVol()">
 					</td>
@@ -61,9 +61,9 @@
 			</table>
 		</div>
 		<div class="footer">
-			<a href="index.html">Вернуться</a>
+			<a href="index.html" i18="return">Return</a>
 		</div>
-		<div id="shadow"><div>Загрузка...</div></div>
+		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
 function update_info() {
@@ -87,7 +87,7 @@ function start() {
 		ajaxRequest("play","GET",null, function(ajaxResp) {
 			show(ajaxResp.responseText.split(":"));
 			update_info();
-			$g("shadow").style.display = "none";
+			localization(null, ()=> {$g("shadow").style.display = "none";});
 		}, dummy);
 	} else setTimeout(start, 100);
 }

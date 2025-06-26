@@ -16,8 +16,8 @@
 <html>
 	<body>
 		<div class="head">
-			Управление часами.
-			<div>разовый текст</div>
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="am_one">One-time text</div>
 		</div>
 		<div class="content">
 			<form action="show" autocomplete="off" method="post" name="text" onsubmit="calc_color()">
@@ -25,49 +25,49 @@
 				<input type="hidden" name="due" value="1">
 				<div class="holder narrow">
 					<div class="one">
-						<div>Текст:</div>
+						<div i18="text">Text</div>
 						<input type="text" name="msg" class="long">
 					</div>
 					<div class="row">
-						<div>Количество повторов</div>
+						<div i18="ot_count">Number of repetitions</div>
 						<div><input type="number" value="2" name="cnt"></div>
 					</div>
 					<div class="row">
-						<div>Интервал повторов</div>
+						<div i18="ot_interval">Repeat interval</div>
 						<div>
 							<select name="int">
-								<option value="15">15 сек.</option>
-								<option value="30" selected>30 сек.</option>
-								<option value="60">1 мин.</option>
-								<option value="120">2 мин.</option>
-								<option value="300">5 мин.</option>
-								<option value="600">10 мин.</option>
+								<option value="15">15 <span i18="seconds">seconds</span></option>
+								<option value="30" selected>30 <span i18="seconds">seconds</span></option>
+								<option value="60">1 <span i18="minutes">minutes</span></option>
+								<option value="120">2 <span i18="minutes">minutes</span></option>
+								<option value="300">5 <span i18="minutes">minutes</span></option>
+								<option value="600">10 <span i18="minutes">minutes</span></option>
 							</select>
 						</div>
 					</div>
 					<div class="row">
-						<div>Режим цвета</div>
+						<div i18="color_mode">Color mode</div>
 						<div>
 							<select name="xx" onchange="show_color_block('color0','xx','text')">
-								<option value="0">Один</option>
-								<option value="1" selected>Радуга</option>
-								<option value="2">Разные</option>
+								<option value="0" i18="one">One</option>
+								<option value="1" selected i18="rainbow">Rainbow</option>
+								<option value="2" i18="different">Different</option>
 							</select>
 						</div>
 					</div>
 					<div class="row color0">
-						<div>Цвет цифр (<span class="red">RR</span><span class="green">GG</span><span class="blue">BB</span>)</div><div class="color_demo" id="xxx"></div>
+						<div><span i18="color_text">Text color</span> (<span class="red">RR</span><span class="green">GG</span><span class="blue">BB</span>)</div><div class="color_demo" id="xxx"></div>
 						<div class="fix"><input name="xxx" type="color" value="#FFFFFF" oninput="color_demo(this)"></div>
 					</div>
 				</div>
-				<button onclick="calc_color()">Запустить</button>
+				<button onclick="calc_color()" i18="ot_run">Launch</button>
 			</form>
 		</div>
 		<div class="footer">
-			<a href="maintenance.html" id="return">Вернуться</a>
+			<a href="maintenance.html" id="return" i18="return">Return</a>
 		</div>
 		<div id="debug"><div>
-		<div id="shadow"><div>Загрузка...</div></div>
+		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
 function calc_color() {
@@ -81,7 +81,7 @@ function start() {
 	if (typeof ajaxRequest !== "undefined") {
 		init_color_demo();
 		show_color_block('color0','xx','text');
-		$g("shadow").style.display = "none";
+		localization(null, ()=> {$g("shadow").style.display = "none";});
 	} else setTimeout(start, 100);
 }
 start();

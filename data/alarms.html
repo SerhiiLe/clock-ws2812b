@@ -16,15 +16,15 @@
 <html>
 	<body>
 		<div class="head">
-			Управление часами.
-			<div>установка будильников</div>
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="set_alarms">setting alarms</div>
 		</div>
 		<div class="content">
 			<table class="params" id="list">
 				<thead>
 					<tr>
-						<th>Время</th>
-						<th>Вкл.</th>
+						<th i18="time">Time</th>
+						<th i18="on">On</th>
 					</tr>
 				</thead>
 				<tbody id="list_items">
@@ -39,24 +39,24 @@
 							<input type="time" name="time" value="00:00" class="bbig">
 						</div>
 						<div class="row">
-							<div>Периодичность</div>
+							<div i18="periodicity">Periodicity</div>
 							<div>
 								<select name="rmode" id="rmode" onchange="select_days()">
-									<option value="0">один раз</option>
-									<option value="1">каждый день</option>
-									<option value="2">по дням</option>
+									<option value="0" i18="once">once</option>
+									<option value="1" i18="every_day">every day</option>
+									<option value="2" i18="by_days">by days</option>
 								</select>
 							</div>
 						</div>
-						<div class="row sel_days"><div>Понедельник</div><div><input type="checkbox" name="mo" value="1"></div></div>
-						<div class="row sel_days"><div>Вторник</div><div><input type="checkbox" name="tu" value="1"></div></div>
-						<div class="row sel_days"><div>Среда</div><div><input type="checkbox" name="we" value="1"></div></div>
-						<div class="row sel_days"><div>Четверг</div><div><input type="checkbox" name="th" value="1"></div></div>
-						<div class="row sel_days"><div>Пятница</div><div><input type="checkbox" name="fr" value="1"></div></div>
-						<div class="row sel_days"><div>Суббота</div><div><input type="checkbox" name="sa" value="1"></div></div>
-						<div class="row sel_days"><div>Воскресенье</div><div><input type="checkbox" name="su" value="1"></div></div>
+						<div class="row sel_days"><div i18="mon">Monday</div><div><input type="checkbox" name="Mo" value="1"></div></div>
+						<div class="row sel_days"><div i18="tue">Tuesday</div><div><input type="checkbox" name="Tu" value="1"></div></div>
+						<div class="row sel_days"><div i18="wed">Wednesday</div><div><input type="checkbox" name="We" value="1"></div></div>
+						<div class="row sel_days"><div i18="thu">Thursday</div><div><input type="checkbox" name="Th" value="1"></div></div>
+						<div class="row sel_days"><div i18="fri">Friday</div><div><input type="checkbox" name="Fr" value="1"></div></div>
+						<div class="row sel_days"><div i18="sat">Saturday</div><div><input type="checkbox" name="Sa" value="1"></div></div>
+						<div class="row sel_days"><div i18="sun">Sunday</div><div><input type="checkbox" name="Su" value="1"></div></div>
 						<div class="row">
-							<div>Мелодия будильника <button onclick="test_ring();return false;" id="ss">проверить</button></div>
+							<div><span i18="alarm_melody">Alarm melody</span> <button onclick="test_ring();return false;" id="ss" i18="check">check</button></div>
 							<div>
 								<input type="number" name="melody" value="1" id="track" onkeypress="sendTr(event)" onfocus="fl_allowUpdate=false;" onfocusout="fl_allowUpdate=true;">
 								<span class="show_tracks" style="display: none;"> из <span id="col">0</span></span>
@@ -65,40 +65,40 @@
 						</div>
 						<div class="one">
 							<div>
-								громкость: <span id="volume">0</span> <span id="wait"></span>
+								<span i18="volume">volume</span>: <span id="volume">0</span> <span id="wait"></span>
 							</div>
 							<input type="range" min="1" max="30" step="1" value="15" class="long" id="vol" oninput="sendVol()">
 						</div>
 						<div class="row">
-							<div>Текст</div>
+							<div i18="text">Text</div>
 							<div><input type="text" name="text" value="" class="long"></div>
 						</div>
 						<div class="row">
-							<div>Режим цвета</div>
+							<div i18="color_mode">Color mode</div>
 							<div>
 								<select name="color_mode" onchange="show_color_block()">
-									<option value="0">Один</option>
-									<option value="1">Радуга</option>
-									<option value="2">Радуга2</option>
-									<option value="3">Разные</option>
-									<option value="4">Разные2</option>
+									<option value="0" i18="one">One</option>
+									<option value="1" i18="rainbow">Rainbow</option>
+									<option value="2" i18="rainbow2">Rainbow2</option>
+									<option value="3" i18="different">Different</option>
+									<option value="4" i18="different2">Different2</option>
 								</select>
 							</div>
 						</div>
 						<div class="row color0">
-							<div>Цвет цифр (<span class="red">RR</span><span class="green">GG</span><span class="blue">BB</span>)</div><div class="color_demo" id="color"></div>
+							<div><span i18="color_text">Text color</span> (<span class="red">RR</span><span class="green">GG</span><span class="blue">BB</span>)</div><div class="color_demo" id="color"></div>
 							<div class="fix"><input name="color" type="color" value="#FFFFFF" oninput="color_demo(this)"></div>
 						</div>
 					</div>
-					<button>Сохранить</button>
+					<button i18="save">Save</button>
 				</form>
 			</div>
 		</div>
 		<div class="footer">
-			<a href="index.html" id="return">Вернуться</a>
+			<a href="index.html" id="return" i18="return">Return</a>
 		</div>
 		<div id="debug"><div>
-		<div id="shadow"><div>Загрузка...</div></div>
+		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
 function select_days() {
@@ -140,6 +140,7 @@ function sendTr(e) {
 	if(e.keyCode === 13)
 		is_play = false;
 }
+const days = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 function show_edit(i) {
 	// if(! $g("e"+i).checked) return;
 	var f = document.forms["settings"];
@@ -149,7 +150,6 @@ function show_edit(i) {
 	f.elements["rmode"].selectedIndex = t;
 	select_days();
 	var bit = 1;
-	var days = ["su","mo","tu","we","th","fr","sa"];
 	for(t=0; t<7; t++) {
 		if(doc[i].s & bit) f.elements[days[t]].checked = true;
 		else f.elements[days[t]].checked = false;
@@ -182,17 +182,16 @@ function start() {
 				var sp2 = $e("span",{class:"small"});
 				var sp3 = doc[i].t.length ? $ee("div",doc[i].t,{class:"small top_line"}): "";
 				if(doc[i].s & 128) {
-					sp2.innerHTML = " Каждый день";
+					sp2.innerHTML = " <span i18='every_day'>every day</span>";
 				} else if(doc[i].s & 256) {
-					var days = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
 					var bit = 2;
 					for(var t=1; t<7; t++) {
-						if(doc[i].s & bit) sp2.innerHTML += " "+days[t];
+						if(doc[i].s & bit) sp2.innerHTML += " <span i18='"+days[t]+"'>"+days[t]+"</span>";
 						bit = bit << 1;
 					}
-					if(doc[i].s & 1) sp2.innerHTML += " "+days[0];
+					if(doc[i].s & 1) sp2.innerHTML += " <span i18='"+days[0]+"'>"+days[0]+"</span>";
 				} else {
-					sp2.innerHTML = " Один раз";
+					sp2.innerHTML = " <span i18='once'>once</span>";
 				}
 				var fl = doc[i].s & 512;
 				var td1 = $em("td",[sp1,sp2,sp3],{class:(fl?"on":"off"),id:"t"+i,onclick:"show_edit("+i+")"});
@@ -200,7 +199,7 @@ function start() {
 				if(fl) input.checked = true;
 				li.appendChild($em("tr",[td1,$ee("td",input)]));
 			}
-			$g("shadow").style.display = "none";
+			localization(null, ()=> {$g("shadow").style.display = "none"});
 		}, dummy);
 	} else setTimeout(start, 100);
 }

@@ -16,42 +16,42 @@
 <html>
 	<body>
 		<div class="head">
-			Управление часами.
-			<div>настройки охраны</div>
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="ts_title">security settings</div>
 		</div>
 		<div class="content">
 			<form action="save_telegram" autocomplete="off" method="post" name="settings">
 				<div class="holder">
 					<div class="row">
-						<div class="b">Параметр</div>
-						<div class="b">Значение</div>
+						<div class="b" i18="parameter">Parameter</div>
+						<div class="b" i18="value">Value</div>
 					</div>
-					<div class="one i b center">Общие настройки</div>
+					<div class="one i b center" i18="ms_gen_set">General settings</div>
 					<div class="row">
-						<div>Включить датчик движения</div>
+						<div i18="ts_mot">Turn on the motion sensor</div>
 						<div><input name="use_move" type="checkbox" value="1"></div>
 					</div>
 					<div class="row">
-						<div>Включить датчик освещённости</div>
+						<div i18="ts_bri">Turn on the light sensor</div>
 						<div><input name="use_brightness" type="checkbox" value="1"></div>
 					</div>
 					<div class="row">
-						<div>PIN для регистрации<br>
-							<span class="small">и доступа к странице отправки сообщений по адресу <span class="nb">/send?pin=THIS_PIN&msg=YOUR_TEXT</span></span>
+						<div i18="ts_pin">PIN for registration<br>
+							<span class="small"><span i18="ts_pin2">and access to the page for sending messages at</span> <span class="nb">/send?pin=THIS_PIN&msg=YOUR_TEXT</span></span>
 						</div>
 						<div><input name="pin_code" type="text" value="" class="ss"></div>
 					</div>
 					<div class="row">
-						<div>Время жизни сенсора, в минутах (1-16000)</div>
+						<div i18="ts_life">Sensor lifetime, in minutes (1-16000)</div>
 						<div><input name="sensor_timeout" type="text" value="20"></div>
 					</div>
-					<div class="one i b center">Настройки Telegram</div>
+					<div class="one i b center" i18="ts_ts">Telegram settings</div>
 					<div class="one">
-						Название / адрес бота:
+						<span i18="ts_name">Bot name/address</span>:
 						<input name="tb_name" type="text" class="long">
 					</div>
 					<div class="one">
-						Chat ID (номера разрешенных чатов через запятую):
+						<span i18="ts_chats">Chat ID (numbers of allowed chats separated by commas)</span>:
 						<input name="tb_chats" type="text" class="long">
 					</div>
 					<div class="one">
@@ -59,39 +59,39 @@
 						<input name="tb_token" type="text" class="long">
 					</div>
 					<div class="row">
-						<div>Пароль для активации чата</div>
+						<div i18="ts_pass">Password to activate chat</div>
 						<div><input name="tb_secret" type="text" value="" class="m"></div>
 					</div>
 					<div class="row">
-						<div>Интервал опроса новых сообщений, в секундах (0=откл.)</div>
+						<div i18="ts_poll">Polling interval for new messages, in seconds (0=disabled)</div>
 						<div><input name="tb_rate" type="number" value="300"></div>
 					</div>
 					<div class="row">
-						<div>Ускоренный интервал опроса новых сообщений, после нового сообщения, в секундах (1-600)</div>
+						<div i18="ts_accel">Accelerated polling interval for new messages, after a new message, in seconds (1-600)</div>
 						<div><input name="tb_accelerated" type="number" value="10"></div>
 					</div>
 					<div class="row">
-						<div>Время на которе ускоряется опрос новых сообщений, после нового сообщения, в секундах (1-3600)</div>
+						<div i18="ts_accel2">The time by which the polling of new messages is accelerated after a new message, in seconds (1-3600)</div>
 						<div><input name="tb_accelerate" type="number" value="900"></div>
 					</div>
 					<div class="row">
-						<div>Время на которе прекращается опрос новых сообщений, после сбоя, в секундах (900-3600)</div>
+						<div i18="ts_stop">Time at which polling of new messages stops after failure, in seconds (900-3600)</div>
 						<div><input name="tb_ban" type="number" value="1800"></div>
 					</div>
 				</div>
-				<button>Сохранить</button>
+				<button i18="save">Save</button>
 			</form>
 		</div>
 		<div class="footer">
-			<a href="security.html">Вернуться</a>
+			<a href="security.html" i18="return">Return</a>
 		</div>
-		<div id="shadow"><div>Загрузка...</div></div>
+		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
 function start() {
 	if (typeof ajaxRequest !== "undefined") {
 		fill_settings("telegram.json","settings", () => {
-			$g("shadow").style.display = "none";
+			localization(null, ()=> {$g("shadow").style.display = "none";});
 		});
 	} else setTimeout(start, 100);
 }

@@ -16,8 +16,8 @@
 <html>
 	<body>
 		<div class="head">
-			Управление часами.
-			<div>Системная информация</div>
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="am_info">System information</div>
 		</div>
 		<div class="content">
 			<div class="content">
@@ -111,16 +111,16 @@
 						<div id="FullVersion"></div>
 					</div>
 					<div class="one i center">
-						<label for="update">автоматически обновлять</label> <input type="checkbox" name="update" id="update" onchange="auto_update()">
+						<label for="update" i18="si_auto">update automatically</label> <input type="checkbox" name="update" id="update" onchange="auto_update()">
 					</div>
 				</div>
 
-			<button onclick="getInfo()">Обновить</button>
+			<button onclick="getInfo()" i18="refresh">Refresh</button>
 		</div>
 		<div class="footer">
-			<a href="maintenance.html">Вернуться</a>
+			<a href="maintenance.html" i18="return">Return</a>
 		</div>
-		<div id="shadow"><div>Загрузка...</div></div>
+		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
 function parseInfo(doc) {
@@ -173,7 +173,7 @@ function start() {
 		getInfo( () => {
 			ajaxRequest("status", "GET", null, function(ajaxResp) {
 				hideUnused(JSON.parse(ajaxResp.responseText));
-				$g("shadow").style.display = "none";
+				localization(null, ()=> {$g("shadow").style.display = "none";});
 			}, dummy);
 		});
 	} else setTimeout(start, 100);

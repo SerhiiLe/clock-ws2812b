@@ -38,11 +38,18 @@ function toggle_by_class(cls, on) {
 		lst[i].style.display = on ? '' : 'none';
 	}
 };
+function show_block(check_el, sw_class, check_form="settings") {
+	if(!sw_class) sw_class = check_el;
+	if(document.forms[check_form].elements[check_el].checked)
+		toggle_by_class(sw_class,true);
+	else
+		toggle_by_class(sw_class,false);
+};
 function color_text(p,c) {
 	var sp = $gt("span",p);
-	sp[0].innerHTML = c.slice(1,3).toUpperCase();
-	sp[1].innerHTML = c.slice(3,5).toUpperCase();
-	sp[2].innerHTML = c.slice(5).toUpperCase();
+	sp[1].innerHTML = c.slice(1,3).toUpperCase();
+	sp[2].innerHTML = c.slice(3,5).toUpperCase();
+	sp[3].innerHTML = c.slice(5).toUpperCase();
 };
 function color_demo(o) {
 	$g(o.name).style = "background-color:" + o.value;
@@ -119,7 +126,7 @@ function onoff(id,a=1) {
 		$g(id).innerHTML = ajaxResp.responseText=="1" ? "On": "Off";
 	}, dummy);
 };
-function fill_settings(url,form_name,cbfunc=null) {
+function fill_settings(url,form_name,cbFunc=null) {
 	ajaxRequest(url,"GET",null, function(ajaxResp) {
 		var doc = JSON.parse(ajaxResp.responseText);
 		var f = document.forms[form_name];
@@ -137,6 +144,25 @@ function fill_settings(url,form_name,cbfunc=null) {
 			} else
 				f.elements[key].value = doc[key];
 		}
-		if(cbfunc !== null) cbfunc();
+		if(cbFunc !== null) cbFunc();
 	}, dummy);
+};
+function localization(cbFunc1,cbFunc2) {
+	ajaxRequest("status","GET",null, (ajaxResp) => {
+		const info = JSON.parse(ajaxResp.responseText)
+		if(cbFunc1) cbFunc1(info);
+		if( info.lang != "en" ) {
+			ajaxRequest("localization_"+info.lang+".json","GET",null, (ajaxResp) => {
+				const DICT = JSON.parse(ajaxResp.responseText);
+				const i18 = document.querySelectorAll("[i18]");
+				i18.forEach((el) => {
+					const txt = el.getAttribute("i18");
+					if( typeof DICT === "object" )
+						if( typeof DICT[txt] != 'undefined' )
+							el.innerHTML = DICT[txt];
+				});
+				if(cbFunc2) cbFunc2();
+			}, cbFunc2 ? () => cbFunc2(): dummy);
+		} else if(cbFunc2) cbFunc2();
+	}, cbFunc2 ? () => cbFunc2(): dummy);
 };

@@ -21,4 +21,6 @@ const char PROGMEM T_textOff_ru[] = "Текст отключен";
 const char PROGMEM T_textOff_ua[] = "Текст вимкнено";
 const char* PROGMEM txt_textOff[LANGUAGES] = {T_textOff_en, T_textOff_ru, T_textOff_ua};
 
+const char PROGMEM TXT_LANGUAGE[LANGUAGES][3] = {"en","ru","ua"};
+
 #endif

@@ -16,16 +16,16 @@
 <html>
 	<body>
 		<div class="head">
-			Управление часами.
-			<div>зарегистрированные датчики</div>
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="rs_title">registered sensors</div>
 		</div>
 		<div class="menu" id="list_items">
 		</div>
-		<button onclick="getSensors()">Обновить</button>
+		<button onclick="getSensors()" i18="refresh">Refresh</button>
 		<div class="footer">
-			<a href="security.html">Вернуться</a>
+			<a href="security.html" i18="return">Return</a>
 		</div>
-		<div id="shadow"><div>Загрузка...</div></div>
+		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
 function formatTime(secc){
@@ -54,7 +54,7 @@ function start() {
 	if (typeof ajaxRequest !== "undefined") {
 		ajaxRequest("sensors","GET",null, function(ajaxResp) {
 			parseSensors(JSON.parse(ajaxResp.responseText));
-			$g("shadow").style.display = "none";
+			localization(null, ()=> {$g("shadow").style.display = "none";});
 		}, dummy);
 	} else setTimeout(start, 100);
 }

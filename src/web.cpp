@@ -33,7 +33,6 @@
 #include "web_translation.h"
 
 #define HPP(txt, ...) HTTP.client().printf_P(PSTR(txt), __VA_ARGS__)
-const char PROGMEM txt_save[] = "save";
 
 #ifdef ESP32
 WebServer HTTP(80);
@@ -78,6 +77,7 @@ bool fl_playStarted = false;
 const char PROGMEM one[] = "1";
 const char PROGMEM zero[] = "0";
 const char PROGMEM text_plain[] = "text/plain";
+const char PROGMEM txt_save[] = "save";
 
 // отключение веб сервера для активации режима настройки wifi
 void web_disable() {
@@ -630,13 +630,13 @@ void save_alarm() {
 		}
 		name = F("rmode");
 		if( HTTP.hasArg(name) ) settings |= constrain(HTTP.arg(name).toInt(), 0, 3) << 7;
-		if( HTTP.hasArg(F("mo")) ) settings |= 2;
-		if( HTTP.hasArg(F("tu")) ) settings |= 4;
-		if( HTTP.hasArg(F("we")) ) settings |= 8;
-		if( HTTP.hasArg(F("th")) ) settings |= 16;
-		if( HTTP.hasArg(F("fr")) ) settings |= 32;
-		if( HTTP.hasArg(F("sa")) ) settings |= 64;
-		if( HTTP.hasArg(F("su")) ) settings |= 1;
+		if( HTTP.hasArg(F("Mo")) ) settings |= 2;
+		if( HTTP.hasArg(F("Tu")) ) settings |= 4;
+		if( HTTP.hasArg(F("We")) ) settings |= 8;
+		if( HTTP.hasArg(F("Th")) ) settings |= 16;
+		if( HTTP.hasArg(F("Fr")) ) settings |= 32;
+		if( HTTP.hasArg(F("Sa")) ) settings |= 64;
+		if( HTTP.hasArg(F("Su")) ) settings |= 1;
 		if( settings != alarms[target].settings ) {
 			alarms[target].settings = settings;
 			need_save = true;
@@ -690,13 +690,13 @@ void save_text() {
 		set_simple_color(F("color"), texts[target].color);
 		name = F("rmode");
 		if( HTTP.hasArg(name) ) settings |= constrain(HTTP.arg(name).toInt(), 0, 3) << 7;
-		if( HTTP.hasArg("mo") ) settings |= 2;
-		if( HTTP.hasArg("tu") ) settings |= 4;
-		if( HTTP.hasArg("we") ) settings |= 8;
-		if( HTTP.hasArg("th") ) settings |= 16;
-		if( HTTP.hasArg("fr") ) settings |= 32;
-		if( HTTP.hasArg("sa") ) settings |= 64;
-		if( HTTP.hasArg("su") ) settings |= 1;
+		if( HTTP.hasArg("Mo") ) settings |= 2;
+		if( HTTP.hasArg("Tu") ) settings |= 4;
+		if( HTTP.hasArg("We") ) settings |= 8;
+		if( HTTP.hasArg("Th") ) settings |= 16;
+		if( HTTP.hasArg("Fr") ) settings |= 32;
+		if( HTTP.hasArg("Sa") ) settings |= 64;
+		if( HTTP.hasArg("Su") ) settings |= 1;
 		if((settings >> 7 & 3) == 3) { // если режим "до конца дня", то записать текущий день
 			tm t = getTime();
 			settings |= t.tm_mday << 10;
@@ -1341,13 +1341,14 @@ void show_status() {
 	HPP("\"use_rtc\":%i,", USE_RTC);
 	HPP("\"use_nvram\":%i,", USE_NVRAM);
 	HPP("\"use_bmp\":%i,", USE_BMP);
-	HPP("\"use_mp3\":%i}",
+	HPP("\"use_mp3\":%i,",
 		#ifdef SRX
 		1 
 		#else
 		0 
 		#endif
 	);
+	HPP("\"lang\":\"%s\"}", TXT_LANGUAGE[gs.language]);
 	#ifdef ESP8266
 	HTTP.client().stop();
 	#endif

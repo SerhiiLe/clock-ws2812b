@@ -7,79 +7,92 @@
 	<link rel="icon" href="favicon.ico">
 	<link rel="shortcut icon" sizes="192x192" href="android-icon.png">
 	<link rel="apple-touch-icon" href="apple-touch-icon.png">
+	<script src="functions.js" type="text/javascript" encoding="UTF-8"></script>
 </header>
 <html>
 	<body>
 		<div class="head">
-			Управление часами.
-			<div>об этих часах</div>
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="a_about">about this watch</div>
 		</div>
-		<div class="content">
-			<a href="sysinfo.html">Системная информация</a>
+		<div class="content" id="about">
+			<a href="sysinfo.html">System information</a>
 			<p>
-				Часы на основе матрицы на адресных светодиодах. <a target="_blank" rel="noopener" href="https://github.com/SerhiiLe/clock-esp8266-ws2812b">(github)</a>.
-				Создано по мотивам проекта <a target="_blank" rel="noopener" href="https://github.com/vvip-68/GyverMatrixWiFi/">GyverMatrixWiFi</a>.
+				A clock based on a matrix of addressable LEDs. <a target="_blank" rel="noopener" href="https://github.com/SerhiiLe/clock-esp8266-ws2812b">(github)</a>.
+				Inspired by the project <a target="_blank" rel="noopener" href="https://github.com/vvip-68/GyverMatrixWiFi/">GyverMatrixWiFi</a>.
 			</p>
 			<p>
-				Возможности часов:
+				Clock features:
 				<ul>
-					<li>Показывать время :)</li>
-					<li>Выбор цветового оформления часов.</li>
-					<li>Несколько будильников, которые можно настраивать на однократно, постоянный повтор или по дням недели.</li>
-					<li>Выбор мелодии для каждого будильника.</li>
-					<li>Бегущая строка - информатор. Несколько штук, для каждой можно настроить цветовое оформление и режим повтора.</li>
-					<li>Можно отправить сообщение на экран обращением через Web.</li>
-					<li>Резервное аккумуляторное питание. Во время пропадания основного питания экран включается только при срабатывании датчика движения.</li>
-					<li>Использование датчика движения для информировании о постороннем присутствии (как датчик сигнализации) с отправкой уведомления в телеграмм.</li>
-					<li>Использование датчика освещения как датчик сигнализации (резкое изменение освещения).</li>
-					<li>Управление через Web. "Охранные" функции можно использовать через телеграмм.</li>
-					<li>Подключение внешних датчиков и управление ими через через телеграмм.</li>
-					<li>Автоматическое управление яркостью матрицы по освещённости. (экономит электричество и не режет глаза ночью)</li>
-					<li>Возможность менять яркость матрицы по времени, в том числе по восходу/заходу солнца.</li>
-					<li>Ограничение максимального потребления. Ночью потребление в автоматическом режиме снижается до 2,5Вт. Днём зависит от настроек и может достигать 70Вт.
-						Ограничение по умолчанию - 12,5Вт.
-					</li>
+					<li>Show time :)</li>
+					<li>Choose a color scheme for the clock.</li>
+					<li>Several alarms that can be set to one-time, repeat or by day of the week.</li>
+					<li>Choose a melody for each alarm.</li>
+					<li>Ticker - informant. Several of them, for each of which you can set a color scheme and repeat mode.</li>
+					<li>You can send a message to the screen by contacting via the Web.</li>
+					<li>Backup battery power. When the main power supply is lost, the screen turns on only when the motion sensor is triggered.</li>
+					<li>Use the motion sensor to inform about the presence of strangers (as an alarm sensor) with sending a notification to the telegram.</li>
+					<li>Use the light sensor as an alarm sensor (sudden change in lighting).</li>
+					<li>Control via the Web. "Security" functions can be used via telegram.</li>
+					<li>Connection of external sensors and their control via telegram.</li>
+					<li>Automatic control of matrix brightness based on illumination. (saves electricity and does not hurt the eyes at night)</li>
+					<li>Ability to change matrix brightness based on time, including sunrise/sunset.</li>
+					<li>Limitation of maximum consumption. At night, consumption in automatic mode is reduced to 2.5W. During the day, it depends on the settings and can reach 70W. The default limit is 12.5W.</li>
 				</ul>
 			</p>
 			<p>
-				Для удобства управления разными устройствами реализован свой простейший протокол. Всё работает по http. Поиск устройств по mDNS. Настройки в разделе "Охрана".
+				For the convenience of managing different devices, a simple protocol has been implemented. Everything works via http. Search for devices via mDNS. Settings in the "Security" section.
 				<ul>
-					<li>http://hostname/registration?pin=SHARED_SECRET&name=DEVICE_NAME - регистрация внешнего датчика. Время жизни регистрации задаётся в настройках.</li>
-					<li>http://hostname/send?pin=SHARED_SECRET&msg=MESSAGE_TO_SEND - отправка произвольного сообщения в телеграмм.</li>
-					<li>http://hostname/api?pin=SHARED_SECRET&COMMAND=... - адрес на внешнем датчике, который должен принимать команды.</li>
-					<li>http://hostname/who - только название часов.</li>
+					<li>http://hostname/registration?pin=SHARED_SECRET&name=DEVICE_NAME - external sensor registration. The registration lifetime is set in the settings.</li>
+					<li>http://hostname/send?pin=SHARED_SECRET&msg=MESSAGE_TO_SEND - sending a custom message to Telegram.</li>
+					<li>http://hostname/api?pin=SHARED_SECRET&COMMAND=... - address on the external sensor that should receive commands.</li>
+					<li>http://hostname/who - only the name of the watch.</li>
 				</ul>
 			</p>
 			<p>
-				Можно отправить сообщение на экран обращением через Web в таком формате:
+				You can send a message to the screen by calling via the Web in this format:
 				<ul>
-					<li>http://hostname/show?msg=MESSAGE_TO_SEND - для разового показа сообщения.</li>
-					<li>http://hostname/show?msg=MESSAGE_TO_SEND&cnt=XX - для показа сообщений XX раз каждые 30 секунд.</li>
-					<li>http://hostname/show?msg=MESSAGE_TO_SEND&cnt=XX&int=YY - для показа сообщений XX раз c интервалом YY секунд.</li>
-					<li>http://hostname/show?msg=MESSAGE_TO_SEND&cnt=XX&int=YY&due=FFF - для показа сообщений XX раз c интервалом YY секунд цветом FFF.</li>
-					<li>http://hostname/show?help - подсказка по параметрам.</li>
-					<li>http://hostname/who - отвечает названием часов.</li>
+					<li>http://hostname/show?msg=MESSAGE_TO_SEND - for a one-time display of the message.</li>
+					<li>http://hostname/show?msg=MESSAGE_TO_SEND&cnt=XX - for displaying messages XX times every 30 seconds.</li>
+					<li>http://hostname/show?msg=MESSAGE_TO_SEND&cnt=XX&int=YY - to show messages XX times with an interval of YY seconds.</li>
+					<li>http://hostname/show?msg=MESSAGE_TO_SEND&cnt=XX&int=YY&due=FFF - to show messages XX times with an interval of YY seconds with the color FFF.</li>
+					<li>http://hostname/show?help - hint on parameters.</li>
+					<li>http://hostname/who - answers with the name of the clock.</li>
 				</ul>
-				Можно сокращать msg, cnt, int, due до m, c, i, d.<br>
-				Обязательным является только msg (можно писать text), остальные параметры получат значения по умолчанию: 2 повтора, через 30 секунд, цвет "радуга".
+				You can shorten msg, cnt, int, due to m, c, i, d.<br>
+				Only msg is mandatory (you can write text), the other parameters will receive default values: 2 repetitions, after 30 seconds, the color "rainbow".
 			</p>
 			<p>
-				Управление часами только через Web, так как бессмысленно управлять кучей опций парой кнопок. Однако есть одна кнопка и датчик движения. Датчик движения
-				используется для отключения будильника, что логично, раз кто-то ходит возле часов, значит он проснулся. А действия кнопки зависят от количества кликов:
+				The clock can only be controlled via the Web, since it makes no sense to control a bunch of options with a couple of buttons. However, there is one button and a motion sensor. The motion sensor
+				is used to turn off the alarm, which is logical, since someone is walking near the clock, it means they woke up. And the button actions depend on the number of clicks:
 				<ol>
-					<li>Показать дату в длинном формате, отключить будильник, отключить проверку матрицы.</li>
-					<li>Включить проверку матрицы.</li>
-					<li>Показать текущий IP, по которому можно подключится к часам.</li>
-					<li>Показать текущие значения освещённости</li>
-					<li>Сбросить пароль на Web страничку</li>
+					<li>Show the date in long format, turn off the alarm, turn off the matrix check.</li>
+					<li>Enable the matrix check.</li>
+					<li>Show the current IP, which can be used to connect to the clock.</li>
+					<li>Show the current illumination values</li>
+					<li>Reset the password on the Web page</li>
 				</ol>
-				Долгое нажатие - справка. Она контекстная, зависит от текущего режима.
+				Long press - help. It is contextual, depends on the current mode.
 			</p>
 		</div>
 		<div class="footer">
-			<a href="index.html">
-					Вернуться
-			</a>
+			<a href="index.html" i18="return">Return</a>
 		</div>
 	</body>
+<script type="text/javascript" encoding="UTF-8">
+function change_content(info) {
+	if( info.lang != "en" ) {
+		ajaxRequest("about_"+info.lang+".txt","GET",null, (ajaxResp) => {
+			const a = $g("about");
+			if( a ) a.innerHTML = ajaxResp.responseText;
+		}, dummy);
+	}
+}
+function start() {
+	if (typeof ajaxRequest !== "undefined") {
+		localization(change_content, null);
+	} else setTimeout(start, 100);
+}
+start();
+</script>
 </html>

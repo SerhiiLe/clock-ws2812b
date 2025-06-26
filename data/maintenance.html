@@ -16,30 +16,30 @@
 <html>
 	<body>
 		<div class="head">
-			Управление часами.
-			<div>обслуживание</div>
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="am_title">service</div>
 		</div>
 		<div class="menu">
-			<a href="sysinfo.html">Системная информация</a>
-			<a href="clock.html">Установка времени</a>
-			<a href="show.html">Разовый текст</a>
-            <a href="#" onclick="onoff('demo'); return false;">Проверка матрицы/демо (<span id="demo"></span>)</a>
-            <a href="clear.html">Удалить настройки</a>
-            <a href="clear?t=100" onclick="return confirm('Вы уверены, что хотите перезапустить часы?')">Перезагрузить часы?</a>
-			<a href="upgrade.html">Обновление прошивки</a>
-            <a href="#" onclick="onoff('ftp'); return false;">Включение FTP (<span id="ftp"></span>)</a>
+			<a href="sysinfo.html" i18="am_info">System information</a>
+			<a href="clock.html" i18="am_time">Setting the time</a>
+			<a href="show.html" i18="am_one">One-time text</a>
+            <a href="#" onclick="onoff('demo'); return false;"><span i18="am_demo">Check matrix / demo</span> (<span id="demo"></span>)</a>
+            <a href="clear.html" i18="am_delete">Delete settings</a>
+            <a href="clear?t=100" onclick="return confirm('Are you sure?')" i18="am_reboot">Reboot the watch</a>
+			<a href="upgrade.html" i18="am_update">Firmware update</a>
+            <a href="#" onclick="onoff('ftp'); return false;"><span i18="am_ftp">Enabling FTP</span> (<span id="ftp"></span>)</a>
 		</div>
 		<div class="footer">
-			<a href="index.html">Вернуться</a>
+			<a href="index.html" i18="return">Return</a>
 		</div>
-		<div id="shadow"><div>Загрузка...</div></div>
+		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
 function start() {
 	if (typeof ajaxRequest !== "undefined") {
-		$g("shadow").style.display = "none";
 		onoff('ftp',0);
 		onoff('demo',0);
+		localization(null, ()=> {$g("shadow").style.display = "none";});
 	} else setTimeout(start, 100);
 }
 start();
