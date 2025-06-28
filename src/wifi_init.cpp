@@ -8,10 +8,11 @@
 
 #include <Arduino.h>
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
-#include "wifi_init.h"
 #include "defines.h"
 #include "runningText.h"
 #include "web.h"
+#include "wifi_init.h"
+#include "wifi_init_translation.h"
 
 WiFiManager wm;
 
@@ -30,7 +31,7 @@ void wifi_setup() {
 		LOG(println, PSTR("WiFi is connected :)"));
 	} else {
 		LOG(println, PSTR("WiFi is not connected"));
-		if(wm.getWiFiIsSaved()) initRString(PSTR("WiFi не подключился!"),CRGB::White);
+		if(wm.getWiFiIsSaved()) initRString(txt_wifiNotConnected[gs.language],CRGB::White);
 		else wifi_startConfig(true);
 	}
 }
@@ -61,27 +62,31 @@ int8_t wifi_rssi() {
 // Включение или отключение ConfigPortal для настройки WiFi
 void wifi_startConfig(bool fl) {
 	if(fl) {
-		const char *SSID = PSTR("ClockAP");
 		if(wifi_isConnected) {
 			web_disable();
 			WiFi.disconnect();
 		}
 		wm.setConfigPortalBlocking(false);
-		wm.startConfigPortal(SSID);
+		#ifdef AP_PASSWORD
+		wm.startConfigPortal(_SSID, _PASSWORD);
+		#else
+		wm.startConfigPortal(_SSID);
+		#endif
 		LOG(println, PSTR("ConfigPortal is started"));
-		wifi_message = String(F("Для настройки WiFi подключитесь к \""))+String(SSID)+String(F("\", IP: 192.168.4.1"));
-		initRString(wifi_message,CRGB::White);
+		char wifi_message_buf[100];
+		sprintf_P(wifi_message_buf, txt_wifiMessage[gs.language], _SSID);
+		initRString(wifi_message_buf,CRGB::White);
 		wifi_isPortal = true;
 	} else {
 		if(wm.getWiFiIsSaved()) {
 			WiFi.begin(wm.getWiFiSSID(),wm.getWiFiPass());
 			wifi_message = "";
-			initRString(PSTR("WiFi для настройки отключен."),CRGB::White);
+			initRString(txt_wifiOff[gs.language],CRGB::White);
 			wifi_isPortal = false;
 			if(wm.getConfigPortalActive()) wm.stopConfigPortal();
 			LOG(println, PSTR("ConfigPortal is stopped"));
 			return;
 		}
-		initRString(PSTR("Сначала надо настроить WiFi."),CRGB::White);
+		initRString(txt_wifiFirst[gs.language],CRGB::White);
 	}
 }
