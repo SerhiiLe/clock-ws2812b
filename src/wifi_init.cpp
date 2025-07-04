@@ -73,8 +73,12 @@ void wifi_startConfig(bool fl) {
 		wm.startConfigPortal(_SSID);
 		#endif
 		LOG(println, PSTR("ConfigPortal is started"));
-		char wifi_message_buf[100];
-		sprintf_P(wifi_message_buf, txt_wifiMessage[gs.language], _SSID);
+		char wifi_message_buf[150];
+		#ifdef AP_PASSWORD
+		snprintf_P(wifi_message_buf, sizeof(wifi_message_buf), txt_wifiMessage[gs.language], _SSID, _PASSWORD);
+		#else
+		snprintf_P(wifi_message_buf, sizeof(wifi_message_buf), txt_wifiMessage[gs.language], _SSID);
+		#endif
 		initRString(wifi_message_buf,CRGB::White);
 		wifi_isPortal = true;
 	} else {
