@@ -25,6 +25,15 @@ bool mp3_isReady = false;
 #ifdef SRX
 // плата установлена, подготовка к инициализации драйвера
 
+#if ESP32 == 1
+	#define mp3Serial Serial1
+	#define DFMiniMp3_Thread_Safe
+#else // ESP8266
+	#include <SoftwareSerial.h>
+	EspSoftwareSerial::UART mp3Serial;
+	// SoftwareSerial mp3Serial(SRX, STX); // если не хочется устанавливать EspSoftSerial. Работает менее стабильно.
+#endif
+
 // #define DfMiniMp3Debug Serial // Для вывода обмена данных с dfPlayer в консоль
 #include <DFMiniMp3E.h>
 
@@ -136,15 +145,7 @@ public:
 
 // Подготовка объекта драйвера dfPlayer (dfmp3)
 
-#if ESP32 == 1
-		#define mp3Serial Serial1
-#else // ESP8266
-	#include <SoftwareSerial.h>
-	EspSoftwareSerial::UART mp3Serial;
-	// SoftwareSerial mp3Serial(SRX, STX); // если не хочется устанавливать EspSoftSerial. Работает менее стабильно.
-#endif
-
-typedef DFMiniMp3<Mp3Notify, Mp3ChipType, Mp3ChipTimeout>DfMp3;
+typedef DFMiniMp3<Mp3Notify, Mp3ChipType, Mp3ChipTimeout> DfMp3;
 DfMp3 dfmp3;
 
 // инициализация происходит в момент первого обращения.
@@ -165,7 +166,7 @@ void mp3_update() {
 	if(mp3_isPlay() || mp3_current>mp3_all ) {
 		int mp3_new = mp3_current;
 		for(uint8_t cnt = 0; cnt < 10; cnt++) {
-			mp3_new = dfmp3.getCurrentTrack(DfMp3_PlaySource_Sd);
+			mp3_new = dfmp3.getCurrentTrack();
 			if( mp3_new > mp3_all ) {
 				delay(20);
 				continue;
@@ -192,6 +193,7 @@ void mp3_init() {
 	if( mp3_isInit ) {
 		mp3Serial.flush();
 		dfmp3.reset();
+		delay(100);
 	} else {
 		mp3Serial.flush();
 		mp3_isReady = dfmp3.begin(mp3Serial);
@@ -211,7 +213,7 @@ void mp3_init() {
 		delay(10);
 		mp3_volume(1,false);
 	}
-	if(dfmp3.getCurrentTrack(DfMp3_PlaySource_Sd)>mp3_all) {
+	if(dfmp3.getCurrentTrack()>mp3_all) {
 		// dfmp3.start();
 		delay(10);
 		mp3_update();
@@ -239,7 +241,6 @@ void mp3_volume(uint8_t t, boolean p) {
 			if( cur==old || cur<0 || cur>30 ) {
 				if( cnt++ > 20 ) {
 					mp3_init();
-					delay(80);
 					cnt = 0;
 					old = 0;
 				}
@@ -262,10 +263,11 @@ void mp3_volume(uint8_t t, boolean p) {
 }
 
 void mp3_play(int t) {
-	checkInit();
 	if( mp3_all == 0 ) return;
 	if( t < 1 || t > mp3_all ) return;
 	LOG(printf_P, PSTR("want track: %i\n"),t);
+
+	checkInit();
 	dfmp3.playGlobalTrack(t);
 	delay(10);
 
@@ -276,18 +278,17 @@ void mp3_play(int t) {
 	} else delay(10);
 
 	// чувствую себя Трампом:"Этого не должно было случится!".
-	if(dfmp3.getCurrentTrack(DfMp3_PlaySource_Sd) != t) {
+	if(dfmp3.getCurrentTrack() != t) {
 		int cur = 0, old = 0, cnt = 0;
 		delay(10);
 		while(true) {
-			cur = dfmp3.getCurrentTrack(DfMp3_PlaySource_Sd);
+			cur = dfmp3.getCurrentTrack();
 			LOG(printf_P, PSTR("track: %i\n"),cur);
 			if( cur==t ) break;
 			if( cur==old || cur<=0 || cur > mp3_all ) {
 				if( cnt++ > 20 ) {
 					mp3_init();
 					dfmp3.start();
-					delay(80);
 					cnt = 0;
 					old = 0;
 				}
@@ -319,7 +320,7 @@ void mp3_play(int t) {
 
 void mp3_reread() {
 	checkInit();
-	mp3_all = dfmp3.getTotalTrackCount(DfMp3_PlaySource_Sd);
+	mp3_all = dfmp3.getTotalTrackCount();
 	// mp3_isReady = mp3_all == 0 ? false: true;
 }
 

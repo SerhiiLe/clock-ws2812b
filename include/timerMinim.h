@@ -22,47 +22,34 @@ class timerMinim
 		// объявление таймера с указанием интервала
 		timerMinim(uint32_t interval=60000) {
 			setInterval(interval);
-			reset();
 		}
-		// установка интервала работы таймера
+		// установка интервала работы таймера и сброс таймера
 		void setInterval(uint32_t interval) {
 			// хотя-бы одна миллисекунда, для приличия
-			_interval = interval == 0 ? 1: interval;
+			_interval = interval ? interval: 1;
+			reset();
 		}
 		// возвращает true, когда пришло время.
-		boolean isReady() {
-			unsigned long time = millis();
-			if(_overflow) { // попытка защититься от переполнения
-				if(time < _time) // ждём переполнения, которое наступает каждые 49 дней
-					_overflow = false;
-				else
-					return false;
-			}
-			if(time >= _next) {
+		bool isReady() {
+			uint32_t now = millis();
+			if ((uint32_t)(now - _start) >= _interval) {
 				reset();
 				return true;
-			} else {
-				return false;
 			}
+			return false;
 		}
 		// ручной сброс таймера на установленный интервал
 		void reset() {
-			_time = millis();
-			_next = _time + _interval;
-			_overflow = _time > _next; 
+			_start = millis();
 		}
-		// выставить время следующего срабатывания
+		// выставить задержку до следующего срабатывания
 		void setNext(uint32_t next = 0) {
-			_time = millis();
-			_next = _time + next;
-			_overflow = _time > _next; 
+			_start = millis() - (_interval - next);
 		}
 
 	private:
 		uint32_t _interval = 0;
-		unsigned long _time = 0;
-		unsigned long _next = 0;
-		bool _overflow = false;
+		uint32_t _start = 0;
 };
 
 #endif

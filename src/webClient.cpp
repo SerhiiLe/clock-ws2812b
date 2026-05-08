@@ -530,10 +530,17 @@ void parseQuote(String txt, bool type=true) {
 	#endif
 }
 
-void quoteGet() {
+/*
+Запрос новой цитаты
+0 - ошибка сети
+1 - успех
+2 - адрес не работает
+*/
+uint8_t quoteGet() {
 	#ifdef DEBUG
 	unsigned long start_time = millis();
 	#endif
+	uint8_t result = 0;
 	if (fl_https_notInit) https_Init();
 	bool fl_isSecure = quote.url.indexOf("https://") >= 0;
 
@@ -578,10 +585,13 @@ void quoteGet() {
 			messages[MESSAGE_QUOTE].timer.setInterval(1000U * (qs.period+1));
 			messages[MESSAGE_QUOTE].color = qs.color_mode > 0 ? qs.color_mode: qs.color;
 			LOG(printf_P, PSTR("Quote: %s\n"), messages[MESSAGE_QUOTE].text.c_str());
-		}
+			result = 1;
+		} else
+			result = 2;
 		httpReq.end();
 	}
 	LOG(printf_P, PSTR("request time is: %lu msec\n"), millis()-start_time);
+	return result;
 }
 
 // Заполнение структуры с параметрами сервера.
@@ -624,7 +634,7 @@ void quotePrepare(bool force) {
 	}
 }
 
-void quoteUpdate() {
+uint8_t quoteUpdate() {
 	quotePrepare(qs.server == 1);
-	quoteGet();
+	return quoteGet();
 }

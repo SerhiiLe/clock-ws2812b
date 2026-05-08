@@ -7,7 +7,7 @@ const char* generate_forecast_string(char* a);
 int16_t weatherGetElevation();
 float weatherGetTemperature();
 int16_t weatherGetPressure();
-void quoteUpdate();
+uint8_t quoteUpdate();
 void quotePrepare(bool force=false);
 
 #define Q_TEXT 0

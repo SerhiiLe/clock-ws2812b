@@ -1333,23 +1333,32 @@ void show_forecast() {
 }
 
 void show_status() {
-	// char buf[100];
-	HTTP.client().print(PSTR("HTTP/1.1 200\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n{"));
-	HPP("\"hostname\":\"%s\",", gs.clock_name.c_str());
-	HPP("\"is_auth\":%i,", HTTP.authenticate(gs.web_login.c_str(), gs.web_password.c_str()) && gs.web_password.length() > 0 ? 1 : 0);
-	HPP("\"use_i2c\":%i,", USE_I2C);
-	HPP("\"use_rtc\":%i,", USE_RTC);
-	HPP("\"use_nvram\":%i,", USE_NVRAM);
-	HPP("\"use_bmp\":%i,", USE_BMP);
-	HPP("\"use_mp3\":%i,",
+	char hostname[gs.clock_name.length()*4];
+	jsonEncode(hostname, gs.clock_name.c_str(), sizeof(hostname)-1);
+
+	char buf[150+strlen(hostname)] = {0};
+
+	char *next = buf;
+	#define HPP2(txt, ...) next+=snprintf_P(next, sizeof(buf)-(next-buf+1), PSTR(txt), __VA_ARGS__)
+
+	HPP2("\"hostname\":\"%s\",", hostname);
+	HPP2("\"is_auth\":%i,", HTTP.authenticate(gs.web_login.c_str(), gs.web_password.c_str()) && gs.web_password.length() > 0 ? 1 : 0);
+	HPP2("\"use_i2c\":%i,", USE_I2C);
+	HPP2("\"use_rtc\":%i,", USE_RTC);
+	HPP2("\"use_nvram\":%i,", USE_NVRAM);
+	HPP2("\"use_bmp\":%i,", USE_BMP);
+	HPP2("\"use_mp3\":%i,",
 		#ifdef SRX
 		1 
 		#else
 		0 
 		#endif
 	);
-	HPP("\"lang\":\"%s\"}", TXT_LANGUAGE[gs.language]);
-	#ifdef ESP8266
-	HTTP.client().stop();
-	#endif
+	HPP2("\"lang\":\"%s\"}", TXT_LANGUAGE[gs.language]);
+
+	size_t total = next-buf+1;
+	#undef HPP2
+
+	HTTP.client().printf_P(PSTR("HTTP/1.1 200\r\nContent-Type: application/json\r\nContent-Length: %d\r\nConnection: close\r\n\r\n{"), total);
+	HTTP.client().write((const char*)buf, total);
 }

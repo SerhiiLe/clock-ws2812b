@@ -34,6 +34,7 @@ void inMsg(FB_msg& msg);
 bool fl_secretWanted = false;
 time_t last_telegram = 0;
 time_t disable_telegram = 0;
+int8_t pinned = -1;
 
 // Установка токена и списка подписанных чатов
 void setup_telegram() {
@@ -148,12 +149,47 @@ void inMsg(FB_msg& msg) {
 
 	msg.text.toLowerCase();
 
-	bool fl_auth = true;
-	// проверка авторизован ли этот чат
-	if(ts.tb_chats.length() == 0) fl_auth = false;
-	if(ts.tb_chats.length() > 0 && ts.tb_chats.indexOf(msg.chatID) < 0) fl_auth = false;
+	bool fl_auth = (ts.tb_chats.length() > 0 && ts.tb_chats.indexOf(msg.chatID) >= 0);
+	// bool fl_auth = true;
+	// // проверка авторизован ли этот чат
+	// if(ts.tb_chats.length() == 0) fl_auth = false;
+	// if(ts.tb_chats.length() > 0 && ts.tb_chats.indexOf(msg.chatID) < 0) fl_auth = false;
+
 
 	if(fl_auth) {
+
+		// альтернативный способ закрепления датчика
+		if (msg.text[0] == '/' && isDigit(msg.text[1])) {
+			String n = String(F("pin ")) + msg.text.substring(1);
+			msg.text = n;
+			LOG(println, String(F("rewrite to: ")) + msg.text);
+		}
+
+		// закрепление номера датчика
+		if (msg.text.startsWith(F("pin"))) {
+			int n = constrain(msg.text.substring(msg.text.lastIndexOf(" ")).toInt(), 0, MAX_SENSORS-1);
+			if (sensor[n].registered >= getTimeU() - ts.sensor_timeout*60) {
+				pinned = n;
+				tb.showMenuText(String(F("Pinned ")) + String(pinned), F("Unpin\tHelp"), msg.chatID);
+				return;
+			} else {
+				tb.sendMessage(F("format:\npin n\nn=0..9"), msg.chatID);
+				return;
+			}
+		}
+
+		// добавление номера датчика, если он закреплён
+		if (pinned >= 0 && (! isDigit(msg.text[0] || msg.text.indexOf("*") > 0 ))) {
+			String n = String(pinned) + " " + msg.text;
+			msg.text = n;
+			LOG(println, String(F("rewrite to: ")) + msg.text);
+		}
+
+		// открепить датчик
+		if (msg.text.endsWith(F("unpin")) || msg.text == "/") {
+			pinned = -1;
+			msg.text = F("menu");
+		} else
 		if(msg.text.startsWith(F("last"))) {
 			// ограничение в 48 строк лога из-за ограничение на стек в 2кб. (48*40=1920 + переменные)
 			tb.sendMessage(read_log_file(constrain(msg.text.substring(msg.text.lastIndexOf(" ")).toInt(), 1, 48)), msg.chatID);
@@ -195,9 +231,9 @@ void inMsg(FB_msg& msg) {
 			tb.sendMessage(sensors, msg.chatID);
 			return;
 		} else
-		if(msg.text.charAt(0) >= '0' && msg.text.charAt(0) <= '9') {
+		if (isDigit(msg.text[0])) {
 			// запрос внешнего датчика
-			int8_t n = msg.text.charAt(0) - 48;
+			int8_t n = constrain(msg.text.toInt(), 0, MAX_SENSORS-1);
 			if(sensor[n].registered >= getTimeU() - ts.sensor_timeout*60) {
 				String url = String(F("http://")) + sensor[n].ip.toString() + String(F("/api?pin=")) + ts.pin_code + "&";
 				int pos = 1;
@@ -208,12 +244,18 @@ void inMsg(FB_msg& msg) {
 					for(; pos<len; pos++)
 						if(msg.text.charAt(pos) != ' ') break;
 					int pos2 = msg.text.indexOf("=");
-					if(pos2>0) {
+					bool fl_free_cmd = msg.text.indexOf(' ',pos) > 0 || msg.text.indexOf('*',pos) > 0;
+					if (!fl_free_cmd && pos2>0) {
 						url += msg.text.substring(pos,pos2+1);
 						if(pos2+1 < len)
 							url += urlEncode(msg.text.substring(pos2+1), true);
-					} else
-						url += msg.text.substring(pos);
+					} else {
+						if (fl_free_cmd || msg.text[pos] == '/')
+							url += F("cmd=");
+						url += urlEncode(msg.text.substring(pos));
+						if (msg.text[pos] != '/')
+							url += "=";
+					}
 				}
 				LOG(println, url);
 				WiFiClient client;
@@ -222,9 +264,9 @@ void inMsg(FB_msg& msg) {
 				int httpResponseCode = html.GET();
 				if (httpResponseCode == 200) {
 					// ответ от датчика запихивается сразу в telegram, обработку делает FastBot
-					tb.sendMessage(html.getString(), msg.chatID);
+					tb.sendMessage(sensor[n].hostname + "\n" + html.getString(), msg.chatID);
 				} else {
-					tb.sendMessage("error: "+String(httpResponseCode), msg.chatID);
+					tb.sendMessage(sensor[n].hostname + " error: " + String(httpResponseCode), msg.chatID);
 				}
 		        // Free resources
 		        html.end();
