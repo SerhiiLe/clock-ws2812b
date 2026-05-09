@@ -67,13 +67,22 @@ void tb_tick() {
 	}
 }
 
-// Отправка сообщения о сработке датчика во все подписанные чаты телеграмм
+// Введение отправки сообщения в один поток с другими сетевыми операциями
+String delayedMessage = "";
 void tb_send_msg(String s) {
-	#ifdef DEBUG
-	LOG(printf_P, PSTR("Send to telegram: %i\n"), tb.sendMessage(s,ts.tb_chats));
-	#else
-	tb.sendMessage(s,ts.tb_chats);
-	#endif
+	delayedMessage = s;
+}
+
+// Отправка сообщения о сработке датчика во все подписанные чаты телеграмм
+void tb_send_delayed() {
+	if (!delayedMessage.isEmpty()) {
+		#ifdef DEBUG
+		LOG(printf_P, PSTR("Send to telegram: %i\n"), tb.sendMessage(delayedMessage,ts.tb_chats));
+		#else
+		tb.sendMessage(delayedMessage,ts.tb_chats);
+		#endif
+		delayedMessage = "";
+	}
 }
 
 // кодирование строки для GET запросов
@@ -121,9 +130,8 @@ void inMsg(FB_msg& msg) {
 	// выводим ID чата, имя юзера и текст сообщения
 	LOG(printf_P, PSTR("From telegram:%s;%s;%s;%li;%s.\n"),msg.chatID.c_str(),msg.username.c_str(),msg.first_name.c_str(),msg.ID,msg.text.c_str());
 
-	if(last_telegram == 0 && ts.tb_rate > ts.tb_accelerated) {
+	if(ts.tb_rate > ts.tb_accelerated)
 		telegramTimer.setInterval(1000U * ts.tb_accelerated);
-	}
 	last_telegram = getTimeU();
 
 	msg.text.trim();

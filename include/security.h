@@ -5,5 +5,6 @@ void init_telegram();
 void setup_telegram();
 void tb_tick();
 void tb_send_msg(String s);
+void tb_send_delayed();
 
 #endif

@@ -2,10 +2,10 @@
  * @file main.cpp
  * @author Serhii Lebedenko (slebedenko@gmail.com)
  * @brief Clock
- * @version 2.4.1
- * @date 2025-06-26
+ * @version 2.4.2
+ * @date 2026-05-09
  * 
- * @copyright Copyright (c) 2021,2022,2023,2024,2025
+ * @copyright Copyright (c) 2021,2022,2023,2024,2025,2026
  */
 
 /*
@@ -106,6 +106,12 @@ unsigned long last_time_display = 0;
 uint8_t hue_shift = 0;
 // функция двойного нажания
 uint8_t dclick_func = 0;
+// количество сбоев получения погоды
+uint8_t errors_weather = 0;
+// количество сбоев получения прогноза погоды
+uint8_t errors_forecast = 0;
+// количество сбоев получения цитат
+uint8_t errors_quotes = 0;
 
 #ifdef ESP32
 	TaskHandle_t TaskWeb;
@@ -113,6 +119,7 @@ uint8_t dclick_func = 0;
 	void TaskWebCode( void * pvParameters );
 	void TaskAlarmCode( void * pvParameters );
 	esp_chip_info_t chip_info;
+	SemaphoreHandle_t httpMutex; // нужно в редких случая, чтобы развести запросы к погоде и отпраку сообщений в телеграм
 #endif
 
 void setup() {
@@ -353,6 +360,7 @@ void network_pool() {
 		ftp_process();
 		web_process();
 		if(telegramTimer.isReady()) tb_tick();
+		tb_send_delayed();
 		// если файловая система пустая, то включить FTP, чтобы можно было просто скопировать файлы.
 		if( ! fs_isStarted && ! ftp_isAllow && screenIsFree ) {
 			ftp_isAllow = true;
@@ -362,14 +370,35 @@ void network_pool() {
 		if(fl_run_allow) {
 			// обновление цитат с сервера
 			if(qs.enabled && quoteUpdateTimer.isReady())
-				if (quoteUpdate() != 1) quoteUpdateTimer.setNext(60*1000UL);
+				if (quoteUpdate() != 1) {
+					uint32_t penalty = NET_RETRY_PENALTY;
+					if (errors_quotes < NET_RETRY_COUNT) {
+						errors_quotes++;
+						penalty = NET_RETRY_COUNT;
+					}
+					quoteUpdateTimer.setNext(penalty * 1000UL); // повторить запрос через penalty
+				} else errors_quotes = 0;
 			// обновление погоды с сервера
 			if(ws.weather && syncWeatherTimer.isReady())
-				if (weatherUpdate() != 1) syncWeatherTimer.setNext(60*1000UL); // повторить запрос через минуту
+				if (weatherUpdate() != 1) {
+					uint32_t penalty = NET_RETRY_PENALTY;
+					if (errors_weather < NET_RETRY_COUNT) {
+						errors_weather++;
+						penalty = NET_RETRY_COUNT;
+					}
+					syncWeatherTimer.setNext(penalty * 1000UL); // повторить запрос через penalty
+				} else errors_weather = 0;
 			// обновление прогноза погоды
-			if(ws.forecast && syncForecastTimer.isReady()) 
-				if (weatherUpdate(FORECAST) != 1) syncForecastTimer.setNext(60*1000UL);
-			// при сбоях сети повтор будет не раньше, чем новое время синхронизации, а до тех пор выводится старая информация
+			if(ws.forecast && syncForecastTimer.isReady())
+				if (weatherUpdate(FORECAST) != 1) {
+					uint32_t penalty = NET_RETRY_PENALTY;
+					if (errors_forecast < NET_RETRY_COUNT) {
+						errors_forecast++;
+						penalty = NET_RETRY_COUNT;
+					}
+					syncForecastTimer.setNext(penalty * 1000UL);
+				} else errors_forecast = 0;
+			// при сбоях сети будет выводится старая информация
 		}
 		// если был отправлен запрос на NTP сервер, то подождать и выполнить операции, как будто он выполнился
 		if( fl_ntpRequestIsSend )
