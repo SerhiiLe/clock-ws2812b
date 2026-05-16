@@ -162,7 +162,7 @@ struct Weather_Settings {
 	uint16_t term_pool = 120;
 	uint8_t weather = 0;
 	uint8_t sync_weather_period = 30;
-	uint8_t show_weather_period = 120;
+	uint16_t show_weather_period = 120;
 	uint8_t color_mode = 0; // режим цвета, как везде (0 )
 	uint32_t color = 0xFFFFFF; // по умолчанию - белый
 	uint8_t weather_code = 1;
@@ -180,7 +180,7 @@ struct Weather_Settings {
 	uint8_t forecast = 1;
 	uint8_t forecast_days = 2;
 	uint8_t sync_forecast_period = 6;
-	uint8_t show_forecast_period = 120;
+	uint16_t show_forecast_period = 120;
 	uint8_t color_modeF = 0; // режим цвета, как везде (0 )
 	uint32_t colorF = 0xFFFFFF; // по умолчанию - белый
 	uint8_t weather_codeF = 1;

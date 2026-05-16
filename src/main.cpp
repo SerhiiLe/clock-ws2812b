@@ -29,7 +29,7 @@
 #include "web.h"
 #include "dfplayer.h"
 #include "demo.h"
-#include "security.h"
+#include "telegram.h"
 #include "textTiny.h"
 #include "digitsOnly.h"
 #include "webClient.h"
@@ -351,25 +351,27 @@ void network_pool() {
 	wifi_process();
 	if( wifi_isConnected ) {
 		// установка времени по ntp.
-		if( fl_timeNotSync || fl_needStartTime )
+		if ( fl_timeNotSync || fl_needStartTime )
 			// первичная установка времени. Если по каким-то причинам опрос не удался, повторять не чаще, чем раз в секунду.
 			if( alarmStepTimer.isReady() ) syncTime();
-		if(ntpSyncTimer.isReady()) // это плановая синхронизация, не критично, если опрос не прошел
+		if (ntpSyncTimer.isReady()) // это плановая синхронизация, не критично, если опрос не прошел
 			syncTime();
 		// запуск сервисов, которые должны запуститься после запуска сети. (сеть должна подниматься в фоне)
 		ftp_process();
 		web_process();
-		if(telegramTimer.isReady()) tb_tick();
+		if (telegramTimer.isReady()) tb_tick();
+		#ifdef ESP32
 		tb_send_delayed();
+		#endif
 		// если файловая система пустая, то включить FTP, чтобы можно было просто скопировать файлы.
-		if( ! fs_isStarted && ! ftp_isAllow && screenIsFree ) {
+		if ( ! fs_isStarted && ! ftp_isAllow && screenIsFree ) {
 			ftp_isAllow = true;
 			sprintf_P(timeString, PSTR("FTP для загрузки файлов включён IP: %s"), wifi_currentIP().c_str());
 			initRString(timeString);
 		}
-		if(fl_run_allow) {
+		if (fl_run_allow) {
 			// обновление цитат с сервера
-			if(qs.enabled && quoteUpdateTimer.isReady())
+			if (qs.enabled && quoteUpdateTimer.isReady()) {
 				if (quoteUpdate() != 1) {
 					uint32_t penalty = NET_RETRY_PENALTY;
 					if (errors_quotes < NET_RETRY_COUNT) {
@@ -378,8 +380,9 @@ void network_pool() {
 					}
 					quoteUpdateTimer.setNext(penalty * 1000UL); // повторить запрос через penalty
 				} else errors_quotes = 0;
+			}
 			// обновление погоды с сервера
-			if(ws.weather && syncWeatherTimer.isReady())
+			if(ws.weather && syncWeatherTimer.isReady()) {
 				if (weatherUpdate() != 1) {
 					uint32_t penalty = NET_RETRY_PENALTY;
 					if (errors_weather < NET_RETRY_COUNT) {
@@ -388,8 +391,9 @@ void network_pool() {
 					}
 					syncWeatherTimer.setNext(penalty * 1000UL); // повторить запрос через penalty
 				} else errors_weather = 0;
+			}
 			// обновление прогноза погоды
-			if(ws.forecast && syncForecastTimer.isReady())
+			if(ws.forecast && syncForecastTimer.isReady()) {
 				if (weatherUpdate(FORECAST) != 1) {
 					uint32_t penalty = NET_RETRY_PENALTY;
 					if (errors_forecast < NET_RETRY_COUNT) {
@@ -398,6 +402,7 @@ void network_pool() {
 					}
 					syncForecastTimer.setNext(penalty * 1000UL);
 				} else errors_forecast = 0;
+			}
 			// при сбоях сети будет выводится старая информация
 		}
 		// если был отправлен запрос на NTP сервер, то подождать и выполнить операции, как будто он выполнился
@@ -447,10 +452,12 @@ void alarms_pool() {
 						if(fl_doit) { // будильник сработал
 							if(alarmStartTime == 0) {
 								active_alarm = i;
-								mp3_reread(); // перечитать количество треков, почему-то без этого может не запуститься
+								// mp3_reread(); // перечитать количество треков, почему-то без этого может не запуститься
 								mp3_enableLoop(); // зациклить мелодию
 								delay(10);
-								cur_Volume = gs.volume_start;
+								mp3_volume(gs.volume_start);
+								delay(10);
+								// cur_Volume = gs.volume_start;
 								mp3_play(alarms[i].melody); // запустить мелодию
 								alarmStepTimer.reset();
 								alarmStartTime = getTimeU(); // чтобы избежать конфликтов между будильниками на одно время и отсчитывать максимальное время работы
