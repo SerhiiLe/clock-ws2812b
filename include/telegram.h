@@ -6,6 +6,8 @@ void setup_telegram();
 void tb_tick();
 void tb_send_msg(const char* text);
 void tb_send_msg(const String& text);
+#ifdef ESP32
 void tb_send_delayed();
+#endif
 
 #endif

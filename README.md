@@ -1,5 +1,9 @@
 # Часы на основе матрицы на адресных светодиодах
 
+A clock based on a ws2812b addressable LED matrix.
+Works on the ESP8266 and ESP32 (ESP32, ESP32-s2, -s3, -c3) platforms.
+English is supported, unlike this description. However, it can be translated using Google Translate.
+
 Работает на платформах ESP8266 и ESP32 (ESP32, ESP32-s2, -s3, -c3).
 
 Создано по мотивам проекта [GyverMatrixOS](https://alexgyver.ru/gyvermatrixbt/)
@@ -193,5 +197,6 @@ PlatformIO само скачает нужные файлы платформы и
 - Начата работа над поддержкой локализации.
 - Измененена логика двойного клика, теперь это быстрый показ погоды и пр. Чтобы не ждать.
 - Быстрый повтор запроса погоды, если был сбой.
+- Перешел на свою библиотеку для работы с Telegram, немного расширил возможности и съекономил 8kB RAM на esp8266. На esp8266 обращения к интернет по прежнему вызывают замирания картинки. Увы, слабый процессор, https для него тяжелый.
 
 # Слава Украине!

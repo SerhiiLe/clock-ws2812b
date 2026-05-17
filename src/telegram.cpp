@@ -5,7 +5,6 @@
 */
 
 #include <Arduino.h>
-#include "defines.h"
 #include <TelegramESP.h>
 #include <WiFiClient.h>
 #ifdef ESP32
@@ -13,7 +12,9 @@
 #else // ESP8266
 #include <ESP8266HTTPClient.h>
 #endif
+#include "defines.h"
 #include "telegram.h"
+#include "telegram_translation.h"
 #include "settings.h"
 #include "ntp.h"
 #include "barometer.h"
@@ -169,10 +170,10 @@ String telegramCallback(TResult& msg) {
 			if(ts.tb_chats.length()>0) ts.tb_chats += ",";
 			ts.tb_chats += String(msg.chatId);
 			save_config_telegram();
-			return F("Добро пожаловать!");
+			return txt_TB_welcome[gs.language];// F("Добро пожаловать!");
 		} else {
 			bot.deleteMessages(msg.chatId, {msg.messageId-1, msg.messageId});
-			return F("Ошибка!");
+			return txt_TB_error[gs.language];// F("Ошибка!");
 		}
 		fl_start = true;
 	}
@@ -229,7 +230,7 @@ String telegramCallback(TResult& msg) {
 				save_log_file(SEC_TEXT_ENABLE);
 				save_config_security();
 			}
-			return F("Отсылка сообщений включена.");
+			return txt_TB_send_enabled[gs.language];
 		}
 		if (bot.is_command(msg.text, F("off"))) {
 			if(sec_enable) {
@@ -240,9 +241,9 @@ String telegramCallback(TResult& msg) {
 			return F("Отсылка сообщений отключена.");
 		}
 		if (bot.is_command(msg.text, F("status"))) {
-			sprintf_P(buf,PSTR("Датчик: %s.\nПитание: %s.\nОсвещение: %d -> %d."),
-				sec_enable?F("включён"):F("отключён"),
-				fl_5v?F("сеть"):F("аккумулятор"),
+			sprintf_P(buf, txt_TB_status[gs.language],
+				sec_enable?F("On"):F("Off"),
+				fl_5v?F("+5V"):F("battery"),
 				analogRead(PIN_PHOTO_SENSOR), led_brightness);
 			String sensors = buf;
 #if USE_I2C == 1
@@ -324,8 +325,8 @@ String telegramCallback(TResult& msg) {
 	if (fl_start || bot.is_command(msg.text, F("start")) || bot.is_command(msg.text, F("menu"))) {
 		// показать юзер меню (\t - горизонтальное разделение кнопок, \n - вертикальное
   		// (текст сообщения, кнопки)
-		if(fl_auth)	return F("/help если надо[MENU]On\tOff\tStatus\tChatID\nLogout\tUptime\tLast 20\tHelp");
-		else return F("/help если надо[MENU]Login\tAbout\tChatID");
+		if(fl_auth)	return String(txt_TB_help_if[gs.language]) + F("[MENU]On\tOff\tStatus\tChatID\nLogout\tUptime\tLast 20\tHelp");
+		else return String(txt_TB_help_if[gs.language]) + F("[MENU]Login\tAbout\tChatID");
 	}
 	if (bot.is_command(msg.text, F("stop"))) {
 		// убрать меню
@@ -335,41 +336,24 @@ String telegramCallback(TResult& msg) {
 		return String(msg.chatId);
 	}
 	if (bot.is_command(msg.text, F("about"))) {
-		return F("Бот для управления датчиком движения в часах. Ничего интересного, можно проходить мимо.");
+		return txt_TB_about[gs.language];
 	}
 	if (bot.is_command(msg.text, F("help"))) {
-		return F(
-			"/Start - показать меню.\n"
-			"/Stop - спрятать меню.\n"
-			"On/Off - включить/выключить режим охраны.\n"
-			"/Status - состояние и список доступных внешних датчиков.\n"
-			"/ChatID - id этого чата.\n"
-			"Login/Logout - авторизация.\n"
-			"/Uptime - время работы.\n"
-			"Last X - последние X записей журнала. (число записей: 1-45)\n"
-			"0-9 команда или 0-9 команда=значение - управление внешним датчиком\n"
-			"0-9 help - запросить список команд у внешнего датчика по номеру\n"
-			"pin X - \"закрепить\" номер внешнего датчика\n"
-			"/unpin - убрать закрепление\n"
-			"show some_text - отобразить текст на экране"
-#ifdef SRX
-			"\nplay X - запустить проигрываение трека с номером X, 0 - выключить\n"
-			"volume X - установить громкость X"
-#endif
-			);
+		return txt_TB_help[gs.language];
 	}
 	if (bot.is_command(msg.text, "show")) {
 		// будет конкурировать со строкой отправленой напрямую через сайт
-		messages[MESSAGE_WEB].count = 5;
-		messages[MESSAGE_WEB].timer.setInterval(20000);
-		messages[MESSAGE_WEB].color = 1;
+		messages[MESSAGE_WEB].count = 6;
+		messages[MESSAGE_WEB].timer.setInterval(15000);
+		messages[MESSAGE_WEB].timer.setNext(100);
+		messages[MESSAGE_WEB].color = 5; // rainbow2
 		int pos = original.indexOf(" ");
 		if (pos>0) {
 			String to_show = original.substring(pos+1);
 			messages[MESSAGE_WEB].text = to_show;
-			return String(F("was shown: ")) + to_show;
+			return String(txt_TB_shown[gs.language]) + to_show;
 		} else 
-			return F("nothing to show");
+			return txt_TB_nothing_to_show[gs.language];
 	}
 #ifdef SRX
 	if (bot.is_command(msg.text, "play")) {
@@ -382,21 +366,21 @@ String telegramCallback(TResult& msg) {
 				return String(F("play track: ")) + String(track);
 			} else if (track == 0) {
 				mp3_stop();
-				return F("play stopped");
+				return txt_TB_play_stopped[gs.language];
 			} else
-				return F("wrong track number");
+				return txt_TB_wrong_track[gs.language];
 		} else
-			return F("track number is not specified");
+			return txt_TB_track_not_specified[gs.language];
 	}
 	if (bot.is_command(msg.text, "volume")) {
 		int pos = msg.text.lastIndexOf(" ");
 		if (pos>0) {
 			int vol = constrain(msg.text.substring(pos+1).toInt(), 0, 15);
 			mp3_volume(vol);
-			return String(F("volume set to: ")) + String(vol);
+			return String(txt_TB_volume_set_to[gs.language]) + String(vol);
 		} else
-			return F("volume not specified");
+			return txt_TB_volume_not_specified[gs.language];
 	}
 #endif
-	return F("Что? Не понятно...");
+	return txt_TB_dont_understand[gs.language];
 }
