@@ -444,8 +444,8 @@ void alarms_pool() {
 			// кукушка дожна прокукукать два файла, один собственно ку-ку, второй - назвать время.
 			if (!mp3_playNow) { // сейчас ничего не играет, иначе кукушка пролетает мимо
 				if (cuckoo_stage == 0) { // стадия 1
+					mp3_disableLoop();
 					mp3_volume(cs.volume);
-					delay(10);
 					if (cs.cuckoo) {
 						LOG(println, PSTR("cuckoo stage1"));
 						// проиграть кукушку и переёти к второй стадии
