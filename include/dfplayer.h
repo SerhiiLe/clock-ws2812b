@@ -26,5 +26,9 @@ void mp3_disableLoop();
 void mp3_enableLoopAll();
 void mp3_disableLoopAll();
 void mp3_randomAll();
+// запуск воспроизведения конкретного трека по номеру папки и номеру трека
+void mp3_playInFolder(uint8_t folder, uint8_t track);
+// запуск воспроизведения конкретного трека по номеру из папки mp3
+void mp3_playInMp3(uint16_t track);
 
 #endif

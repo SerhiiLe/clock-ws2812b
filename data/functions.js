@@ -115,7 +115,9 @@ function send(p) {
 	if(fl_busy) return;
 	fl_busy = true;
 	$g("wait").innerHTML = "w";
-	ajaxRequest("play","POST","p="+p+"&c="+$g("cur").value+"&r="+$g("repeat").value+"&v="+$g("vol").value, function(ajaxResp) {
+	const folder = $g("folder");
+	const add_folder = folder ? "&f=" + folder.value: "";
+	ajaxRequest("play","POST","p="+p+"&c="+$g("cur").value+"&r="+$g("repeat").value+"&v="+$g("vol").value+add_folder, function(ajaxResp) {
 		show(ajaxResp.responseText.split(":"));
 		fl_busy = false;
 		$g("wait").innerHTML = "";

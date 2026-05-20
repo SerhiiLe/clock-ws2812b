@@ -21,7 +21,7 @@ uint8_t sec_curFile = 0;
 
 Quote_Settings qs;
 Weather_Settings ws;
-
+Cuckoo_Settings cs;
 
 byte char_to_byte(char n) {
 	if(n>='0' && n<='9') return (byte)n - 48;
@@ -737,6 +737,60 @@ void save_config_weather() {
 	File configFile = LittleFS.open(F("/weather.json"), "w"); // открытие файла на запись
 	if (!configFile) {
 		LOG(println, PSTR("Failed to open weather config file for writing"));
+		return;
+	}
+	serializeJson(doc, configFile); // Записываем строку json в файл
+	configFile.flush();
+	configFile.close(); // не забыть закрыть файл
+	delay(4);
+
+	LOG(println, PSTR("Weather config saved."));
+}
+
+// чтение конфигурации кукушки
+bool load_config_cuckoo() {
+
+	File configFile = LittleFS.open(F("/cuckoo.json"), "r");
+	if (!configFile) {
+		// если файл не найден  
+		LOG(println, PSTR("Failed to open cuckoo config file"));
+		return false;
+	}
+
+	JsonDocument doc; // временный буфер под объект json
+
+	DeserializationError error = deserializeJson(doc, configFile);
+	configFile.close();
+
+	// Test if parsing succeeds.
+	if (error) {
+		LOG(printf_P, PSTR("deserializeJson() failed: %s\n"), error.c_str());
+		return false;
+	}
+
+	cs.enable = doc[F("enable")];
+	cs.folder = doc[F("folder")];
+	cs.zero = doc[F("zero")];
+	cs.volume = doc[F("vol")];
+	cs.cuckoo = doc[F("cuckoo")];
+
+	return true;
+}
+
+// сохранение настроек сервера погоды
+void save_config_cuckoo() {
+
+	JsonDocument doc; // временный буфер под объект json
+
+	doc[F("enable")] = cs.enable;
+	doc[F("folder")] = cs.folder;
+	doc[F("zero")] = cs.zero;
+	doc[F("vol")] = cs.volume;
+	doc[F("cuckoo")] = cs.cuckoo;
+
+	File configFile = LittleFS.open(F("/cuckoo.json"), "w"); // открытие файла на запись
+	if (!configFile) {
+		LOG(println, PSTR("Failed to open cuckoo config file for writing"));
 		return;
 	}
 	serializeJson(doc, configFile); // Записываем строку json в файл

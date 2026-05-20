@@ -21,6 +21,7 @@ int mp3_current = 1;
 int8_t cur_Volume = 15;
 bool mp3_isInit = false;
 bool mp3_isReady = false;
+bool mp3_playNow = false;
 
 #ifdef SRX
 // плата установлена, подготовка к инициализации драйвера
@@ -119,6 +120,7 @@ public:
     // required method
     static void OnPlayFinished([[maybe_unused]] DfMp3_PlaySources source, uint16_t track) {
 		LOG(printf_P, PSTR("Number: %i. Play Finished!\n"), track);
+		mp3_playNow = false;
 		// dfPlayer.stop();
 	}
 
@@ -157,8 +159,8 @@ void checkInit() {
 bool mp3_isPlay() {
 	checkInit();
 	DfMp3_Status status = dfmp3.getStatus();
-	return status.state == DfMp3_StatusState_Playing;
-	// return dfPlayer.readState() & 1;
+	mp3_playNow = status.state == DfMp3_StatusState_Playing;
+	return mp3_playNow;
 }
 
 // обновление номера трека, который сейчас играет
@@ -220,6 +222,7 @@ void mp3_init() {
 		// dfmp3.stop();
 		// delay(10);
 	}
+	mp3_playNow = false;
 }
 
 void mp3_volume(uint8_t t, boolean p) {
@@ -263,22 +266,23 @@ void mp3_volume(uint8_t t, boolean p) {
 }
 
 void mp3_play(int t) {
-	if( mp3_all == 0 ) return;
-	if( t < 1 || t > mp3_all ) return;
+	checkInit();
+	if ( mp3_all == 0 ) return;
+	if ( t < 1 || t > mp3_all ) return;
 	LOG(printf_P, PSTR("want track: %i\n"),t);
 
-	checkInit();
-	dfmp3.playGlobalTrack(t);
+	if (mp3_current==t && dfmp3.getStatus().state == DfMp3_StatusState_Paused)  dfmp3.start();
+	else dfmp3.playGlobalTrack(t);
 	delay(10);
 
 	// дальше два блока, которые не должны исполняться, если всё правильно настроено. Оставлено потому, что жалко выкидывать.
-	if( ! mp3_isPlay() ) {
+	if ( ! mp3_isPlay() ) {
 		dfmp3.start();
 		delay(100);
 	} else delay(10);
 
 	// чувствую себя Трампом:"Этого не должно было случится!".
-	if(dfmp3.getCurrentTrack() != t) {
+	if (dfmp3.getCurrentTrack() != t) {
 		int cur = 0, old = 0, cnt = 0;
 		delay(10);
 		while(true) {
@@ -315,6 +319,7 @@ void mp3_play(int t) {
 
 	mp3_volume(cur_Volume);
 	mp3_current = t;
+	mp3_playNow = true;
 	timeoutMp3Timer.reset();
 }
 
@@ -332,11 +337,13 @@ void mp3_start() {
 void mp3_pause() {
 	checkInit();
 	dfmp3.pause();
+	mp3_playNow = false;
 }
 
 void mp3_stop() {
 	checkInit();
 	dfmp3.stop();
+	mp3_playNow = false;
 }
 
 void mp3_enableLoop() {
@@ -369,6 +376,32 @@ void mp3_check() {
 	dfmp3.loop();
 }
 
+// запуск воспроизведения конкретного трека по номеру папки и номеру трека
+void mp3_playInFolder(uint8_t folder, uint8_t track) {
+	checkInit();
+	dfmp3.playFolderTrack(folder, track);
+	delay(10);
+	if ( ! mp3_isPlay() ) {
+		dfmp3.start();
+		delay(100);
+		dfmp3.playFolderTrack(folder, track);
+	}
+	mp3_playNow = true;
+}
+
+// запуск воспроизведения конкретного трека по номеру из папки mp3
+void mp3_playInMp3(uint16_t track) {
+	checkInit();
+	dfmp3.playMp3FolderTrack(track);
+	delay(10);
+	if ( ! mp3_isPlay() ) {
+		dfmp3.start();
+		delay(100);
+		dfmp3.playMp3FolderTrack(track);
+	}
+	mp3_playNow = true;
+}
+
 #else
 // заглушки, если плата DFPlayer не установлена
 bool mp3_isPlay() {return true;}
@@ -389,5 +422,7 @@ void mp3_disableLoopAll() {}
 void mp3_randomAll() {}
 void mp3_next() {}
 void mp3_previous() {}
+void mp3_playInFolder(uint8_t folder, uint8_t track) {}
+void mp3_playInMp3(uint16_t track) {}
 
 #endif

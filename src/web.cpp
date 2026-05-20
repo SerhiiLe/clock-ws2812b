@@ -67,6 +67,7 @@ void logout();
 void sensors();
 void registration();
 void show_status();
+void save_cuckoo ();
 
 bool fileSend(String path);
 bool need_save = false;
@@ -139,6 +140,7 @@ void web_process() {
 		HTTP.on(F("/sensors"), sensors);
 		HTTP.on(F("/registration"), registration);
 		HTTP.on(F("/status"), show_status);
+		HTTP.on(F("/save_cuckoo"), save_cuckoo);
 		HTTP.on(F("/who"), [](){
 			text_send(gs.clock_name);
 		});
@@ -756,10 +758,11 @@ void repeat_mode(uint8_t r) {
 // обслуживает страничку плейера.
 void play() {
 	if(is_no_auth()) return;
-	uint8_t p = 0;
-	uint8_t r = 0;
-	uint8_t v = 15;
-	uint16_t c = 1;
+	uint8_t p = 0; // режим, который надо установить: играть, стоп, переключение и пр.
+	uint8_t r = 0; // режим повтора: 0 нет, 1 повторять трек, 2 повторять все, 3 играть случайный трек
+	uint8_t v = 15; // уровень громкости
+	uint16_t c = 1; // номер трека
+	uint8_t f = 0; // номер папки из которой надо запустить трек. Если 0, то глобальный номер
 	int t = 0;
 	String name = "p";
 	if( HTTP.hasArg(name) ) p = HTTP.arg(name).toInt();
@@ -769,6 +772,8 @@ void play() {
 	if( HTTP.hasArg(name) ) r = constrain(HTTP.arg(name).toInt(), 0, 3);
 	name = "v";
 	if( HTTP.hasArg(name) ) v = constrain(HTTP.arg(name).toInt(), 1, 30);
+	name = "f";
+	if( HTTP.hasArg(name) ) f = constrain(HTTP.arg(name).toInt(), 1, 255);
 	switch (p)	{
 		case 1: // предыдущий трек
 			t = mp3_current - 1;
@@ -785,7 +790,8 @@ void play() {
 		case 3: // играть
 			repeat_mode(r);
 			delay(10);
-			mp3_play(c);
+			if (f) mp3_playInFolder(f, c);
+			else mp3_play(c);
 			fl_playStarted = true;
 			break;
 		case 4: // пауза
@@ -1362,4 +1368,21 @@ void show_status() {
 
 	HTTP.client().printf_P(PSTR("HTTP/1.1 200\r\nContent-Type: application/json\r\nContent-Length: %d\r\nConnection: close\r\n\r\n{"), total);
 	HTTP.client().write((const char*)buf, total);
+}
+
+void save_cuckoo () {
+	if(is_no_auth()) return;
+	need_save = false;
+
+	set_simple_checkbox(F("enable"), cs.enable);
+	set_simple_int(F("folder"), cs.folder, 1, 99);
+	set_simple_int(F("zero"), cs.zero, 0, 255);
+	set_simple_int(F("cuckoo"), cs.cuckoo, 0, 255);
+	set_simple_int(F("vol"), cs.volume, 1, 15);
+
+	HTTP.sendHeader(F("Location"),F("/maintenance.html"));
+	HTTP.send(303);
+	delay(1);
+	if( need_save )	save_config_cuckoo();
+	printTinyText(txt_save,1,9);
 }

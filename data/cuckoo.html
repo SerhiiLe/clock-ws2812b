@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Clock settings</title>
+		<style>
+			div#shadow {background-color:rgba(0,0,0,0.8); z-index:2000; width:100%; height:100%; position:absolute; left:0; top:0;}
+			div#shadow div {position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%; margin-right: -50%; font-size: x-large; color: yellow;}
+		</style>
+		<link rel="stylesheet" href="styles.css">
+		<link rel="icon" href="favicon.ico">
+		<link rel="shortcut icon" sizes="192x192" href="android-icon.png">
+		<link rel="apple-touch-icon" href="apple-touch-icon.png">
+		<script src="functions.js" type="text/javascript" encoding="UTF-8"></script>
+	</head>
+	<body>
+		<div class="head">
+			<span i18="clock_ctrl">Clock control</span>
+			<div i18="cu_cuckoo_set">Сuckoo settings</div>
+		</div>
+		<div class="content">
+			<form action="save_cuckoo" autocomplete="off" method="post" name="settings">
+				<input type="hidden" name="repeat" id="repeat" value="0">
+				<div class="holder">
+					<div class="row">
+						<div class="b" i18="parameter">Parameter</div>
+						<div class="b" i18="value">Value</div>
+					</div>
+					<div class="row">
+						<div i18="cu_enable">Enable cuckoo every hour</div>
+						<div><input type="checkbox" name="enable" value="1" onchange="show_block('enable', 'cuckoo')"></div>
+					</div>
+					<div class="cuckoo">
+						<div class="row">
+							<div i18="cu_folder">Cuckoo sounds folder number</div>
+							<div><input name="folder" id="folder" type="number" value="1"></div>
+						</div>
+						<div class="row">
+							<div><span i18="cu_cuckoo">The number of the cuckoo sound, the file that plays before the time file</span>. (<span i18="cu_none">0 if not</span>)</div>
+							<div><input name="cuckoo" type="number" value="0"></div>
+						</div>
+						<div class="row">
+							<div><span i18="cu_zero">Sound number 'midnight', the rest +1</span>. (<span i18="cu_none">0 if not</span>)</div>
+							<div><input name="zero" type="number" value="0"></div>
+						</div>
+						<div class="one">
+							<div>
+								<span i18="volume">volume</span>: <span id="volume">0</span> <span id="wait"></span>
+							</div>
+							<input type="range" min="1" max="30" step="1" value="15" class="long" name="vol" id="vol" oninput="sendVol()">
+						</div>
+						<div class="row">
+							<div><button onclick="test_ring();return false;" id="ss" i18="check">check</button></div>
+							<div>
+								<input type="number" name="track" value="1" id="track" onkeypress="sendTr(event)" onfocus="fl_allowUpdate=false;" onfocusout="fl_allowUpdate=true;">
+								<span class="show_tracks" style="display: none;"> из <span id="col">0</span></span>
+								<input type="hidden" id="cur" name="cur" value="1">
+							</div>
+						</div>
+					</div>
+				</div>
+				<button i18="save">Save</button>
+			</form>
+		</div>
+		<div class="footer">
+			<a href="maintenance.html" i18="return">Return</a>
+		</div>
+		<div id="shadow"><div>Loading...</div></div>
+	</body>
+<script type="text/javascript" encoding="UTF-8">
+
+var is_play = false;
+var fl_allowUpdate = true;
+function update_info() {
+	ajaxRequest("play","POST","p=0", function(ajaxResp) {
+			const a = ajaxResp.responseText.split(":");
+			if( a[3] == 0 && is_play ) test_ring();
+			if(fl_allowUpdate) show(a);
+			if( a[1] == 0 && ! is_play ) setTimeout(update_info, 2000);
+			else toggle_by_class("show_tracks", true);
+	}, dummy);
+	if(is_play) setTimeout(update_info, 2000);
+}
+function test_ring() {
+	if(is_play) {
+		$g("ss").innerHTML="check";
+		send(6);
+		is_play=false;
+	} else {
+		$g("cur").value = $g("track").value;
+		$g("ss").innerHTML="stop";
+		send(3);
+		is_play=true;
+		setTimeout(update_info, 5000);
+	}
+}
+function sendTr(e) {
+	if(e.keyCode === 13)
+		is_play = false;
+}
+
+function start() {
+	if (typeof ajaxRequest !== "undefined") {
+		fill_settings("cuckoo.json","settings", () => {
+			show_block('enable');
+			localization(null, ()=> {$g("shadow").style.display = "none";});
+		});
+	} else setTimeout(start, 100);
+}
+start();
+</script>
+</html>

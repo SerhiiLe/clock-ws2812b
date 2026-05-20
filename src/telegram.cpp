@@ -52,12 +52,10 @@ void tb_tick() {
 }
 
 void tb_real_send_message(const char* text) {
+	// [[maybe_unused]] bool r = bot.sendMessage(bot.extractFirstNumber(ts.tb_chats), text); // отсылка только на первый номер
+	[[maybe_unused]] bool r = bot.sendMessageToAll(ts.tb_chats, text); // отсылка на все номера
 	#ifdef DEBUG
-	// LOG(printf_P, PSTR("Send to telegram: %d\n"), bot.sendMessage(bot.extractFirstNumber(ts.tb_chats), text));
-	LOG(printf_P, PSTR("Send to telegram: %d\n"), bot.sendMessageToAll(ts.tb_chats, text));
-	#else
-	// bot.sendMessage(bot.extractFirstNumber(ts.tb_chats), text);
-	bot.sendMessageToAll(ts.tb_chats, text);
+	LOG(printf_P, PSTR("Send to telegram: %d\n"), r);
 	#endif
 }
 
@@ -100,6 +98,7 @@ void tb_send_delayed() {
 #else
 // Отправка сообщения о во все подписанные чаты телеграмм
 void tb_send_msg(const char* text) {
+	// для esp8266 очередь не нужна, так как всё в одном потоке
 	tb_real_send_message(text);
 }
 #endif
@@ -301,6 +300,47 @@ String telegramCallback(TResult& msg) {
 				return F("датчик неактивен");
 			}
 		}
+		if (bot.is_command(msg.text, "show")) {
+			// будет конкурировать со строкой отправленой напрямую через сайт
+			messages[MESSAGE_WEB].count = 6;
+			messages[MESSAGE_WEB].timer.setInterval(15000);
+			messages[MESSAGE_WEB].timer.setNext(100);
+			messages[MESSAGE_WEB].color = 5; // rainbow2
+			int pos = original.indexOf(" ");
+			if (pos>0) {
+				String to_show = original.substring(pos+1);
+				messages[MESSAGE_WEB].text = to_show;
+				return String(txt_TB_shown[gs.language]) + to_show;
+			} else 
+				return txt_TB_nothing_to_show[gs.language];
+		}
+#ifdef SRX
+		if (bot.is_command(msg.text, "play")) {
+			int pos = msg.text.lastIndexOf(" ");
+			if (pos>0) {
+				int track = msg.text.substring(pos+1).toInt();
+				mp3_stop(); // остановить то, что сейчас играет
+				if (track > 0 && track <= mp3_all) {
+					mp3_play(track);
+					return String(F("play track: ")) + String(track);
+				} else if (track == 0) {
+					mp3_stop();
+					return txt_TB_play_stopped[gs.language];
+				} else
+					return txt_TB_wrong_track[gs.language];
+			} else
+				return txt_TB_track_not_specified[gs.language];
+		}
+		if (bot.is_command(msg.text, "volume")) {
+			int pos = msg.text.lastIndexOf(" ");
+			if (pos>0) {
+				int vol = constrain(msg.text.substring(pos+1).toInt(), 0, 15);
+				mp3_volume(vol);
+				return String(txt_TB_volume_set_to[gs.language]) + String(vol);
+			} else
+				return txt_TB_volume_not_specified[gs.language];
+		}
+#endif
 		if (bot.is_command(msg.text, F("logout"))) {
 			int pos1 = ts.tb_chats.indexOf(String(msg.chatId));
 			if(pos1<0) {
@@ -316,7 +356,7 @@ String telegramCallback(TResult& msg) {
 			fl_auth = false;
 			return F("Вышли...");
 		}
-	} else {
+	} else { // конец команд для авторизированных, дальше команды доступные всем
  		if (bot.is_command(msg.text, F("login"))) {
 			fl_secretWanted = true;
 			return F("Пароль доступа?");
@@ -341,46 +381,5 @@ String telegramCallback(TResult& msg) {
 	if (bot.is_command(msg.text, F("help"))) {
 		return txt_TB_help[gs.language];
 	}
-	if (bot.is_command(msg.text, "show")) {
-		// будет конкурировать со строкой отправленой напрямую через сайт
-		messages[MESSAGE_WEB].count = 6;
-		messages[MESSAGE_WEB].timer.setInterval(15000);
-		messages[MESSAGE_WEB].timer.setNext(100);
-		messages[MESSAGE_WEB].color = 5; // rainbow2
-		int pos = original.indexOf(" ");
-		if (pos>0) {
-			String to_show = original.substring(pos+1);
-			messages[MESSAGE_WEB].text = to_show;
-			return String(txt_TB_shown[gs.language]) + to_show;
-		} else 
-			return txt_TB_nothing_to_show[gs.language];
-	}
-#ifdef SRX
-	if (bot.is_command(msg.text, "play")) {
-		int pos = msg.text.lastIndexOf(" ");
-		if (pos>0) {
-			int track = msg.text.substring(pos+1).toInt();
-			mp3_stop(); // остановить то, что сейчас играет
-			if (track > 0 && track <= mp3_all) {
-				mp3_play(track);
-				return String(F("play track: ")) + String(track);
-			} else if (track == 0) {
-				mp3_stop();
-				return txt_TB_play_stopped[gs.language];
-			} else
-				return txt_TB_wrong_track[gs.language];
-		} else
-			return txt_TB_track_not_specified[gs.language];
-	}
-	if (bot.is_command(msg.text, "volume")) {
-		int pos = msg.text.lastIndexOf(" ");
-		if (pos>0) {
-			int vol = constrain(msg.text.substring(pos+1).toInt(), 0, 15);
-			mp3_volume(vol);
-			return String(txt_TB_volume_set_to[gs.language]) + String(vol);
-		} else
-			return txt_TB_volume_not_specified[gs.language];
-	}
-#endif
 	return txt_TB_dont_understand[gs.language];
 }

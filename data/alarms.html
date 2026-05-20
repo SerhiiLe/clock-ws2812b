@@ -125,12 +125,12 @@ function update_info() {
 }
 function test_ring() {
 	if(is_play) {
-		$g("ss").innerHTML="проверить";
+		$g("ss").innerHTML="check";
 		send(6);
 		is_play=false;
 	} else {
 		$g("cur").value = $g("track").value;
-		$g("ss").innerHTML="стоп";
+		$g("ss").innerHTML="stop";
 		send(3);
 		is_play=true;
 		setTimeout(update_info, 5000);

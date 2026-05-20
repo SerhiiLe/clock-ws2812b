@@ -13,7 +13,7 @@ const char* PROGMEM txt_TB_error[LANGUAGES] = {T_TB_error_en, T_TB_error_ru, T_T
 
 const char PROGMEM T_TB_send_enabled_en[] = "Sending messages is enabled";
 const char PROGMEM T_TB_send_enabled_ru[] = "Отправка сообщений включена";
-const char PROGMEM T_TB_send_enabled_ua[] = "Відправка повідомленьувімкнена";
+const char PROGMEM T_TB_send_enabled_ua[] = "Відправка повідомлень увімкнена";
 const char* PROGMEM txt_TB_send_enabled[LANGUAGES] = {T_TB_send_enabled_en, T_TB_send_enabled_ru, T_TB_send_enabled_ua};
 
 const char PROGMEM T_TB_send_disabled_en[] = "Sending messages is disabled";

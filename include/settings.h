@@ -19,6 +19,8 @@ bool load_config_quote();
 void save_config_quote();
 bool load_config_weather();
 void save_config_weather();
+bool load_config_cuckoo();
+void save_config_cuckoo();
 
 #define SEC_TEXT_EMPTY 0	// логирование движений отключено
 #define SEC_TEXT_DISABLE 1	// логирование движений отключено

@@ -31,8 +31,7 @@ class timerMinim
 		}
 		// возвращает true, когда пришло время.
 		bool isReady() {
-			uint32_t now = millis();
-			if ((uint32_t)(now - _start) >= _interval) {
+			if ((int32_t)(millis() - _next) > 0) {
 				reset();
 				return true;
 			}
@@ -40,16 +39,16 @@ class timerMinim
 		}
 		// ручной сброс таймера на установленный интервал
 		void reset() {
-			_start = millis();
+			_next = millis() + _interval;
 		}
 		// выставить задержку до следующего срабатывания
 		void setNext(uint32_t next = 0) {
-			_start = millis() - (_interval - next);
+			_next = millis() + (next ? next: _interval);
 		}
 
 	private:
 		uint32_t _interval = 0;
-		uint32_t _start = 0;
+		uint32_t _next = 0;
 };
 
 #endif

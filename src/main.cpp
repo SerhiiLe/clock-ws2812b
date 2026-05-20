@@ -2,8 +2,8 @@
  * @file main.cpp
  * @author Serhii Lebedenko (slebedenko@gmail.com)
  * @brief Clock
- * @version 2.4.2
- * @date 2026-05-09
+ * @version 2.5.0
+ * @date 2026-05-26
  * 
  * @copyright Copyright (c) 2021,2022,2023,2024,2025,2026
  */
@@ -119,7 +119,7 @@ uint8_t errors_quotes = 0;
 	void TaskWebCode( void * pvParameters );
 	void TaskAlarmCode( void * pvParameters );
 	esp_chip_info_t chip_info;
-	SemaphoreHandle_t httpMutex; // нужно в редких случая, чтобы развести запросы к погоде и отпраку сообщений в телеграм
+	SemaphoreHandle_t httpMutex; // нужно в редких случая, чтобы развести запросы к погоде и отправку сообщений в телеграм
 #endif
 
 void setup() {
@@ -300,6 +300,15 @@ bool boot_check() {
 			quoteUpdateTimer.setNext(9000);
 			syncForecastTimer.setNext(15000);
 			break;
+		case 15: // чтение настроек кукушки
+			#ifdef SRX
+			if( ! load_config_cuckoo()) {
+				LOG(println, PSTR("Create new cuckoo file"));
+				save_config_cuckoo(); // Создаем файл
+				initRString(PSTR("Создан новый файл настроек кукушки."));
+			}
+			#endif
+			break;
 
 		default:
 			boot_stage = 0;
@@ -332,18 +341,17 @@ bool boot_check() {
 	return true;
 }
 
-// выключение всех активных в данный момент будильников
-void alarmsStop() {
-	// для начала надо остановить проигрывание мелодии и сбросить таймер активности
-	alarmStartTime = 0;
-	delay(10);
-	// mp3_disableLoop();
-	// delay(10);
-	mp3_stop();
-	// устанавливается флаг, что все активные сейчас будильники отработали
-	for(uint8_t i=0; i<MAX_ALARMS; i++)
-		if(alarms[i].settings & 1024)
-			alarms[i].settings |= 2048;
+// Время для повторного запроса при сбое сети
+uint32_t networkErrorPenalty(uint8_t& errorCounter) {
+	uint32_t penalty = 0; // ноль означает один полный интервал из настроек
+	if (errorCounter < NET_RETRY_COUNT) {
+		errorCounter++;
+		penalty = errorCounter * NET_RETRY_TIME; // интервал каждой следующей попытки увеличивается 
+	} else {
+		errorCounter = 0;
+	}
+	LOG(printf_P,PSTR("Retry: %u, penalty: %u\n"), errors_quotes, penalty);
+	return penalty * 1000UL;
 }
 
 // все функции, которые используют сеть, из основного цикла для возможности работы на втором ядре esp32
@@ -372,36 +380,18 @@ void network_pool() {
 		if (fl_run_allow) {
 			// обновление цитат с сервера
 			if (qs.enabled && quoteUpdateTimer.isReady()) {
-				if (quoteUpdate() != 1) {
-					uint32_t penalty = NET_RETRY_PENALTY;
-					if (errors_quotes < NET_RETRY_COUNT) {
-						errors_quotes++;
-						penalty = NET_RETRY_COUNT;
-					}
-					quoteUpdateTimer.setNext(penalty * 1000UL); // повторить запрос через penalty
-				} else errors_quotes = 0;
+				if (quoteUpdate() != 1) quoteUpdateTimer.setNext(networkErrorPenalty(errors_quotes)); // повторить запрос через penalty
+				else errors_quotes = 0;
 			}
 			// обновление погоды с сервера
 			if(ws.weather && syncWeatherTimer.isReady()) {
-				if (weatherUpdate() != 1) {
-					uint32_t penalty = NET_RETRY_PENALTY;
-					if (errors_weather < NET_RETRY_COUNT) {
-						errors_weather++;
-						penalty = NET_RETRY_COUNT;
-					}
-					syncWeatherTimer.setNext(penalty * 1000UL); // повторить запрос через penalty
-				} else errors_weather = 0;
+				if (weatherUpdate() != 1) syncWeatherTimer.setNext(networkErrorPenalty(errors_weather));
+				else errors_weather = 0;
 			}
 			// обновление прогноза погоды
 			if(ws.forecast && syncForecastTimer.isReady()) {
-				if (weatherUpdate(FORECAST) != 1) {
-					uint32_t penalty = NET_RETRY_PENALTY;
-					if (errors_forecast < NET_RETRY_COUNT) {
-						errors_forecast++;
-						penalty = NET_RETRY_COUNT;
-					}
-					syncForecastTimer.setNext(penalty * 1000UL);
-				} else errors_forecast = 0;
+				if (weatherUpdate(FORECAST) != 1) syncForecastTimer.setNext(networkErrorPenalty(errors_forecast));
+				else errors_forecast = 0;
 			}
 			// при сбоях сети будет выводится старая информация
 		}
@@ -410,6 +400,20 @@ void network_pool() {
 			if( syncTime() )
 				if( gs.tz_adjust && ! ws.weather ) weatherUpdate();
 	}
+}
+
+// выключение всех активных в данный момент будильников
+void alarmsStop() {
+	// для начала надо остановить проигрывание мелодии и сбросить таймер активности
+	alarmStartTime = 0;
+	delay(10);
+	// mp3_disableLoop();
+	// delay(10);
+	mp3_stop();
+	// устанавливается флаг, что все активные сейчас будильники отработали
+	for(uint8_t i=0; i<MAX_ALARMS; i++)
+		if(alarms[i].settings & 1024)
+			alarms[i].settings |= 2048;
 }
 
 // функция которая отвечает за будильник вынесена из основного цикла из-за медленной работы с dfPlayer. Часы будут продолжать идти, web будет недоступен
@@ -431,6 +435,35 @@ void alarms_pool() {
 			(gs.boost_mode == 5 && i >= gs.bright_begin && i <= gs.bright_end));
 		// сдвиг гаммы от времени суток.
 		hue_shift = uint8_t(240 - i/5 - (gs.hue_shift-1)*64);
+		// работа кукушки
+		#ifdef SRX
+		static uint8_t cuckoo_last = t.tm_hour;
+		static uint8_t cuckoo_stage = 0;
+		if (fl_run_allow && t.tm_min == 0 && cs.enable && cuckoo_last != t.tm_hour) {
+			// нулевая минута не важно какого часа, надо включить кукушку
+			// кукушка дожна прокукукать два файла, один собственно ку-ку, второй - назвать время.
+			if (!mp3_playNow) { // сейчас ничего не играет, иначе кукушка пролетает мимо
+				if (cuckoo_stage == 0) { // стадия 1
+					mp3_volume(cs.volume);
+					delay(10);
+					if (cs.cuckoo) {
+						LOG(println, PSTR("cuckoo stage1"));
+						// проиграть кукушку и переёти к второй стадии
+						mp3_playInFolder(cs.folder, cs.cuckoo);
+					}
+					cuckoo_stage++;
+				} else {
+					if (cs.zero) {
+						LOG(println, PSTR("cuckoo stage2"));
+						// проиграть файл с времененм
+						mp3_playInFolder(cs.folder, cs.zero + t.tm_hour);
+					}
+					cuckoo_last = t.tm_hour; // в этом часу кукушка уже отработала, ждём следующего часа
+					cuckoo_stage = 0;
+				}
+			}
+		}
+		#endif
 		// перебор всех будильников, чтобы найти активный
 		for(i=0; i<MAX_ALARMS; i++)
 			if(alarms[i].settings & 512) {
