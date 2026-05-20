@@ -33,8 +33,8 @@ Code	Description
 
 // переводил как смог, ногами не бить!
 
-const char PROGMEM T_weather_en[] = "Weather:";
-const char PROGMEM T_weather_ru[] = "Погода:";
+const char PROGMEM T_weather_en[] = "Weather: ";
+const char PROGMEM T_weather_ru[] = "Погода: ";
 const char* PROGMEM txt_weather[LANGUAGES] = {T_weather_en, T_weather_ru, T_weather_ru};
 
 const char PROGMEM T_w0_en[] = "Clear sky";
@@ -259,12 +259,12 @@ const char PROGMEM T_d_north_western_ru[] = "Северо-западный";
 const char PROGMEM T_d_north_western_ua[] = "Північно-західний";
 const char* PROGMEM txt_d_north_western[LANGUAGES] = {T_d_north_western_en, T_d_north_western_ru, T_d_north_western_ua};
 
-const char PROGMEM T_quote_en[] = "Quote";
-const char PROGMEM T_quote_ru[] = "Цитата";
+const char PROGMEM T_quote_en[] = "Quote: ";
+const char PROGMEM T_quote_ru[] = "Цитата: ";
 const char* PROGMEM txt_quote[LANGUAGES] = {T_quote_en, T_quote_ru, T_quote_ru};
 
-const char PROGMEM T_forecast_en[] = "Forecast:";
-const char PROGMEM T_forecast_ru[] = "Прогноз:";
+const char PROGMEM T_forecast_en[] = "Forecast: ";
+const char PROGMEM T_forecast_ru[] = "Прогноз: ";
 const char* PROGMEM txt_forecast[LANGUAGES] = {T_forecast_en, T_forecast_ru, T_forecast_ru};
 
 const char PROGMEM T_Today_en[] = "Today";

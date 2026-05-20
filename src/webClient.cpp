@@ -578,7 +578,7 @@ uint8_t quoteGet() {
 			if(quote.type)
 				parseQuote(httpReq.getString(), quote.type == Q_JSON);
 			else {
-				messages[MESSAGE_QUOTE].text = F("Цитата: ");
+				messages[MESSAGE_QUOTE].text = String(txt_quote[gs.language]);
 				messages[MESSAGE_QUOTE].text += httpReq.getString();
 			}
 			messages[MESSAGE_QUOTE].count = qs.enabled ? 100: 0;

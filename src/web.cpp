@@ -233,6 +233,9 @@ bool fileSend(String path) {
 	}
 	if(LittleFS.exists(path)) {
 		File file = LittleFS.open(path, "r");
+#ifdef ESP32
+		HTTP.streamFile(file, ct);
+#else
 		// файл существует и открыт, выделение буфера передачи и отсылка заголовка
 		char buf[1476];
 		size_t sent = 0;
@@ -246,7 +249,8 @@ bool fileSend(String path) {
 			siz -= len;
 			sent+=len;
 		}
-		file.close();  
+#endif
+		file.close();
 	} else return false; // файла нет, ошибка
 	return true;
 }
@@ -889,8 +893,8 @@ void set_clock() {
 	} else {
 		tm t = getTime();
 		HTTP.client().print(PSTR("HTTP/1.1 200\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n{"));
-		HTTP.client().printf_P(PSTR("\"time\":\"%u\","), t.tm_hour*60+t.tm_min);
-		HTTP.client().printf_P(PSTR("\"date\":\"%u-%02u-%02u\"}"), t.tm_year +1900, t.tm_mon +1, t.tm_mday);
+		HPP("\"time\":\"%u\",", t.tm_hour*60+t.tm_min);
+		HPP("\"date\":\"%u-%02u-%02u\"}", t.tm_year +1900, t.tm_mon +1, t.tm_mday);
 		#ifdef ESP8266
 		HTTP.client().stop();
 		#endif
@@ -1065,10 +1069,10 @@ void sensors() {
 	for(uint8_t i=0; i<MAX_SENSORS; i++) {
 		if(sensor[i].registered >= getTimeU() - ts.sensor_timeout*60 + 60) {
 			if(fl) HTTP.client().print(",");
-			HTTP.client().printf_P(PSTR("{\"num\":%i,"), i);
-			HTTP.client().printf_P(PSTR("\"hostname\":\"%s\","), jsonEncode(buf, sensor[i].hostname.c_str(), sizeof(buf)));
-			HTTP.client().printf_P(PSTR("\"ip\":\"%s\","), sensor[i].ip.toString().c_str());
-			HTTP.client().printf_P(PSTR("\"timeout\":%i}"), ts.sensor_timeout*60 + sensor[i].registered - getTimeU());
+			HPP("{\"num\":%i,", i);
+			HPP("\"hostname\":\"%s\",", jsonEncode(buf, sensor[i].hostname.c_str(), sizeof(buf)));
+			HPP("\"ip\":\"%s\",", sensor[i].ip.toString().c_str());
+			HPP("\"timeout\":%i}", ts.sensor_timeout*60 + sensor[i].registered - getTimeU());
 			fl = true;
 		}
 	}

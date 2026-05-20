@@ -2,7 +2,7 @@
  * @file main.cpp
  * @author Serhii Lebedenko (slebedenko@gmail.com)
  * @brief Clock
- * @version 2.5.0
+ * @version 2.5.1
  * @date 2026-05-26
  * 
  * @copyright Copyright (c) 2021,2022,2023,2024,2025,2026
@@ -301,13 +301,13 @@ bool boot_check() {
 			syncForecastTimer.setNext(15000);
 			break;
 		case 15: // чтение настроек кукушки
-			#ifdef SRX
 			if( ! load_config_cuckoo()) {
 				LOG(println, PSTR("Create new cuckoo file"));
-				save_config_cuckoo(); // Создаем файл
+				save_config_cuckoo(); // даже если dfplayer не подключен, по тихому создать файл настроек
+				#ifdef SRX
 				initRString(PSTR("Создан новый файл настроек кукушки."));
+				#endif
 			}
-			#endif
 			break;
 
 		default:

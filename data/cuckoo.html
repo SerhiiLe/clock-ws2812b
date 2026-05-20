@@ -103,7 +103,7 @@ function sendTr(e) {
 function start() {
 	if (typeof ajaxRequest !== "undefined") {
 		fill_settings("cuckoo.json","settings", () => {
-			show_block('enable');
+			show_block('enable', 'cuckoo');
 			localization(null, ()=> {$g("shadow").style.display = "none";});
 		});
 	} else setTimeout(start, 100);

@@ -22,7 +22,7 @@
 		<div class="menu">
 			<a href="sysinfo.html" i18="am_info">System information</a>
 			<a href="clock.html" i18="am_time">Setting the time</a>
-			<a href="cuckoo.html" i18="cu_cuckoo_set">Сuckoo settings</a>
+			<a href="cuckoo.html" id="cuckoo" i18="cu_cuckoo_set">Сuckoo settings</a>
 			<a href="show.html" i18="am_one">One-time text</a>
             <a href="#" onclick="onoff('demo'); return false;"><span i18="am_demo">Check matrix / demo</span> (<span id="demo"></span>)</a>
             <a href="clear.html" i18="am_delete">Delete settings</a>
@@ -36,11 +36,14 @@
 		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
+function applyInfo(info) {
+	if(!info.use_mp3) $g("cuckoo").style.display = 'none';
+}
 function start() {
 	if (typeof ajaxRequest !== "undefined") {
 		onoff('ftp',0);
 		onoff('demo',0);
-		localization(null, ()=> {$g("shadow").style.display = "none";});
+		localization(applyInfo, ()=> {$g("shadow").style.display = "none";});
 	} else setTimeout(start, 100);
 }
 start();
