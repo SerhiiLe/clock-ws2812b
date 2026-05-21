@@ -214,17 +214,22 @@ bool fileSend(String path) {
 	// проверка необходимости авторизации
 	if(auth_need(path))
 		if(is_no_auth()) return false;
+	bool cache_enable = true;
 	// определение типа файла
 	const char *ct = nullptr;
 	if(path.endsWith(F(".html"))) ct = PSTR("text/html");
 	else if(path.endsWith(F(".css"))) ct = PSTR("text/css");
 	else if(path.endsWith(F(".js"))) ct = PSTR("application/javascript");
-	else if(path.endsWith(F(".json"))) ct = PSTR("application/json");
+	else if(path.endsWith(F(".json"))) {
+		int indexOf_ = path.indexOf('_');
+		cache_enable = indexOf_ > 0 && path[indexOf_ + 3] == '.'; 
+		ct = PSTR("application/json");
+	}
 	else if(path.endsWith(F(".png"))) ct = PSTR("image/png");
 	else if(path.endsWith(F(".jpg"))) ct = PSTR("image/jpeg");
 	else if(path.endsWith(F(".gif"))) ct = PSTR("image/gif");
 	else if(path.endsWith(F(".ico"))) ct = PSTR("image/x-icon");
-	else ct = PSTR("text/plain");
+	else { ct = PSTR("text/plain"); cache_enable = false; }
 	// открытие файла на чтение
 	if(!fs_isStarted) {
 		// файловая система не загружена, переход на страничку обновления
@@ -234,13 +239,18 @@ bool fileSend(String path) {
 	if(LittleFS.exists(path)) {
 		File file = LittleFS.open(path, "r");
 #ifdef ESP32
+		if (cache_enable)
+			HTTP.sendHeader("Cache-Control", "public, max-age=3600, immutable");
 		HTTP.streamFile(file, ct);
 #else
 		// файл существует и открыт, выделение буфера передачи и отсылка заголовка
 		char buf[1476];
 		size_t sent = 0;
 		int siz = file.size();
-		HTTP.client().printf_P(PSTR("HTTP/1.1 200\r\nContent-Type: %s\r\nContent-Length: %d\r\nConnection: close\r\n\r\n"),ct,siz);
+		if (cache_enable)
+			HTTP.client().printf_P(PSTR("HTTP/1.1 200\r\nContent-Type: %s\r\nContent-Length: %d\r\nCache-Control", "public, max-age=3600, immutable\r\nConnection: close\r\n\r\n"),ct,siz);
+		else
+			HTTP.client().printf_P(PSTR("HTTP/1.1 200\r\nContent-Type: %s\r\nContent-Length: %d\r\nConnection: close\r\n\r\n"),ct,siz);
 		// отсылка файла порциями, по размеру буфера или остаток
 		while(siz > 0) {
 			size_t len = std::min((int)(sizeof(buf) - 1), siz);

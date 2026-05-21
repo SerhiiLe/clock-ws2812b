@@ -7,4 +7,5 @@ data/*.json
 !data/localization_*.json
 !data/clear_*.json
 data/log*.txt
+include/defines.h
 lib
