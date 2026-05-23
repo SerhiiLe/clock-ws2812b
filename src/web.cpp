@@ -207,6 +207,12 @@ bool is_no_auth() {
 	return false;
 }
 
+// проверка, если файлы локализации с шаблоном "name_ua.ext", то можно кешировать.
+bool allowed_cache(String &p) {
+	int indexOf_ = p.indexOf('_');
+	return indexOf_ > 0 && p[indexOf_ + 3] == '.'; 
+}
+
 // отправка файла
 bool fileSend(String path) {
 	// если путь пустой - исправить на индексную страничку
@@ -220,16 +226,12 @@ bool fileSend(String path) {
 	if(path.endsWith(F(".html"))) ct = PSTR("text/html");
 	else if(path.endsWith(F(".css"))) ct = PSTR("text/css");
 	else if(path.endsWith(F(".js"))) ct = PSTR("application/javascript");
-	else if(path.endsWith(F(".json"))) {
-		int indexOf_ = path.indexOf('_');
-		cache_enable = indexOf_ > 0 && path[indexOf_ + 3] == '.'; 
-		ct = PSTR("application/json");
-	}
+	else if(path.endsWith(F(".json"))) { ct = PSTR("application/json"); cache_enable = allowed_cache(path); }
 	else if(path.endsWith(F(".png"))) ct = PSTR("image/png");
 	else if(path.endsWith(F(".jpg"))) ct = PSTR("image/jpeg");
 	else if(path.endsWith(F(".gif"))) ct = PSTR("image/gif");
 	else if(path.endsWith(F(".ico"))) ct = PSTR("image/x-icon");
-	else { ct = PSTR("text/plain"); cache_enable = false; }
+	else { ct = PSTR("text/plain"); cache_enable = allowed_cache(path); }
 	// открытие файла на чтение
 	if(!fs_isStarted) {
 		// файловая система не загружена, переход на страничку обновления
@@ -247,10 +249,10 @@ bool fileSend(String path) {
 		char buf[1476];
 		size_t sent = 0;
 		int siz = file.size();
+		HPP("HTTP/1.1 200\r\nContent-Type: %s\r\n", ct);
 		if (cache_enable)
-			HTTP.client().printf_P(PSTR("HTTP/1.1 200\r\nContent-Type: %s\r\nContent-Length: %d\r\nCache-Control", "public, max-age=3600, immutable\r\nConnection: close\r\n\r\n"),ct,siz);
-		else
-			HTTP.client().printf_P(PSTR("HTTP/1.1 200\r\nContent-Type: %s\r\nContent-Length: %d\r\nConnection: close\r\n\r\n"),ct,siz);
+			HTTP.client().print(PSTR("Cache-Control: public, max-age=3600, immutable\r\n"));
+		HPP("Content-Length: %d\r\nConnection: close\r\n\r\n",siz);
 		// отсылка файла порциями, по размеру буфера или остаток
 		while(siz > 0) {
 			size_t len = std::min((int)(sizeof(buf) - 1), siz);
@@ -541,6 +543,12 @@ void save_telegram() {
 	set_simple_int(F("tb_accelerated"), ts.tb_accelerated, 1, 600);
 	set_simple_int(F("tb_accelerate"), ts.tb_accelerate, 1, 3600);
 	set_simple_int(F("tb_ban"), ts.tb_ban, 900, 3600);
+	set_simple_int(F("rcount"), ts.rcount, 1, 32000);
+	set_simple_int(F("rint"), ts.rint, 1, 65000);
+	set_simple_int(F("color_mode"), ts.color_mode, 0, 5);
+	set_simple_color(F("color"), ts.color);
+	set_simple_int(F("melody"), ts.melody, 0, 4096);
+	set_simple_int(F("vol"), ts.volume, 1, 30);
 
 	HTTP.sendHeader(F("Location"),"/security.html");
 	HTTP.send(303);
@@ -777,6 +785,7 @@ void play() {
 	uint8_t v = 15; // уровень громкости
 	uint16_t c = 1; // номер трека
 	uint8_t f = 0; // номер папки из которой надо запустить трек. Если 0, то глобальный номер
+	static uint16_t in_folder = 0;
 	int t = 0;
 	String name = "p";
 	if( HTTP.hasArg(name) ) p = HTTP.arg(name).toInt();
@@ -787,7 +796,7 @@ void play() {
 	name = "v";
 	if( HTTP.hasArg(name) ) v = constrain(HTTP.arg(name).toInt(), 1, 30);
 	name = "f";
-	if( HTTP.hasArg(name) ) f = constrain(HTTP.arg(name).toInt(), 1, 255);
+	if( HTTP.hasArg(name) ) f = constrain(HTTP.arg(name).toInt(), 0, 255);
 	switch (p)	{
 		case 1: // предыдущий трек
 			t = mp3_current - 1;
@@ -804,8 +813,13 @@ void play() {
 		case 3: // играть
 			repeat_mode(r);
 			delay(10);
-			if (f) mp3_playInFolder(f, c);
-			else mp3_play(c);
+			if (v != cur_Volume)
+				mp3_volume(v);
+			if (f) {
+				in_folder = mp3_folderTrackCount(f);
+				mp3_playInFolder(f, c);
+			} else
+				mp3_play(c);
 			fl_playStarted = true;
 			break;
 		case 4: // пауза
@@ -835,12 +849,12 @@ void play() {
 			// if(!mp3_isInit) mp3_init();
 			// else mp3_reread();
 			// if(mp3_isInit) mp3_update();
-			mp3_reread();
+			if (!f) mp3_reread();
 			mp3_update();
 			break;
 	}
 	char buff[20];
-	sprintf_P(buff, PSTR("%i:%i:%i:%i"), mp3_current, mp3_all, cur_Volume, mp3_isPlay());
+	sprintf_P(buff, PSTR("%i:%i:%i:%i"), mp3_current, (f?in_folder:mp3_all), cur_Volume, mp3_isPlay());
 	text_send(String(buff));
 }
 
@@ -1377,10 +1391,10 @@ void show_status() {
 	);
 	HPP2("\"lang\":\"%s\"}", TXT_LANGUAGE[gs.language]);
 
-	size_t total = next-buf+1;
+	size_t total = next-buf;
 	#undef HPP2
 
-	HTTP.client().printf_P(PSTR("HTTP/1.1 200\r\nContent-Type: application/json\r\nContent-Length: %d\r\nConnection: close\r\n\r\n{"), total);
+	HPP("HTTP/1.1 200\r\nContent-Type: application/json\r\nContent-Length: %d\r\nConnection: close\r\n\r\n{", total+1);
 	HTTP.client().write((const char*)buf, total);
 }
 
@@ -1392,7 +1406,7 @@ void save_cuckoo () {
 	set_simple_int(F("folder"), cs.folder, 1, 99);
 	set_simple_int(F("zero"), cs.zero, 0, 255);
 	set_simple_int(F("cuckoo"), cs.cuckoo, 0, 255);
-	set_simple_int(F("vol"), cs.volume, 1, 15);
+	set_simple_int(F("vol"), cs.volume, 1, 30);
 
 	HTTP.sendHeader(F("Location"),F("/maintenance.html"));
 	HTTP.send(303);

@@ -121,6 +121,12 @@ struct Telegram_Settings {
 	uint16_t tb_accelerated = TELEGRAM_ACCELERATED; // ускоренный интервал запроса новых команд в секундах
 	uint16_t tb_accelerate = TELEGRAM_ACCELERATE; // время в течении которого будет работать ускорение
 	uint16_t tb_ban = TELEGRAM_BAN; // время на которе прекращается опрос новых сообщений, после сбоя, в секундах
+	int16_t rcount = 6; // количество повторов
+	uint16_t rint = 15; // интервал повтора в секундах
+	uint8_t color_mode = 0; // режим цвета, как везде (0 )
+	uint32_t color = 0xFFFFFF; // по умолчанию - белый
+	uint16_t melody = 1; // номер мелодии
+	uint8_t volume = 15; // громкость
 };
 extern Telegram_Settings ts;
 

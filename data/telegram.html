@@ -21,6 +21,7 @@
 		</div>
 		<div class="content">
 			<form action="save_telegram" autocomplete="off" method="post" name="settings">
+				<input type="hidden" name="repeat" id="repeat" value="0">
 				<div class="holder">
 					<div class="row">
 						<div class="b" i18="parameter">Parameter</div>
@@ -78,6 +79,45 @@
 						<div i18="ts_stop">Time at which polling of new messages stops after failure, in seconds (900-3600)</div>
 						<div><input name="tb_ban" type="number" value="1800"></div>
 					</div>
+					<div class="one i b center" i18="ts_defstr">How to display a string from Telegram</div>
+					<div class="row">
+						<div i18="ts_rcount">Number of repetitions</div>
+						<div><input name="rcount" type="number" value="6"></div>
+					</div>
+					<div class="row">
+						<div i18="ts_rint">Repeat interval, in seconds</div>
+						<div><input name="rint" type="number" value="15"></div>
+					</div>
+					<div class="row">
+						<div i18="color_mode">Color mode</div>
+						<div>
+							<select name="color_mode" onchange="show_color_block()">
+								<option value="0" i18="one">One</option>
+								<option value="1" i18="rainbow">Rainbow</option>
+								<option value="2" i18="rainbow2">Rainbow2</option>
+								<option value="3" i18="different">Different</option>
+								<option value="4" i18="different2">Different2</option>
+							</select>
+						</div>
+					</div>
+					<div class="row color0">
+						<div><span i18="color_text">Text color</span> (<span class="red">RR</span><span class="green">GG</span><span class="blue">BB</span>)</div><div class="color_demo" id="color"></div>
+						<div class="fix"><input name="color" type="color" value="#FFFFFF" oninput="color_demo(this)"></div>
+					</div>
+					<div class="row">
+						<div><span i18="ts_melody">Melody</span> (<span i18="cu_none"></span>) <button onclick="test_ring();return false;" id="ss" i18="check">check</button></div>
+						<div>
+							<input type="number" name="melody" value="1" id="track" onkeypress="sendTr(event)" onfocus="fl_allowUpdate=false;" onfocusout="fl_allowUpdate=true;">
+							<span class="show_tracks" style="display: none;"> из <span id="col">0</span></span>
+							<input type="hidden" id="cur" name="cur" value="1">
+						</div>
+					</div>
+					<div class="one">
+						<div>
+							<span i18="volume">volume</span>: <span id="volume">0</span> <span id="wait"></span>
+						</div>
+						<input type="range" min="1" max="30" step="1" value="15" class="long" id="vol" name="vol" oninput="sendVol()">
+					</div>
 				</div>
 				<button i18="save">Save</button>
 			</form>
@@ -88,9 +128,42 @@
 		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
+
+var is_play = false;
+var fl_allowUpdate = true;
+function update_info() {
+	ajaxRequest("play","POST","p=0", function(ajaxResp) {
+			const a = ajaxResp.responseText.split(":");
+			if( a[3] == 0 && is_play ) test_ring();
+			if(fl_allowUpdate) show(a);
+			if( a[1] == 0 && ! is_play ) setTimeout(update_info, 2000);
+			else toggle_by_class("show_tracks", true);
+	}, dummy);
+}
+function test_ring() {
+	if(is_play) {
+		$g("ss").innerHTML="check";
+		send(6);
+		is_play=false;
+	} else {
+		$g("cur").value = $g("track").value;
+		$g("ss").innerHTML="stop";
+		send(3);
+		is_play=true;
+		setTimeout(update_info, 5000);
+	}
+}
+function sendTr(e) {
+	if(e.keyCode === 13)
+		is_play = false;
+}
+
 function start() {
 	if (typeof ajaxRequest !== "undefined") {
 		fill_settings("telegram.json","settings", () => {
+			init_color_demo();
+			show_color_block();
+			$g("volume").innerHTML = $g("vol").value;
 			localization(null, ()=> {$g("shadow").style.display = "none";});
 		});
 	} else setTimeout(start, 100);

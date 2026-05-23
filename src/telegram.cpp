@@ -300,12 +300,18 @@ String telegramCallback(TResult& msg) {
 				return F("датчик неактивен");
 			}
 		}
-		if (bot.is_command(msg.text, "show")) {
+		if (bot.is_command(msg.text, "show") || bot.is_command(msg.text, "send")) {
 			// будет конкурировать со строкой отправленой напрямую через сайт
-			messages[MESSAGE_WEB].count = 6;
-			messages[MESSAGE_WEB].timer.setInterval(15000);
-			messages[MESSAGE_WEB].timer.setNext(100);
-			messages[MESSAGE_WEB].color = 5; // rainbow2
+			messages[MESSAGE_WEB].count = ts.rcount;
+			messages[MESSAGE_WEB].timer.setInterval(1000UL * ts.rint);
+			messages[MESSAGE_WEB].timer.setNext(10); // подвинуть начало показа, чтобы сразу
+			messages[MESSAGE_WEB].color = ts.color_mode > 0 ? ts.color_mode: ts.color;
+			if (ts.melody) {
+				mp3_disableLoopAll();
+				mp3_disableLoop();
+				mp3_volume(ts.volume);
+				mp3_play(ts.melody);
+			}
 			int pos = original.indexOf(" ");
 			if (pos>0) {
 				String to_show = original.substring(pos+1);

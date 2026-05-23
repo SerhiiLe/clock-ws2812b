@@ -402,6 +402,12 @@ void mp3_playInMp3(uint16_t track) {
 	mp3_playNow = true;
 }
 
+// Количество треков в папке. Вызов прерывает проигрывание.
+uint16_t mp3_folderTrackCount(uint8_t folder) {
+	checkInit();
+	return dfmp3.getFolderTrackCount(folder);
+}
+
 #else
 // заглушки, если плата DFPlayer не установлена
 bool mp3_isPlay() {return true;}
@@ -424,5 +430,6 @@ void mp3_next() {}
 void mp3_previous() {}
 void mp3_playInFolder(uint8_t folder, uint8_t track) {}
 void mp3_playInMp3(uint16_t track) {}
+uint16_t mp3_folderTrackCount(uint8_t folder);
 
 #endif

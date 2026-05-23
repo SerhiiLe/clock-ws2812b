@@ -73,14 +73,13 @@
 var is_play = false;
 var fl_allowUpdate = true;
 function update_info() {
-	ajaxRequest("play","POST","p=0", function(ajaxResp) {
+	ajaxRequest("play","POST","p=0&f="+$g("folder").value, function(ajaxResp) {
 			const a = ajaxResp.responseText.split(":");
 			if( a[3] == 0 && is_play ) test_ring();
 			if(fl_allowUpdate) show(a);
 			if( a[1] == 0 && ! is_play ) setTimeout(update_info, 2000);
 			else toggle_by_class("show_tracks", true);
 	}, dummy);
-	if(is_play) setTimeout(update_info, 2000);
 }
 function test_ring() {
 	if(is_play) {
@@ -104,6 +103,7 @@ function start() {
 	if (typeof ajaxRequest !== "undefined") {
 		fill_settings("cuckoo.json","settings", () => {
 			show_block('enable', 'cuckoo');
+			$g("volume").innerHTML = $g("vol").value;
 			localization(null, ()=> {$g("shadow").style.display = "none";});
 		});
 	} else setTimeout(start, 100);

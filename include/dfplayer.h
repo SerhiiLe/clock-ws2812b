@@ -30,5 +30,6 @@ void mp3_randomAll();
 void mp3_playInFolder(uint8_t folder, uint8_t track);
 // запуск воспроизведения конкретного трека по номеру из папки mp3
 void mp3_playInMp3(uint16_t track);
+uint16_t mp3_folderTrackCount(uint8_t folder);
 
 #endif

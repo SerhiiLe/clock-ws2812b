@@ -262,6 +262,12 @@ bool load_config_telegram() {
 	telegramTimer.setInterval(1000U * ts.tb_accelerated);
 	ts.tb_accelerate = doc[F("tb_accelerate")];
 	ts.tb_ban = doc[F("tb_ban")];
+	ts.rcount = doc[F("rcount")];
+	ts.rint = doc[F("rint")];
+	ts.color_mode = doc[F("color_mode")];
+	ts.color = text_to_color(doc[F("color")]);
+	ts.melody = doc[F("melody")];
+	ts.volume = doc[F("vol")];
 
 	LOG(println, PSTR("Telegram config loaded."));
 	return true;
@@ -283,6 +289,12 @@ void save_config_telegram() {
 	doc[F("tb_accelerated")] = ts.tb_accelerated;
 	doc[F("tb_accelerate")] = ts.tb_accelerate;
 	doc[F("tb_ban")] = ts.tb_ban;
+	doc[F("rcount")] = ts.rcount;
+	doc[F("rint")] = ts.rint;
+	doc[F("color_mode")] = ts.color_mode;
+	doc[F("color")] = color_to_text(ts.color);
+	doc[F("melody")] = ts.melody;
+	doc[F("vol")] = ts.volume;
 
 	File configFile = LittleFS.open(F("/telegram.json"), "w"); // открытие файла на запись
 	if (!configFile) {
