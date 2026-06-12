@@ -44,24 +44,24 @@
 	GButton btn(PIN_BUTTON); // комбинация для обычной кнопки
 #endif
 
-timerMinim autoBrightnessTimer(500);	// Таймер отслеживания показаний датчика света при включенном авторегулировании яркости матрицы
-timerMinim clockTimer(512);				// Таймер, чтобы разделитель часов и минут мигал примерно каждую секунду
-timerMinim scrollTimer(60 - gs.scroll_period);	// Таймер обновления бегущей строки
-timerMinim ntpSyncTimer(3600000U * gs.sync_time_period);  // Таймер синхронизации времени с NTP-сервером 3600000U
-timerMinim clockDate(1000U * gs.show_date_period); // периодичность вывода даты в секундах
-timerMinim textTimer[MAX_RUNNING];		// таймеры бегущих строк
-timerMinim alarmTimer(1000);			// для будильника, срабатывает каждую секунду
-timerMinim alarmStepTimer(5000);		// шаг увеличения громкости будильника
-timerMinim demoTimer(33);				// таймер для теста/демонстрации экрана
-timerMinim telegramTimer(1000U * ts.tb_accelerated);	// период опроса команд из Телеграм
-timerMinim timeoutMp3Timer(3600000U * gs.timeout_mp3); // таймер принудительного сброса mp3
-timerMinim syncWeatherTimer(60000U * ws.sync_weather_period); // таймер обновления информации о погоде из интернета
-timerMinim quoteUpdateTimer(900000U * (qs.update+1));	// периодичность обновления цитат
-timerMinim showTermTimer(1000U * ws.term_period);	// таймер для показа информации о температуре
-timerMinim forecasterTimer(1800000U);	// время обновления данных для предсказателя погоды, всегда 30 минут
-timerMinim syncForecastTimer(3600000U * ws.sync_forecast_period); // периодичность обновления погоды на три дня
-timerMinim timerDclickReset(30 * 1000UL);	// сброс действия двойного клика на начало цикла
-timerMinim timerCheckMp3Play(200);			// проверка, точного состояния dfplayer
+TimerMinim autoBrightnessTimer(500);	// Таймер отслеживания показаний датчика света при включенном авторегулировании яркости матрицы
+TimerMinim clockTimer(512);				// Таймер, чтобы разделитель часов и минут мигал примерно каждую секунду
+TimerMinim scrollTimer(60 - gs.scroll_period);	// Таймер обновления бегущей строки
+TimerMinim ntpSyncTimer(3600000U * gs.sync_time_period);  // Таймер синхронизации времени с NTP-сервером 3600000U
+TimerMinim clockDate(1000U * gs.show_date_period); // периодичность вывода даты в секундах
+TimerMinim textTimer[MAX_RUNNING];		// таймеры бегущих строк
+TimerMinim alarmTimer(1000);			// для будильника, срабатывает каждую секунду
+TimerMinim alarmStepTimer(5000);		// шаг увеличения громкости будильника
+TimerMinim demoTimer(33);				// таймер для теста/демонстрации экрана
+TimerMinim telegramTimer(1000U * ts.tb_rate);	// период опроса команд из Телеграм
+TimerMinim timeoutMp3Timer(3600000U * gs.timeout_mp3); // таймер принудительного сброса mp3
+TimerMinim syncWeatherTimer(60000U * ws.sync_weather_period); // таймер обновления информации о погоде из интернета
+TimerMinim quoteUpdateTimer(900000U * (qs.update+1));	// периодичность обновления цитат
+TimerMinim showTermTimer(1000U * ws.term_period);	// таймер для показа информации о температуре
+TimerMinim forecasterTimer(1800000U);	// время обновления данных для предсказателя погоды, всегда 30 минут
+TimerMinim syncForecastTimer(3600000U * ws.sync_forecast_period); // периодичность обновления погоды на три дня
+TimerMinim timerDclickReset(30 * 1000UL);	// сброс действия двойного клика на начало цикла
+TimerMinim timerCheckMp3Play(200);			// проверка, точного состояния dfplayer
 
 // файловая система подключена
 bool fs_isStarted = false;

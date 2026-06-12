@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include "defines.h"
 #include "rtc.h"
+#include <FletcherChecksum.h>
 
 RTC_DS1307 rtc1;
 RTC_DS3231 rtc2;
@@ -116,19 +117,6 @@ https://github.com/adafruit/RTClib/blob/master/examples/ds1307nvram/ds1307nvram.
 	Стандартный драйвер RTClib.h сдвигает адрес на 8, таким образом первая свободная ячейка становится 0.
 */
 
-uint8_t fletcher8(uint8_t *data, uint16_t len) {
-    uint16_t sum1 = 0xf, sum2 = 0xf;
-    while( len-- ) {
-        sum1 += *data++;
-        sum2 += sum1;
-    };
-    sum1 = (sum1 & 0x0f) + (sum1 >> 4);
-    sum1 = (sum1 & 0x0f) + (sum1 >> 4);
-    sum2 = (sum2 & 0x0f) + (sum2 >> 4);
-    sum2 = (sum2 & 0x0f) + (sum2 >> 4);
-    return sum2<<4 | sum1;
-}
-
 // прочесть один байт из SRAM DS1307. 
 uint8_t rtcGetByte(uint8_t address) {
 	if( rtc_enable != 1 ) return 0xff;
@@ -140,7 +128,7 @@ uint8_t rtcReadBlock(uint8_t address, uint8_t *buf, uint8_t size) {
 	if( rtc_enable != 1 ) return 0;
 	// при чтении драйвер сам разбирает на порции
 	rtc1.readnvram(buf, size, address);
-	return fletcher8(buf, size);
+	return FletcherChecksum::fletcher8(buf, size);
 }
 
 // записать один байт
@@ -162,5 +150,5 @@ uint8_t rtcWriteBlock(uint8_t address, uint8_t *buf, uint8_t size) {
 		siz -= len;
 		sent += len;
 	}
-	return fletcher8(buf, size);
+	return FletcherChecksum::fletcher8(buf, size);
 }

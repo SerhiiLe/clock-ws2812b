@@ -9,6 +9,7 @@
 #include "defines.h"
 #include "settings.h"
 #include "ntp.h"
+#include <StringConverters.h>
 
 Global_Settings gs;
 Telegram_Settings ts;
@@ -23,50 +24,6 @@ Quote_Settings qs;
 Weather_Settings ws;
 Cuckoo_Settings cs;
 
-byte char_to_byte(char n) {
-	if(n>='0' && n<='9') return (byte)n - 48;
-	if(n>='A' && n<='F') return (byte)n - 55;
-	if(n>='a' && n<='f') return (byte)n - 87;
-	return 48;
-}
-
-uint32_t text_to_color(const char *s) {
-	if( s == nullptr ) return 0xffffff;
-	uint32_t c = 0;
-	int8_t i = 0;
-	byte t = 0;
-	char a[7];
-	for(i=0; i<(int8_t)strlen(s); i++ ) {
-		if( c==6 ) break;
-		if( isxdigit(s[i]) ) a[c++] = s[i];
-	}
-	if(c<3) for(i=c; i>3; i++) a[i] = 'f';
-	a[6] = '\0';
-	c = 0;
-	if(strlen(a)<6) {
-		for(i=0; i<3; i++) {
-			t = char_to_byte(a[2-i]);
-			c |= (t << (i*8)) | (t << (i*8+4)); 
-		}
-	} else {
-		for(i=0; i<6; i++) {
-			t = char_to_byte(a[5-i]);
-			c |= t << (i*4);
-		}
-	}
-	return c;
-}
-
-String color_to_text(uint32_t c) {
-	char a[] = "#ffffff";
-	byte t = 0;
-	for(int8_t i=1; i<=6; i++) {
-		t = (byte)((c >> ((6-i)*4)) & 0xF);
-		t += t<10? 48: 87;
-		a[i] = (char)t;
-	}
-	return String(a);
-}
 
 bool load_config_main() {
 
@@ -77,6 +34,7 @@ bool load_config_main() {
 		return false;
 	}
 
+	StringConverters conv;
 	JsonDocument doc; // временный буфер под объект json
 
 	DeserializationError error = deserializeJson(doc, configFile);
@@ -116,19 +74,19 @@ bool load_config_main() {
 	gs.tiny_date = doc[F("tiny_date")];
 	gs.show_date_period = doc[F("date_period")]; clockDate.setInterval(1000U * gs.show_date_period);
 	gs.show_time_color = doc[F("time_color")];
-	gs.show_time_color0 = text_to_color(doc[F("time_color0")]);
-	gs.show_time_col[0] = text_to_color(doc[F("time_color1")]);
+	gs.show_time_color0 = conv.text_to_color(doc[F("time_color0")]);
+	gs.show_time_col[0] = conv.text_to_color(doc[F("time_color1")]);
 	gs.show_time_col[1] = gs.show_time_col[0];
-	// gs.show_time_col[1] = text_to_color(doc[F("time_color2")]);
-	gs.show_time_col[2] = text_to_color(doc[F("time_color3")]);
+	// gs.show_time_col[1] = conv.text_to_color(doc[F("time_color2")]);
+	gs.show_time_col[2] = conv.text_to_color(doc[F("time_color3")]);
 	gs.show_time_col[5] = gs.show_time_col[2];
-	gs.show_time_col[3] = text_to_color(doc[F("time_color4")]);
+	gs.show_time_col[3] = conv.text_to_color(doc[F("time_color4")]);
 	gs.show_time_col[4] = gs.show_time_col[3];
-	// gs.show_time_col[4] = text_to_color(doc[F("time_color5")]);
-	gs.show_time_col[6] = text_to_color(doc[F("time_color6")]);
+	// gs.show_time_col[4] = conv.text_to_color(doc[F("time_color5")]);
+	gs.show_time_col[6] = conv.text_to_color(doc[F("time_color6")]);
 	gs.show_time_col[7] = gs.show_time_col[6];
 	gs.show_date_color = doc[F("date_color")];
-	gs.show_date_color0 = text_to_color(doc[F("date_color0")]);
+	gs.show_date_color0 = conv.text_to_color(doc[F("date_color0")]);
 	gs.hue_shift = doc[F("hue_shift")];
 	gs.bright_mode = doc[F("bright_mode")];
 	gs.bright0 = doc[F("bright0")];
@@ -160,6 +118,7 @@ bool load_config_main() {
 
 void save_config_main() {
 
+	StringConverters conv;
 	JsonDocument doc; // временный буфер под объект json
 
 	doc[F("language")] = gs.language;
@@ -184,15 +143,15 @@ void save_config_main() {
 	doc[F("tiny_date")] = gs.tiny_date;
 	doc[F("date_period")] = gs.show_date_period;
 	doc[F("time_color")] = gs.show_time_color;
-	doc[F("time_color0")] = color_to_text(gs.show_time_color0);
-	doc[F("time_color1")] = color_to_text(gs.show_time_col[0]);
-	// doc[F("time_color2")] = color_to_text(gs.show_time_col[1]);
-	doc[F("time_color3")] = color_to_text(gs.show_time_col[2]);
-	doc[F("time_color4")] = color_to_text(gs.show_time_col[3]);
-	// doc[F("time_color5")] = color_to_text(gs.show_time_col[4]);
-	doc[F("time_color6")] = color_to_text(gs.show_time_col[6]);
+	doc[F("time_color0")] = conv.color_to_text(gs.show_time_color0);
+	doc[F("time_color1")] = conv.color_to_text(gs.show_time_col[0]);
+	// doc[F("time_color2")] = conv.color_to_text(gs.show_time_col[1]);
+	doc[F("time_color3")] = conv.color_to_text(gs.show_time_col[2]);
+	doc[F("time_color4")] = conv.color_to_text(gs.show_time_col[3]);
+	// doc[F("time_color5")] = conv.color_to_text(gs.show_time_col[4]);
+	doc[F("time_color6")] = conv.color_to_text(gs.show_time_col[6]);
 	doc[F("date_color")] = gs.show_date_color;
-	doc[F("date_color0")] = color_to_text(gs.show_date_color0);
+	doc[F("date_color0")] = conv.color_to_text(gs.show_date_color0);
 	doc[F("hue_shift")] = gs.hue_shift;
 	doc[F("bright_mode")] = gs.bright_mode;
 	doc[F("bright0")] = gs.bright0;
@@ -259,13 +218,13 @@ bool load_config_telegram() {
 	ts.tb_secret = doc[F("tb_secret")].as<String>();
 	ts.tb_rate = doc[F("tb_rate")];
 	ts.tb_accelerated = doc[F("tb_accelerated")];
-	telegramTimer.setInterval(1000U * ts.tb_accelerated);
+	telegramTimer.setInterval(1000U * ts.tb_rate);
 	ts.tb_accelerate = doc[F("tb_accelerate")];
 	ts.tb_ban = doc[F("tb_ban")];
 	ts.rcount = doc[F("rcount")];
 	ts.rint = doc[F("rint")];
 	ts.color_mode = doc[F("color_mode")];
-	ts.color = text_to_color(doc[F("color")]);
+	ts.color = StringConverters::text_to_color(doc[F("color")]);
 	ts.melody = doc[F("melody")];
 	ts.volume = doc[F("vol")];
 
@@ -292,7 +251,7 @@ void save_config_telegram() {
 	doc[F("rcount")] = ts.rcount;
 	doc[F("rint")] = ts.rint;
 	doc[F("color_mode")] = ts.color_mode;
-	doc[F("color")] = color_to_text(ts.color);
+	doc[F("color")] = StringConverters::color_to_text(ts.color);
 	doc[F("melody")] = ts.melody;
 	doc[F("vol")] = ts.volume;
 
@@ -336,7 +295,7 @@ bool load_config_alarms() {
 		alarms[i].melody = doc[i]["me"];
 		alarms[i].text = doc[i]["t"].as<String>();
 		alarms[i].color_mode = doc[i]["cm"];
-		alarms[i].color = text_to_color(doc[i]["c"]);
+		alarms[i].color = StringConverters::text_to_color(doc[i]["c"]);
 	}
 
 	LOG(println, PSTR("Alarms config loaded."));
@@ -354,7 +313,7 @@ void save_config_alarms() {
 		doc[i]["me"] = alarms[i].melody;
 		doc[i]["t"] = alarms[i].text;
 		doc[i]["cm"] = alarms[i].color_mode;
-		doc[i]["c"] = color_to_text(alarms[i].color);
+		doc[i]["c"] = StringConverters::color_to_text(alarms[i].color);
 	}
 
 	File configFile = LittleFS.open(F("/alarms.json"), "w"); // открытие файла на запись
@@ -393,7 +352,7 @@ bool load_config_texts() {
 	for( int i=0; i<min(MAX_RUNNING,(int)doc.size()); i++) {
 		texts[i].text = doc[i]["t"].as<String>();
 		texts[i].color_mode = doc[i]["cm"];
-		texts[i].color = text_to_color(doc[i]["c"]);
+		texts[i].color = StringConverters::text_to_color(doc[i]["c"]);
 		texts[i].period = doc[i]["p"];
 		texts[i].repeat_mode = doc[i]["r"];
 		// сразу установка таймера
@@ -411,7 +370,7 @@ void save_config_texts() {
 	for( int i=0; i<MAX_RUNNING; i++) {
 		doc[i]["t"] = texts[i].text;
 		doc[i]["cm"] = texts[i].color_mode;
-		doc[i]["c"] = color_to_text(texts[i].color);
+		doc[i]["c"] = StringConverters::color_to_text(texts[i].color);
 		doc[i]["p"] = texts[i].period;
 		doc[i]["r"] = texts[i].repeat_mode;
 	}
@@ -594,7 +553,7 @@ bool load_config_quote() {
 	qs.period = doc[F("period")];
 	qs.update = doc[F("update")];
 	qs.color_mode = doc[F("color_mode")];
-	qs.color = text_to_color(doc[F("color")]);
+	qs.color = StringConverters::text_to_color(doc[F("color")]);
 	qs.server = doc[F("server")];
 	qs.lang = doc[F("lang")];
 	qs.url = doc[F("url")].as<String>();
@@ -618,7 +577,7 @@ void save_config_quote() {
 	doc[F("period")] = qs.period;
 	doc[F("update")] = qs.update;
 	doc[F("color_mode")] = qs.color_mode;
-	doc[F("color")] = color_to_text(qs.color);
+	doc[F("color")] = StringConverters::color_to_text(qs.color);
 	doc[F("server")] = qs.server;
 	doc[F("lang")] = qs.lang;
 	doc[F("url")] = qs.url;
@@ -651,6 +610,7 @@ bool load_config_weather() {
 		return false;
 	}
 
+	StringConverters cv;
 	JsonDocument doc; // временный буфер под объект json
 
 	DeserializationError error = deserializeJson(doc, configFile);
@@ -665,7 +625,7 @@ bool load_config_weather() {
 	ws.sensors = doc[F("sensors")];
 	ws.term_period = doc[F("term_period")];
 	ws.term_color_mode = doc[F("term_color_mode")];
-	ws.term_color = text_to_color(doc[F("term_color")]);
+	ws.term_color = cv.text_to_color(doc[F("term_color")]);
 	ws.tiny_term = doc[F("tiny_term")];
 	ws.term_cor = doc[F("term_cor")];
 	ws.bar_cor = doc[F("bar_cor")];
@@ -674,7 +634,7 @@ bool load_config_weather() {
 	ws.sync_weather_period = doc[F("sync_weather_period")];
 	ws.show_weather_period = doc[F("show_weather_period")];
 	ws.color_mode = doc[F("color_mode")];
-	ws.color = text_to_color(doc[F("color")]);
+	ws.color = cv.text_to_color(doc[F("color")]);
 	ws.weather_code = doc[F("weather_code")];
 	ws.temperature = doc[F("temperature")];
 	ws.a_temperature = doc[F("a_temperature")];
@@ -692,7 +652,7 @@ bool load_config_weather() {
 	ws.sync_forecast_period = doc[F("sync_forecast_period")];
 	ws.show_forecast_period = doc[F("show_forecast_period")];
 	ws.color_modeF = doc[F("color_modeF")];
-	ws.colorF = text_to_color(doc[F("colorF")]);
+	ws.colorF = cv.text_to_color(doc[F("colorF")]);
 	ws.weather_codeF = doc[F("weather_codeF")];
 	ws.temperatureF = doc[F("temperatureF")];
 	ws.wind_speedF = doc[F("wind_speedF")];
@@ -707,13 +667,13 @@ bool load_config_weather() {
 
 // сохранение настроек сервера погоды
 void save_config_weather() {
-
+	StringConverters cv;
 	JsonDocument doc; // временный буфер под объект json
 
 	doc[F("sensors")] = ws.sensors;
 	doc[F("term_period")] = ws.term_period;
 	doc[F("term_color_mode")] = ws.term_color_mode;
-	doc[F("term_color")] = color_to_text(ws.term_color);
+	doc[F("term_color")] = cv.color_to_text(ws.term_color);
 	doc[F("tiny_term")] = ws.tiny_term;
 	doc[F("term_cor")] = ws.term_cor;
 	doc[F("bar_cor")] = ws.bar_cor;
@@ -722,7 +682,7 @@ void save_config_weather() {
 	doc[F("sync_weather_period")] = ws.sync_weather_period;
 	doc[F("show_weather_period")] = ws.show_weather_period;
 	doc[F("color_mode")] = ws.color_mode;
-	doc[F("color")] = color_to_text(ws.color);
+	doc[F("color")] = cv.color_to_text(ws.color);
 	doc[F("weather_code")] = ws.weather_code;
 	doc[F("temperature")] = ws.temperature;
 	doc[F("a_temperature")] = ws.a_temperature;
@@ -740,7 +700,7 @@ void save_config_weather() {
 	doc[F("sync_forecast_period")] = ws.sync_forecast_period;
 	doc[F("show_forecast_period")] = ws.show_forecast_period;
 	doc[F("color_modeF")] = ws.color_modeF;
-	doc[F("colorF")] = color_to_text(ws.colorF);
+	doc[F("colorF")] = cv.color_to_text(ws.colorF);
 	doc[F("weather_codeF")] = ws.weather_codeF;
 	doc[F("temperatureF")] = ws.temperatureF;
 	doc[F("wind_speedF")] = ws.wind_speedF;

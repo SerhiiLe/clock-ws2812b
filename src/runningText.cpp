@@ -6,6 +6,7 @@
 #include "fontsF.h"
 #include "fontsV.h"
 #include "defines.h"
+#include "weather_icons.h"
 
 // **************** НАСТРОЙКИ ****************
 #define LET_WIDTH 5       // ширина буквы шрифта
@@ -34,46 +35,53 @@ int16_t drawLetter(uint32_t letter, int16_t offset, uint32_t color, uint16_t ind
 	const uint8_t* pointer;
 
 	// костыль для отрисовки нестандартными шрифтами
-	if(letter >= 1 && letter <= 9) { // заменители двоеточия
+	if (letter >= 1 && letter <= 9) { // заменители двоеточия
 		metric = 0x84;
 		pointer = fontSemicolon[letter - 1];
 		goto m1; // пропустить проверку на стандартные шрифты
 	}
-	else if( letter == 0x7f ) { // заменитель пробела
+	else if (letter == 0x7f) { // заменитель пробела
 		metric = 0x84;
 		pointer = fontVar[cn]; // пробел это первый символ в массиве
 		goto m1;
 	}
+	if ((letter >= 0xEFB880 && letter <= 0xEFB88F) || // Основной диапазон селекторов (VS1 - VS16), куда входят модификаторы цвета
+		(letter >= 0xF3A08480 && letter <= 0xF3A087AF)) {// Расширенный диапазон селекторов (VS17 - VS256), используемый в редких шрифтах
+        return 0; // непечатный символ, просто выйти, ширина 0, курсор не двигается
+    }
+	if (is_weather_symbol(letter)) {
+		return draw_weather_icon(letter, offset, index);
+	}
 
-	if( letter < 0x7f ) // для английских букв и символов
+	if (letter < 0x7f) // для английских букв и символов
 		cn = letter-32;
-	else if( letter >= 0xd090 && letter <= 0xd0bf ) // А-Яа-п (utf-8 символы идут не по порядку, надо собирать из кусков)
+	else if (letter >= 0xd090 && letter <= 0xd0bf) // А-Яа-п (utf-8 символы идут не по порядку, надо собирать из кусков)
 		cn = letter - 0xd090 + 95;
-	else if( letter >= 0xd180 && letter <= 0xd18f ) // р-я
+	else if (letter >= 0xd180 && letter <= 0xd18f) // р-я
 		cn = letter - 0xd180 + 143;
-	else if( letter == 0xd081 ) // Ё
+	else if (letter == 0xd081) // Ё
 		cn = 159;
-	else if( letter == 0xd191 ) // ё
+	else if (letter == 0xd191) // ё
 		cn = 160;
-	else if( letter >= 0xd084 && letter <= 0xd087 ) // Є-Ї
+	else if (letter >= 0xd084 && letter <= 0xd087) // Є-Ї
 		cn = letter - 0xd084 + 161;
-	else if( letter >= 0xd194 && letter <= 0xd197 ) // є-ї
+	else if (letter >= 0xd194 && letter <= 0xd197) // є-ї
 		cn = letter - 0xd194 + 165;
-	else if( letter == 0xd290 || letter == 0xd291 ) // Ґґ
+	else if (letter == 0xd290 || letter == 0xd291) // Ґґ
 		cn = letter - 0xd290 + 169;
-	else if( letter == 0xc2b0 ) // °
+	else if (letter == 0xc2b0) // °
 		cn = 171;
-	else if( letter == 0xc2ab || letter == 0xc2bb || (letter >= 0xe2809c && letter <= 0xe2809f) ) // "
+	else if (letter == 0xc2ab || letter == 0xc2bb || (letter >= 0xe2809c && letter <= 0xe2809f)) // "
 		cn = 2;
-	else if( letter >= 0xe28098 && letter <= 0xe2809b ) // '
+	else if (letter >= 0xe28098 && letter <= 0xe2809b) // '
 		cn = 7;
-	else if( letter >= 0xe28090 && letter <= 0xe28095 ) // -
+	else if (letter >= 0xe28090 && letter <= 0xe28095) // -
 		cn = 13;
-	else if( letter == 0xe280a6 ) // ...
+	else if (letter == 0xe280a6) // ...
 		cn = 172;
-	else if( letter == 0xc2a0 ) // "NO-BREAK SPACE"
+	else if (letter == 0xc2a0) // "NO-BREAK SPACE"
 		cn = 0;
-	else if( letter == 0xe28496 ) // №
+	else if (letter == 0xe28496) // №
 		cn = 3; // 3 - # или 46 - N
 	else
 		cn = 162; // символ не найден, вывести пустой прямоугольник
@@ -107,12 +115,12 @@ void drawString() {
 		// 0xxxxxxx - 7 бит 1 байт, 110xxxxx - 10 бит 2 байта, 1110xxxx - 16 бит 3 байта, 11110xxx - 21 бит 4 байта
 		c = (byte)_runningText[i++];
 		if( c > 127  ) {
-			if( c >> 5 == 6 ) {
+			if ( c >> 5 == 6 ) {
 				c = (c << 8) | (byte)_runningText[i++];
-			} else if( c >> 4 == 14 ) {
+			} else if (c >> 4 == 14) {
 				c = (c << 8) | (byte)_runningText[i++];
 				c = (c << 8) | (byte)_runningText[i++];
-			} else if( c >> 3 == 30 ) {
+			} else if (c >> 3 == 30) {
 				c = (c << 8) | (byte)_runningText[i++];
 				c = (c << 8) | (byte)_runningText[i++];
 				c = (c << 8) | (byte)_runningText[i++];

@@ -21,6 +21,7 @@
 #include "settings.h"
 #include "ntp.h"
 #include "webClient_translation.h"
+#include "weather_icons.h"
 
 #ifdef ESP32
 WiFiClientSecure WEB_S;
@@ -209,12 +210,56 @@ const char* descript_weather_code(uint8_t code) {
 	return wc;
 }
 
+uint32_t weather_icon_code(uint8_t code) {
+	switch(code) {
+		case 0:
+			return Icons::Sunny; // Солнечно
+		case 1:
+			return Icons::MostlyClear; // Почти чисто
+		case 2:
+			return Icons::PartlyCloudy; // Переменная облачность
+		case 3:
+			return Icons::Cloudy; // Пасмурно
+		case 45:
+		case 48:
+			return Icons::Foggy; // Туман
+		case 51:
+		case 53:
+		case 55:
+		case 56:
+		case 57:
+			return Icons::Umbrella; // Небольшой дождь
+		case 61:
+		case 63:
+		case 65:
+		case 66:
+		case 67:
+		case 80:
+		case 81:
+		case 82:
+			return Icons::Rain; // Дождь / Ливень
+		case 71:
+		case 73:
+		case 75:
+		case 77:
+		case 85:
+		case 86:
+			return Icons::Snow; // Снег
+		case 95:
+		case 96:
+		case 99:
+			return Icons::Thunderstorm; // Гроза
+		default:
+			return (uint32_t)'?'; // WEATHER_ICON_UNKNOWN;
+	}
+}
+
 // создание строки состояния погоды на основе ответа от сервера
 const char* generate_weather_string(char* a) {
 	char* pos = a;
 	pos += sprintf_P(pos, txt_weather[gs.language]);
 	if( ws.weather_code ) {
-		pos += sprintf(pos, " ");
+		pos += sprintf_P(pos, PSTR(" %s "), utf8_to_str(weather_icon_code(wd.weather_code)));
 		pos += sprintf_P(pos, descript_weather_code(wd.weather_code), wd.weather_code);
 	}
 	if( ws.temperature ) pos += sprintf_P(pos, PSTR(" %+0.1f\xc2\xb0\x43"), wd.temperature);
@@ -309,7 +354,7 @@ const char* generate_forecast_string(char* a) {
 	for(uint8_t i=0; i<ws.forecast_days; i++) {
 		pos += sprintf_P(pos, PSTR(" %s"), txt_ForecastDay[i][gs.language]);
 		if( ws.weather_codeF ) {
-			pos += sprintf(pos, " ");
+			pos += sprintf_P(pos, PSTR(" %s "), utf8_to_str(weather_icon_code(fd[i].weather_code)));
 			pos += sprintf_P(pos, descript_weather_code(fd[i].weather_code), fd[i].weather_code);
 		}
 		if( ws.temperatureF ) pos += sprintf_P(pos, PSTR(" %0.1f\xc2\xb0\x43\xe2\x80\xa6%0.1f\xc2\xb0\x43"), fd[i].temperature_min, fd[i].temperature_max);

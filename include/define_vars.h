@@ -30,21 +30,21 @@ extern bool fl_action_move;
 extern bool fl_run_allow;
 
 // таймеры должны быть доступны в разных местах
-#include "timerMinim.h"
-extern timerMinim scrollTimer;          // таймер скроллинга
-extern timerMinim autoBrightnessTimer;  // Таймер отслеживания показаний датчика света при включенной авторегулировки яркости матрицы
-extern timerMinim ntpSyncTimer;         // Таймер синхронизации времени с NTP-сервером
-extern timerMinim scrollTimer;          // Таймер задержки между обновлениями бегущей строки, определяет скорость движения
-extern timerMinim clockDate;            // Таймер периодичности вывода даты в виде бегущей строки (длительность примерно 15 секунд)
-extern timerMinim textTimer[];          // Таймеры бегущих строк
-extern timerMinim telegramTimer;		// Таймер периодичности опроса новых сообщений
-extern timerMinim alarmStepTimer;		// Таймер увеличения громкости будильника
-extern timerMinim timeoutMp3Timer;
-extern timerMinim showTermTimer;
-extern timerMinim syncWeatherTimer;
-extern timerMinim quoteUpdateTimer;
-extern timerMinim forecasterTimer;
-extern timerMinim syncForecastTimer;
+#include <TimerMinim.h>
+extern TimerMinim scrollTimer;          // таймер скроллинга
+extern TimerMinim autoBrightnessTimer;  // Таймер отслеживания показаний датчика света при включенной авторегулировки яркости матрицы
+extern TimerMinim ntpSyncTimer;         // Таймер синхронизации времени с NTP-сервером
+extern TimerMinim scrollTimer;          // Таймер задержки между обновлениями бегущей строки, определяет скорость движения
+extern TimerMinim clockDate;            // Таймер периодичности вывода даты в виде бегущей строки (длительность примерно 15 секунд)
+extern TimerMinim textTimer[];          // Таймеры бегущих строк
+extern TimerMinim telegramTimer;		// Таймер периодичности опроса новых сообщений
+extern TimerMinim alarmStepTimer;		// Таймер увеличения громкости будильника
+extern TimerMinim timeoutMp3Timer;
+extern TimerMinim showTermTimer;
+extern TimerMinim syncWeatherTimer;
+extern TimerMinim quoteUpdateTimer;
+extern TimerMinim forecasterTimer;
+extern TimerMinim syncForecastTimer;
 
 // управление плейером
 extern int mp3_all;
@@ -228,7 +228,7 @@ extern Quote_Server quote;
 
 struct temp_text {
 	String text = "";	// текст который надо будет выводить
-	timerMinim timer;	// таймер с отсчётом интервалов показа
+	TimerMinim timer;	// таймер с отсчётом интервалов показа
 	int16_t count = 0;	// число повторов
 	uint32_t color = 0xFFFFFF; // по умолчанию - белый
 };
