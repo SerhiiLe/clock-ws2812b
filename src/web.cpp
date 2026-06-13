@@ -257,12 +257,11 @@ void save_settings() {
 	web.checkbox(F("show_move"), gs.show_move);
 	web.to_int(F("delay_move"), gs.delay_move, 0, 10);
 	web.to_int(F("max_move"), gs.max_move, gs.delay_move, 255);
-	bool sync_time = false;
-	if( web.to_int(F("tz_shift"), gs.tz_shift, -12, 12) )
-		sync_time = true;
-	if( web.checkbox(F("tz_dst"), gs.tz_dst) )
-		sync_time = true;
+	// часовой пояс
+	bool sync_time = web.to_int(F("tz_shift"), gs.tz_shift, -12, 12);
+	sync_time |= web.checkbox(F("tz_dst"), gs.tz_dst);
 	web.checkbox(F("tz_adjust"), gs.tz_adjust);
+	// отображение времени
 	web.to_int(F("tiny_clock"), gs.tiny_clock, 0, 8);
 	web.to_int(F("dots_style"), gs.dots_style, 0, 11);
 	web.checkbox(F("t12h"), gs.t12h);
@@ -289,20 +288,14 @@ void save_settings() {
 	web.to_int(F("date_color"), gs.show_date_color, 0, 4);
 	web.color(F("date_color0"), gs.show_date_color0);
 	web.to_int(F("hue_shift"), gs.hue_shift, 0, 4);
-	bool need_bright = false;
-	if( web.to_int(F("bright_mode"), gs.bright_mode, 0, 2) )
-		need_bright = true;
-	if( web.to_int(F("bright0"), gs.bright0, 1, 255) )
-		need_bright = true;
+	// яркость
+	bool need_bright = web.to_int(F("bright_mode"), gs.bright_mode, 0, 2);
+	need_bright |= web.to_int(F("bright0"), gs.bright0, 1, 255);
 	web.to_int(F("br_boost"), gs.bright_boost, 1, 1000);
-	if( web.to_int(F("boost_mode"), gs.boost_mode, 0, 5) )
-		sync_time = true;
-	if( web.to_int(F("br_add"), gs.bright_add, 1, 255) )
-		need_bright = true;
-	if( web.to_float(F("latitude"), gs.latitude, -180.0f, 180.0f) )
-		sync_time = true;
-	if( web.to_float(F("longitude"), gs.longitude, -180.0f, 180.0f) )
-		sync_time = true;
+	sync_time |= web.to_int(F("boost_mode"), gs.boost_mode, 0, 5);
+	need_bright |= web.to_int(F("br_add"), gs.bright_add, 1, 255);
+	sync_time |= web.to_float(F("latitude"), gs.latitude, -180.0f, 180.0f);
+	sync_time |= web.to_float(F("longitude"), gs.longitude, -180.0f, 180.0f);
 	web.time(F("br_begin"), gs.bright_begin);
 	web.time(F("br_end"), gs.bright_end);
 	if( web.to_int(F("max_power"), gs.max_power, 200, MAX_POWER) )
@@ -342,17 +335,14 @@ void save_settings() {
 void save_telegram() {
 	if(is_no_auth()) return;
 	web.need_save = false;
-	bool fl_setTelegram = false;
 
 	web.checkbox(F("use_move"), ts.use_move);
 	web.checkbox(F("use_brightness"), ts.use_brightness);
 	web.to_string(F("pin_code"), ts.pin_code);
 	web.to_int(F("sensor_timeout"), ts.sensor_timeout, 1, 16000);
 	web.to_string(F("tb_name"), ts.tb_name);
-	if( web.to_string(F("tb_chats"), ts.tb_chats) )
-		fl_setTelegram = true;
-	if( web.to_string(F("tb_token"), ts.tb_token) )
-		fl_setTelegram = true;
+	bool fl_setTelegram = web.to_string(F("tb_chats"), ts.tb_chats);
+	fl_setTelegram |= web.to_string(F("tb_token"), ts.tb_token);
 	web.to_string(F("tb_secret"), ts.tb_secret);
 	if( web.to_int(F("tb_rate"), ts.tb_rate, 0, 3600) )
 		telegramTimer.setInterval(1000U * ts.tb_rate);
