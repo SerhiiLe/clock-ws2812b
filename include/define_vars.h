@@ -132,8 +132,7 @@ extern Telegram_Settings ts;
 
 struct cur_alarm {
 	uint16_t settings = 0;	// настройки (побитовое поле)
-	uint8_t hour = 0;	// часы
-	uint8_t minute = 0;	// минуты
+	uint16_t time = 0;	// время в минутах с полуночи
 	uint16_t melody = 1;	// номер мелодии
 	String text = "";	// текст который надо отобразить во время работы будильника
 	uint8_t color_mode = 0; // режим цвета, как везде (0 )
@@ -173,6 +172,7 @@ struct Weather_Settings {
 	uint16_t show_weather_period = 120;
 	uint8_t color_mode = 0; // режим цвета, как везде (0 )
 	uint32_t color = 0xFFFFFF; // по умолчанию - белый
+	uint8_t weather_icon = 1;
 	uint8_t weather_code = 1;
 	uint8_t temperature = 1;
 	uint8_t a_temperature = 1;
@@ -191,10 +191,14 @@ struct Weather_Settings {
 	uint16_t show_forecast_period = 120;
 	uint8_t color_modeF = 0; // режим цвета, как везде (0 )
 	uint32_t colorF = 0xFFFFFF; // по умолчанию - белый
+	uint8_t weather_iconF = 1;
 	uint8_t weather_codeF = 1;
 	uint8_t temperatureF = 1;
 	uint8_t wind_speedF = 1;
 	uint8_t wind_directionF = 1;
+	uint8_t u_t = 0; // единицы измерения температуры
+	uint8_t u_p = 0; // единицы измерения атмосферного давления
+	uint8_t u_v = 0; // единицы измерения скорости ветра
 };
 extern Weather_Settings ws;
 
@@ -205,10 +209,10 @@ struct Quote_Settings {
 	uint32_t color = 0xFFFFFF; // по умолчанию - белый
 	uint8_t update = 1;
 	uint8_t server = 0;
-	uint8_t lang = 2;
-	String url = "";
-	String params = "";
-	uint8_t method = 0;
+	uint8_t lang = 0;
+	String url = "http://joy.ps.od.ua/quotes/api.php";
+	String params = "language=";
+	uint8_t method = 1;
 	uint8_t type = 0;
 	String quote_field;
 	String author_field;

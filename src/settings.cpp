@@ -290,8 +290,7 @@ bool load_config_alarms() {
 
 	for( int i=0; i<min(MAX_ALARMS,(int)doc.size()); i++) {
 		alarms[i].settings = doc[i]["s"];
-		alarms[i].hour = doc[i]["h"];
-		alarms[i].minute = doc[i]["m"];
+		alarms[i].time = StringConverters::text_to_time(doc[i]["m"]);
 		alarms[i].melody = doc[i]["me"];
 		alarms[i].text = doc[i]["t"].as<String>();
 		alarms[i].color_mode = doc[i]["cm"];
@@ -308,8 +307,7 @@ void save_config_alarms() {
 
 	for( int i=0; i<MAX_ALARMS; i++) {
 		doc[i]["s"] = alarms[i].settings;
-		doc[i]["h"] = alarms[i].hour;
-		doc[i]["m"] = alarms[i].minute;
+		doc[i]["m"] = StringConverters::time_to_text(alarms[i].time);
 		doc[i]["me"] = alarms[i].melody;
 		doc[i]["t"] = alarms[i].text;
 		doc[i]["cm"] = alarms[i].color_mode;
@@ -635,6 +633,7 @@ bool load_config_weather() {
 	ws.show_weather_period = doc[F("show_weather_period")];
 	ws.color_mode = doc[F("color_mode")];
 	ws.color = cv.text_to_color(doc[F("color")]);
+	ws.weather_icon = doc[F("weather_icon")];
 	ws.weather_code = doc[F("weather_code")];
 	ws.temperature = doc[F("temperature")];
 	ws.a_temperature = doc[F("a_temperature")];
@@ -653,10 +652,14 @@ bool load_config_weather() {
 	ws.show_forecast_period = doc[F("show_forecast_period")];
 	ws.color_modeF = doc[F("color_modeF")];
 	ws.colorF = cv.text_to_color(doc[F("colorF")]);
+	ws.weather_iconF = doc[F("weather_iconF")];
 	ws.weather_codeF = doc[F("weather_codeF")];
 	ws.temperatureF = doc[F("temperatureF")];
 	ws.wind_speedF = doc[F("wind_speedF")];
 	ws.wind_directionF = doc[F("wind_directionF")];
+	ws.u_t = doc[F("u_t")];
+	ws.u_p = doc[F("u_p")];
+	ws.u_v = doc[F("u_v")];
 
 	syncWeatherTimer.setInterval(60000U * ws.sync_weather_period);
 	messages[MESSAGE_WEATHER].timer.setInterval(1000U * ws.show_weather_period);
@@ -683,6 +686,7 @@ void save_config_weather() {
 	doc[F("show_weather_period")] = ws.show_weather_period;
 	doc[F("color_mode")] = ws.color_mode;
 	doc[F("color")] = cv.color_to_text(ws.color);
+	doc[F("weather_icon")] = ws.weather_icon;
 	doc[F("weather_code")] = ws.weather_code;
 	doc[F("temperature")] = ws.temperature;
 	doc[F("a_temperature")] = ws.a_temperature;
@@ -701,10 +705,14 @@ void save_config_weather() {
 	doc[F("show_forecast_period")] = ws.show_forecast_period;
 	doc[F("color_modeF")] = ws.color_modeF;
 	doc[F("colorF")] = cv.color_to_text(ws.colorF);
+	doc[F("weather_iconF")] = ws.weather_iconF;
 	doc[F("weather_codeF")] = ws.weather_codeF;
 	doc[F("temperatureF")] = ws.temperatureF;
 	doc[F("wind_speedF")] = ws.wind_speedF;
 	doc[F("wind_directionF")] = ws.wind_directionF;
+	doc[F("u_t")] = ws.u_t;
+	doc[F("u_p")] = ws.u_p;
+	doc[F("u_v")] = ws.u_v;
 
 	File configFile = LittleFS.open(F("/weather.json"), "w"); // открытие файла на запись
 	if (!configFile) {

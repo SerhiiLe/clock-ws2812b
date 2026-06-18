@@ -92,18 +92,30 @@ void forecaster_addP(uint32_t P, float t) {
 		afd.Parr[_FC_SIZE - 1] = P;
 	}
 	
-	// расчёт изменения по наименьшим квадратам
-	long sumX = 0, sumY = 0, sumX2 = 0, sumXY = 0;        
-	for (int i = 0; i < _FC_SIZE; i++) {
-		sumX += i;
-		sumY += afd.Parr[i];
-		sumX2 += i * i;
-		sumXY += afd.Parr[i] * i;
-	}
-	float a = _FC_SIZE * sumXY - sumX * sumY;
-	a /= _FC_SIZE * sumX2 - sumX * sumX;
-	afd.delta = a * (_FC_SIZE - 1);
+	// // расчёт изменения по наименьшим квадратам
+	// long sumX = 0, sumY = 0, sumX2 = 0, sumXY = 0;        
+	// for (int i = 0; i < _FC_SIZE; i++) {
+	// 	sumX += i;
+	// 	sumY += afd.Parr[i];
+	// 	sumX2 += i * i;
+	// 	sumXY += afd.Parr[i] * i;
+	// }
+	// float a = _FC_SIZE * sumXY - sumX * sumY;
+	// a /= _FC_SIZE * sumX2 - sumX * sumX;
+	// afd.delta = a * (_FC_SIZE - 1);
 	
+	// Эксперементальный вариант с простой разницей
+	// afd.delta = (afd.Parr[_FC_SIZE-1] + afd.Parr[_FC_SIZE-2])/2 - (afd.Parr[0] + afd.Parr[1])/2;
+
+	// Вариант с фильтром с конечной импульсной характеристикой
+	long sumX = (_FC_SIZE - 1) * afd.Parr[_FC_SIZE-1];
+	int sumY = 0;
+	for (int i=0; i < _FC_SIZE-1; i++) {
+		sumX -= afd.Parr[i];
+		sumY += i+1;
+	}
+	afd.delta = (_FC_SIZE+1) * sumX / sumY;
+
 	// расчёт прогноза по Zambretti
 	P /= 100;   // -> ГПа
 	// if (P < 945) P = 945;

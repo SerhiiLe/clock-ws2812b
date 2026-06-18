@@ -1,0 +1,151 @@
+#ifndef defines_h
+#define defines_h
+
+#define DEBUG // enable debug messages. Comment out if not needed
+
+/*** description of constants that describe the specific hardware ***/
+
+// WARNING! the following option switches the PIO layout from the old one to the new one with I2C sensors.
+// Be careful! Check the PIO pin assignments before connecting modules!
+#define USE_I2C 1 // use I2C for sensors. 1 - circuit with i2c, 0 - circuit without i2c.
+
+// PIO pin assignments for different microcontroller types. Compare with your module pinout.
+#if ESP32C3 == 1 // ESP32-c3
+	#define PIN_LED 6 // LED matrix
+	#define PIN_PHOTO_SENSOR A0 // photoresistor
+	#define PIN_BUTTON 1 // control button
+	#define PIN_MOTION 10 // motion detector. Comment out if not connected
+	// #define PIN_5V 3 // power presence detector (5 volts). Comment out if not connected
+	#define PIN_RELAY 7 // relay power switch for the matrix
+	// #define LED_MOTION 5 // motion indicator LED. Comment out for matrix output.
+	#define SRX 20 // hardware serial RX -> TX on DFPlayer. Comment out if not connected
+	#define STX 21 // hardware serial TX -> RX on DFPlayer
+	// -> SDA 8 // I2C SDA. For reference, defined in Arduino
+	// -> SCL 9 // I2C SCL
+	// #define BAT_LEVEL 4 // battery voltage
+#elif ESP32 == 1 // ESP32
+	#define PIN_PHOTO_SENSOR 36 // "VP" - photoresistor
+	#define PIN_BUTTON 19 // control button
+	#define PIN_MOTION 18 // motion detector. Comment out if not connected
+	#define PIN_RELAY 26 // relay power switch for the matrix
+	#if USE_I2C == 0
+		// ------8<------ old, compatible with ESP8266 Wemos D1 mini
+		#define PIN_LED 22 // LED matrix
+		#define LED_MOTION 17 // motion indicator LED. Comment out for matrix output.
+		#define PIN_5V 21 // power presence detector (5 volts). Comment out if not connected
+		#define SRX 23 // hardware serial RX DFPlayer. Comment out if not connected
+		#define STX 5 // hardware serial TX DFPlayer
+		// ------8<------
+	#else
+		// ------8<------ new, for esp32
+		#define PIN_LED 23 // LED matrix
+		#define LED_MOTION 4 // motion indicator LED. Comment out for matrix output.
+		#define PIN_5V 5 // power presence detector (5 volts). Comment out if not connected
+		#define STX 17 // hardware serial RX DFPlayer. Comment out if not connected
+		#define SRX 16 // hardware serial TX DFPlayer
+		// -> SDA 21 // I2C SDA. For reference, defined in Arduino
+		// -> SCL 22 // I2C SCL
+		#define BAT_LEVEL 35 // battery voltage
+		// ------8<------
+	#endif
+#else // ESP8266
+	#define PIN_PHOTO_SENSOR A0 // photoresistor
+	#define PIN_BUTTON 12 // control button
+	#define PIN_MOTION 14 // motion detector. Comment out if not connected
+	#define SRX 13 // software serial RX DFPlayer. Comment out if not connected
+	#define STX 15 // software serial TX DFPlayer
+	#if USE_I2C == 0
+		// ------8<------ old, without i2c, original circuit
+		#define PIN_LED 5 // LED matrix
+		#define PIN_5V 4 // power presence detector (5 volts). Comment out if not connected
+		#define LED_MOTION 0 // motion indicator LED. Comment out for matrix output.
+		#define PIN_RELAY 16 // relay power switch for the matrix
+		// ------8<------
+	#else
+		// ------8<------ new, with i2c, alternate circuit, not recommended for esp8266
+		#define PIN_LED 2 // LED matrix
+		#define PIN_5V 16 // power presence detector (5 volts). Comment out if not connected
+		#define PIN_RELAY 0 // relay power switch for the matrix
+		// -> SDA 4 // I2C SDA. For reference, defined in Arduino
+		// -> SCL 5 // I2C SCL
+		// LED_MOTION did not fit, pins are exhausted, it will be displayed on the matrix
+		// ------8<------
+	#endif
+#endif
+
+#define SENSOR_BUTTON 1 // touch button - 1, normal button - 0
+
+#define RELAY_OP_TIME 10 // relay activation time per specification. ms
+#define RELAY_TYPE 1 // relay type, activates on: 0 - low level, 1 - high level.
+
+// if using circuit with i2c.
+#define USE_NVRAM 0 // use separate RTC chip on board instead of flash esp8266/esp32. 0 - files, 1 - NVRAM chip
+#define USE_RTC 1	// use hardware RTC chip (clock). 0 - internet only, 1 - use
+#define USE_BMP 1	// use pressure/temperature sensor (BMP180). 0 - do not use, 1 - use
+
+/*** type of dfPlayer mp3 player ***/
+
+// choose one type, comment out the rest!
+#define Mp3ChipType Mp3ChipOriginal			// most chips
+// #define Mp3ChipType Mp3ChipMH2024K16SS			// MH2024K16SS chip
+// #define Mp3ChipType Mp3ChipIncongruousNoAck	// rare chips without Ack support
+
+// response timeout from module during normal operation. Needed only in rare cases for slow chips.
+#define Mp3ChipTimeout 900
+
+/*** power consumption limits for the matrix ***/
+
+#define BRIGHTNESS 50		// standard maximum brightness (0-255)
+#define DEFAULT_POWER 2000	// default 2000 mA or 2A
+#define MAX_POWER 15000		// maximum current for the matrix with 256 LEDs (32x8 or 16x16)
+
+/*** matrix description ***/
+
+#define WIDTH 32			// matrix width
+#define HEIGHT 8			// matrix height
+#define SEGMENTS 1			// LEDs in one "pixel" (for building a matrix from sections of strip)
+#define MATRIX_TYPE 0		// matrix type: 0 - zigzag, 1 - parallel
+#define CONNECTION_ANGLE 3	// connection angle: 0 - bottom left, 1 - top left, 2 - top right, 3 - bottom right
+#define STRIP_DIRECTION 1	// strip direction from the corner: 0 - right, 1 - up, 2 - left, 3 - down
+#define NUM_LEDS WIDTH * HEIGHT * SEGMENTS
+#define REFRESH_TIME NUM_LEDS * 35 // approximate refresh time for the matrix. On esp8266 output often gets interrupted and the matrix may not update, repeat output is needed
+#define CLOCK_SHIFT 2 		// shift of first digit when displaying time. XX:YY = 5 characters + 4 spaces = 5*5+4 = 29. 32-29 = 3 or 2 LEDs before and 1 after
+#define TEXT_BASELINE 0		// height where text is displayed (from matrix bottom)
+
+/*** WiFi settings ***/
+
+#define AP_SSID "ClockAP" // access point name the phone connects to for initial setup
+// #define AP_PASSWORD "12345678" // password for this access point; if not set, AP has no password
+
+/*** timezone and daylight savings time. Can be overridden via web settings ***/
+
+#define TIMEZONE 2 // default timezone
+#define DSTSHIFT 0 // daylight saving shift
+
+/*** reserved count of objects in settings. Use a lot of memory. ***/
+
+#define MAX_ALARMS 9	// number of possible alarms (more than 9 may cause memory issues)
+#define MAX_RUNNING 9	// number of possible running lines (more than 9 may cause memory issues)
+#define MAX_SENSORS 10	// number of slots for registering remote sensors
+
+/*** telegram bot polling acceleration or temporary pause of requests ***/
+
+#define TELEGRAM_ACCELERATE 900 // time during which telegram requests go more often, in seconds
+#define TELEGRAM_ACCELERATED 10 // period of accelerated telegram polling, in seconds 
+#define TELEGRAM_BAN 1800 // time during which telegram requests stop after an error, in seconds
+#define TELEGRAM_MAX_LENGTH 2000 // maximum size of messages sent to Telegram
+
+/*** miscellaneous ***/
+
+#define DEFAULT_LANGUAGE 0 // default language (0-english, 1-russian, 2-ukrainian)
+
+#define NET_RETRY_COUNT 5 // number of retries on network failure (if quotes/weather cannot be fetched)
+#define NET_RETRY_TIME 60 // time before retry after failure in seconds
+
+// #define USE_HTTPS // use https instead of http for weather requests. Strongly not recommended, very slow.
+
+/*** next variable definitions, do not change anything ***/
+
+#include "define_vars.h"
+
+#endif

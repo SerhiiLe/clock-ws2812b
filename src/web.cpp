@@ -220,7 +220,8 @@ bool fileSend(String path) {
 	// если путь пустой - исправить на индексную страничку
 	if( path.endsWith("/") ) path += F("index.html");
 	// проверка необходимости авторизации
-	if(auth_need(path) && is_no_auth()) return false;
+	if (auth_need(path))
+	 	if (is_no_auth()) return false;
 	if(!fs_isStarted) {
 		// файловая система не загружена, переход на страничку обновления
 		HTTP.client().print(PSTR("HTTP/1.1 200\r\nContent-Type: text/html\r\nContent-Length: 80\r\nConnection: close\r\n\r\n<html><body><h1><a href='/update'>File system not exist!</a></h1></body></html>"));
@@ -446,18 +447,7 @@ void save_alarm() {
 	String name = F("target");
 	if( HTTP.hasArg(name) ) {
 		target = HTTP.arg(name).toInt();
-		name = F("time");
-		if( HTTP.hasArg(name) ) {
-			// выделение часов и минут из строки вида 00:00
-			size_t pos = HTTP.arg(name).indexOf(":");
-			uint8_t h = constrain(HTTP.arg(name).toInt(), 0, 23);
-			uint8_t m = constrain(HTTP.arg(name).substring(pos+1).toInt(), 0, 59);
-			if( h != alarms[target].hour || m != alarms[target].minute ) {
-				alarms[target].hour = h;
-				alarms[target].minute = m;
-				web.need_save = true;
-			}
-		}
+		web.time(F("time"), alarms[target].time);
 		name = F("rmode");
 		if( HTTP.hasArg(name) ) settings |= constrain(HTTP.arg(name).toInt(), 0, 3) << 7;
 		if( HTTP.hasArg(F("Mo")) ) settings |= 2;
@@ -1076,10 +1066,6 @@ void show() {
 void save_weather() {
 	if(is_no_auth()) return;
 	web.need_save = false;
-	bool need_weather = false;
-	bool need_forecast = false;
-	bool fl_change_color = false;
-	bool fl_change_colorF = false;
 
 	web.checkbox(F("sensors"), ws.sensors);
 	web.to_int(F("term_period"), ws.term_period, 20, 60000);
@@ -1089,15 +1075,14 @@ void save_weather() {
 	web.to_float(F("term_cor"), ws.term_cor, -100.0f, 100.0f, 1.0f);
 	web.to_int(F("bar_cor"), ws.bar_cor, -1000, 1000);
 	web.to_int(F("term_pool"), ws.term_pool, 30, 600);
-	need_weather = web.checkbox(F("weather"), ws.weather);
+	bool need_weather = web.checkbox(F("weather"), ws.weather);
 	if(web.to_int(F("sync_weather_period"), ws.sync_weather_period, 15, 1439))
 		syncWeatherTimer.setInterval(60000U * ws.sync_weather_period);
 	if(web.to_int(F("show_weather_period"), ws.show_weather_period, 30, 3600))
 		messages[MESSAGE_WEATHER].timer.setInterval(1000U * ws.show_weather_period);
-	if(web.to_int(F("color_mode"), ws.color_mode, 0, 4))
-		fl_change_color = true;
-	if(web.color(F("color"), ws.color))
-		fl_change_color = true;
+	bool fl_change_color = web.to_int(F("color_mode"), ws.color_mode, 0, 4);
+	fl_change_color |= web.color(F("color"), ws.color);
+	web.checkbox(F("weather_icon"), ws.weather_icon);
 	web.checkbox(F("weather_code"), ws.weather_code);
 	web.checkbox(F("temperature"), ws.temperature);
 	web.checkbox(F("a_temperature"), ws.a_temperature);
@@ -1111,20 +1096,22 @@ void save_weather() {
 	web.checkbox(F("pressure_dir"), ws.pressure_dir);
 	if( web.to_int(F("altitude"), ws.altitude, -1000, 12000) )
 		forecaster_setH(ws.altitude);
-	need_forecast = web.checkbox(F("forecast"), ws.forecast);
+	bool need_forecast = web.checkbox(F("forecast"), ws.forecast);
 	web.to_int(F("forecast_days"), ws.forecast_days, 1, FORECAST_DAYS);
 	if(web.to_int(F("sync_forecast_period"), ws.sync_forecast_period, 1, 12))
 		syncForecastTimer.setInterval(3600000U * ws.sync_forecast_period);
 	if(web.to_int(F("show_forecast_period"), ws.show_forecast_period, 30, 3600))
 		messages[MESSAGE_FORECAST].timer.setInterval(1000U * ws.show_forecast_period);
-	if(web.to_int(F("color_modeF"), ws.color_modeF, 0, 4))
-		fl_change_colorF = true;
-	if(web.color(F("colorF"), ws.colorF))
-		fl_change_colorF = true;
+	bool fl_change_colorF = web.to_int(F("color_modeF"), ws.color_modeF, 0, 4);
+	fl_change_colorF |= web.color(F("colorF"), ws.colorF);
+	web.checkbox(F("weather_iconF"), ws.weather_iconF);
 	web.checkbox(F("weather_codeF"), ws.weather_codeF);
 	web.checkbox(F("temperatureF"), ws.temperatureF);
 	web.checkbox(F("wind_speedF"), ws.wind_speedF);
 	web.checkbox(F("wind_directionF"), ws.wind_directionF);
+	bool need_redraw = web.to_int(F("u_t"), ws.u_t, 0, 2);
+	need_redraw |= web.to_int(F("u_p"), ws.u_p, 0, 5);
+	need_redraw |= web.to_int(F("u_v"), ws.u_v, 0, 3);
 
 	if(fl_change_color) messages[MESSAGE_WEATHER].color = ws.color_mode > 0 ? ws.color_mode: ws.color;
 	if(fl_change_colorF) messages[MESSAGE_FORECAST].color = ws.color_modeF > 0 ? ws.color_modeF: ws.colorF;
@@ -1134,19 +1121,24 @@ void save_weather() {
 	delay(1);
 	if( web.need_save ) {
 		save_config_weather();
-		if( ws.weather ) {
+		if (ws.weather) {
 			if( need_weather ) syncWeatherTimer.setNext(50);
 			char txt[512];
 			messages[MESSAGE_WEATHER].text = String(generate_weather_string(txt));
 		} else {
 			messages[MESSAGE_WEATHER].count = 0;
 		}
-		if( ws.forecast ) {
+		if (ws.forecast) {
 			if( need_forecast ) syncForecastTimer.setNext(1000);
 			char txt[512];
 			messages[MESSAGE_FORECAST].text = String(generate_forecast_string(txt));
 		} else {
 			messages[MESSAGE_FORECAST].count = 0;
+		}
+		if (need_redraw) {
+			char txt[512];
+			if (ws.weather) messages[MESSAGE_WEATHER].text = String(generate_weather_string(txt));
+			if (ws.forecast) messages[MESSAGE_FORECAST].text = String(generate_forecast_string(txt));
 		}
 	}
 	// initRString(PSTR("Настройки сохранены"));
@@ -1211,7 +1203,7 @@ void save_cuckoo () {
 	web.to_int(F("cuckoo"), cs.cuckoo, 0, 255);
 	web.to_int(F("vol"), cs.volume, 1, 30);
 
-	HTTP.sendHeader(F("Location"),F("/maintenance.html"));
+	HTTP.sendHeader(F("Location"),F("/"));
 	HTTP.send(303);
 	delay(1);
 	if( web.need_save )	save_config_cuckoo();

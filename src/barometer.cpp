@@ -93,6 +93,7 @@ float getHumidity() {
 
 const char* currentPressureTemp (char *a, bool fl_tiny) {
 	char ft[100] = "";
+	char *pos;
 	if(ws.pressure_dir) {
 		int16_t trend = forecaster_getTrend();
 		int8_t cast = forecaster_getCast();
@@ -125,25 +126,33 @@ const char* currentPressureTemp (char *a, bool fl_tiny) {
 		}
 		// есть датчик давления (BMP180,BMP280,BME280), вывести его
 		char pt[20] = "";
+		pos = pt;
 		if( fl_barometerIsInit & 7 ) {
-			if(fl_tiny)
-				sprintf_P(pt, PSTR("\n%4i hPa"), p);
-			else
-				sprintf_P(pt, PSTR(" %i hPa"), p);
+			pos += fl_tiny ? sprintf_P(pt, PSTR("\n")): sprintf_P(pt, SPACE);
+			add_pressure(pos, 1.0f*p);
 		}
-		if(fl_tiny)
-			sprintf_P(a, PSTR(" %+1.1f\xc2\xb0\x43%s%s%s"), t, ht, pt, ft);
-		else
-			sprintf_P(a, PSTR("%s: %+1.1f\xc2\xb0\x43%s%s%s"), txt_inRoom[gs.language], t, ht, pt, ft);
+		pos = a;
+		if(fl_tiny) {
+			pos += sprintf_P(a, SPACE);
+			pos += add_temperature(pos, t);
+			sprintf_P(pos, PSTR("%s%s%s"), ht, pt, ft);
+		} else {
+			pos += sprintf_P(a, PSTR("%s: "), txt_inRoom[gs.language]);
+			pos += add_temperature(pos, t);
+			sprintf_P(pos, PSTR("%s%s%s"), ht, pt, ft);
+		}
 		return a;
 
 	}
 	else if(ws.pressure_dir) {
+		pos = a;
 		// если нет аппаратных датчиков, то вывести показания с сервера
-		if(fl_tiny)
-			sprintf_P(a, PSTR("%4i hPa%s"), weatherGetPressure(), ft);
-		else
-			sprintf_P(a, PSTR("%i hPa %s"), weatherGetPressure(), ft);
+		pos += add_pressure(pos, 1.0f*weatherGetPressure());
+		sprintf_P(pos, "%s", ft);
+		// if(fl_tiny) {
+		// 	sprintf_P(a, PSTR("%4i hPa%s"), weatherGetPressure(), ft);
+		// else
+		// 	sprintf_P(a, PSTR("%i hPa %s"), weatherGetPressure(), ft);
 	}
 	sprintf_P(a, PSTR("unknown"));
 	return a;

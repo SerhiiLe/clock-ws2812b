@@ -7,8 +7,14 @@ const char* generate_forecast_string(char* a);
 int16_t weatherGetElevation();
 float weatherGetTemperature();
 int16_t weatherGetPressure();
+int add_temperature(char *buf, float t, bool units=true, bool dec=true);
+int add_pressure(char *buf, float p);
+int add_speed(char *buf, float v, bool units=true);
 uint8_t quoteUpdate();
 void quotePrepare(bool force=false);
+
+extern const char* EMPTY PROGMEM;
+extern const char* SPACE PROGMEM;
 
 #define Q_TEXT 0
 #define Q_JSON 1

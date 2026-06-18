@@ -67,6 +67,11 @@ struct forecastData {
 	uint16_t wind_direction;
 } fd[FORECAST_DAYS];
 
+const char* EMPTY PROGMEM = "";
+const char* SPACE PROGMEM = " ";
+const char* DOTS PROGMEM = "\xe2\x80\xa6";
+const char* SPSTR PROGMEM = " %s ";
+
 /*
 0 	Clear sky
 1, 2, 3 	Mainly clear, partly cloudy, and overcast
@@ -254,34 +259,95 @@ uint32_t weather_icon_code(uint8_t code) {
 	}
 }
 
+int add_temperature(char *buf, float t, bool units, bool dec) {
+	switch (ws.u_t)	{ // " %+0.1f°C" если нужен плюс перед цифрой
+		case 1: // Фаренгейта
+			return sprintf_P(buf, dec?PSTR("%0.1f%S"):PSTR("%1.0f%S"), t*1.8+32, units?PSTR("°F"):EMPTY); 
+		case 2: // Кельвина
+			return sprintf_P(buf, PSTR("%1.0f%S"), t+273.15, units?PSTR("K"):EMPTY); 
+		default: // Целься
+			return sprintf_P(buf, dec?PSTR("%+1.1f%S"):PSTR("%+1.0f%S"), t, units?PSTR("°C"):EMPTY); 
+	}
+}
+
+int add_pressure(char *buf, float p) {
+	switch (ws.u_p)	{
+		case 1: // kPa
+			return sprintf_P(buf, PSTR("%1.1f kPa"), p/10);
+		case 2: // Pa
+			return sprintf_P(buf, PSTR("%1.0f Pa"), p*100);
+		case 3: // mbar
+			return sprintf_P(buf, PSTR("%1.0f mbar"), p);
+		case 4: // inHg
+			return sprintf_P(buf, PSTR("%1.2f inHg"), p*0.02953);
+		case 5: // mmHg
+			return sprintf_P(buf, PSTR("%1.0f mmHg"), p*0.750063755);
+		default: // hPa
+			return sprintf_P(buf, PSTR("%1.0f hPa"), p);
+	}
+}
+
+int add_speed(char *buf, float v, bool units) {
+	const char* T = units?PSTR("%1.0f%S"):PSTR("%1.0f");
+	switch (ws.u_v)	{
+		case 1: // km/h
+			return sprintf_P(buf, T, v*3.6, units?txt_wind_speedKM[gs.language]:EMPTY);
+		case 2: // mph
+			return sprintf_P(buf, T, v*2.2369, units?PSTR("mph"):EMPTY);
+		case 3: // kn
+			return sprintf_P(buf, T, v*1.9438, units?txt_wind_speedK[gs.language]:EMPTY);
+		default: // m/s
+			return sprintf_P(buf, T, v, units?txt_wind_speed[gs.language]:EMPTY);
+	}
+}
+
 // создание строки состояния погоды на основе ответа от сервера
 const char* generate_weather_string(char* a) {
 	char* pos = a;
 	pos += sprintf_P(pos, txt_weather[gs.language]);
-	if( ws.weather_code ) {
-		pos += sprintf_P(pos, PSTR(" %s "), utf8_to_str(weather_icon_code(wd.weather_code)));
+
+	if (ws.weather_icon) {
+		pos += sprintf_P(pos, PSTR(" %s"), utf8_to_str(weather_icon_code(wd.weather_code)));
+	}
+	if (ws.weather_code) {
+		pos += sprintf_P(pos, SPACE);
 		pos += sprintf_P(pos, descript_weather_code(wd.weather_code), wd.weather_code);
 	}
-	if( ws.temperature ) pos += sprintf_P(pos, PSTR(" %+0.1f\xc2\xb0\x43"), wd.temperature);
-	if( ws.a_temperature) pos += sprintf_P(pos, PSTR(" %s %+0.1f\xc2\xb0\x43"), txt_apparent[gs.language], wd.apparent_temperature);
-	if( ws.humidity ) pos += sprintf_P(pos, PSTR(" %s %u%%"), txt_humidity[gs.language], wd.humidity);
-	if( ws.cloud ) pos += sprintf_P(pos, PSTR(" %s %u%%"), txt_cloud[gs.language], wd.cloud_cover);
-	if( ws.pressure ) pos += sprintf_P(pos, PSTR(" %s %1.0f hPa"),txt_pressure[gs.language], wd.pressure);
-	if( ws.wind_speed && wd.wind_speed < 2 ) pos += sprintf_P(pos, txt_calm[gs.language]);
+	if (ws.temperature) {
+		pos += sprintf_P(pos, SPACE);
+		pos += add_temperature(pos, wd.temperature);
+	}
+	if (ws.a_temperature) {
+		pos += sprintf_P(pos, SPSTR, txt_apparent[gs.language]);
+		pos += add_temperature(pos, wd.apparent_temperature);
+	}
+	if (ws.humidity) pos += sprintf_P(pos, PSTR(" %s %u%%"), txt_humidity[gs.language], wd.humidity);
+	if (ws.cloud) pos += sprintf_P(pos, PSTR(" %s %u%%"), txt_cloud[gs.language], wd.cloud_cover);
+	if (ws.pressure) {
+		pos += sprintf_P(pos, SPSTR, txt_pressure[gs.language]);
+		pos += add_pressure(pos, wd.pressure);
+	}
+	if (ws.wind_speed && wd.wind_speed < 2) pos += sprintf_P(pos, txt_calm[gs.language]);
 	else {
-		if( ws.wind_speed && ws.wind_gusts ) pos += sprintf_P(pos, PSTR(" %s %1.0f\xe2\x80\xa6%1.0f%s."), txt_wind[gs.language], wd.wind_speed, wd.wind_gusts, txt_wind_speed[gs.language]);
-		else if( ws.wind_speed ) pos += sprintf_P(pos, PSTR(" %s %1.0f%s."), txt_wind[gs.language], wd.wind_speed, txt_wind_speed[gs.language]);
-		if( ws.wind_direction ) pos += sprintf_P(pos, PSTR(" %s %i\xc2\xb0"), txt_direction[gs.language], wd.wind_direction);
-		if( ws.wind_direction2 ) {
+		if (ws.wind_speed) {
+			pos += sprintf_P(pos, SPSTR, txt_wind[gs.language]);
+			pos += add_speed(pos, wd.wind_speed, !ws.wind_gusts);
+			if (ws.wind_gusts) {
+				pos += sprintf_P(pos, DOTS);
+				pos += add_speed(pos, wd.wind_gusts);
+			}
+		}
+		if (ws.wind_direction) pos += sprintf_P(pos, PSTR(" %s %i\xc2\xb0"), txt_direction[gs.language], wd.wind_direction);
+		if (ws.wind_direction2) {
 			const char* wc = nullptr;
-			if( wd.wind_direction > 340 || wd.wind_direction <= 20 ) wc = txt_d_northern[gs.language];
-			if( wd.wind_direction > 20 && wd.wind_direction <= 68 ) wc = txt_d_north_eastern[gs.language];
-			if( wd.wind_direction > 68 && wd.wind_direction <=112 ) wc = txt_d_eastern[gs.language];
-			if( wd.wind_direction > 112 && wd.wind_direction <= 158 ) wc = txt_d_south_eastern[gs.language];
-			if( wd.wind_direction > 158 && wd.wind_direction <= 202 ) wc = txt_d_southern[gs.language];
-			if( wd.wind_direction > 202 && wd.wind_direction <= 248 ) wc = txt_d_south_western[gs.language];
-			if( wd.wind_direction > 248 && wd.wind_direction <= 292 ) wc = txt_d_western[gs.language];
-			if( wd.wind_direction > 292 && wd.wind_direction <= 340 ) wc = txt_d_north_western[gs.language];
+			if ( wd.wind_direction > 340 || wd.wind_direction <= 20 ) wc = txt_d_northern[gs.language];
+			if ( wd.wind_direction > 20 && wd.wind_direction <= 68 ) wc = txt_d_north_eastern[gs.language];
+			if ( wd.wind_direction > 68 && wd.wind_direction <=112 ) wc = txt_d_eastern[gs.language];
+			if ( wd.wind_direction > 112 && wd.wind_direction <= 158 ) wc = txt_d_south_eastern[gs.language];
+			if ( wd.wind_direction > 158 && wd.wind_direction <= 202 ) wc = txt_d_southern[gs.language];
+			if ( wd.wind_direction > 202 && wd.wind_direction <= 248 ) wc = txt_d_south_western[gs.language];
+			if ( wd.wind_direction > 248 && wd.wind_direction <= 292 ) wc = txt_d_western[gs.language];
+			if ( wd.wind_direction > 292 && wd.wind_direction <= 340 ) wc = txt_d_north_western[gs.language];
 			pos += sprintf(pos, " ");
 			pos += sprintf_P(pos, wc);
 		}
@@ -322,13 +388,13 @@ uint8_t parseWeather(const char* json) {
 	messages[MESSAGE_WEATHER].color = ws.color_mode > 0 ? ws.color_mode: ws.color;
 
 	// Синхронизация часового пояса или летнего времени
-	if(gs.tz_adjust && wd.utc_offset_seconds != (gs.tz_shift+gs.tz_dst)*3600) {
+	if (gs.tz_adjust && wd.utc_offset_seconds != (gs.tz_shift+gs.tz_dst)*3600) {
 		LOG(printf_P,PSTR("Timezone not sync: %+i vs %+i in system. "), wd.utc_offset_seconds/3600, gs.tz_shift+gs.tz_dst);
-		if(gs.tz_shift*3600 == wd.utc_offset_seconds) {
+		if (gs.tz_shift*3600 == wd.utc_offset_seconds) {
 			gs.tz_dst = 0;
 			LOG(println,PSTR("Remove dst time."));
 		} else
-		if((gs.tz_shift+1)*3600 == wd.utc_offset_seconds) {
+		if ((gs.tz_shift+1)*3600 == wd.utc_offset_seconds) {
 			gs.tz_dst = 1;
 			LOG(println,PSTR("Add dst time"));
 		} else {
@@ -340,7 +406,7 @@ uint8_t parseWeather(const char* json) {
 		delay(1);
 		syncTime();
 	} else
-	if( abs(cur_time + wd.utc_offset_seconds - getTimeU()) > (interval + 100)) {
+	if (abs(cur_time + wd.utc_offset_seconds - getTimeU()) > (interval + 100)) {
 		LOG(printf_P,PSTR("To big time drift (%+li sec.), request time sync.\n"), cur_time - getTimeU());
 		syncTime();
 	}
@@ -353,13 +419,26 @@ const char* generate_forecast_string(char* a) {
 	pos += sprintf_P(pos, txt_forecast[gs.language]);
 	for(uint8_t i=0; i<ws.forecast_days; i++) {
 		pos += sprintf_P(pos, PSTR(" %s"), txt_ForecastDay[i][gs.language]);
-		if( ws.weather_codeF ) {
-			pos += sprintf_P(pos, PSTR(" %s "), utf8_to_str(weather_icon_code(fd[i].weather_code)));
+		if (ws.weather_iconF) {
+			pos += sprintf_P(pos, PSTR(" %s"), utf8_to_str(weather_icon_code(fd[i].weather_code)));
+		}
+		if (ws.weather_codeF) {
+			pos += sprintf_P(pos, SPACE);
 			pos += sprintf_P(pos, descript_weather_code(fd[i].weather_code), fd[i].weather_code);
 		}
-		if( ws.temperatureF ) pos += sprintf_P(pos, PSTR(" %0.1f\xc2\xb0\x43\xe2\x80\xa6%0.1f\xc2\xb0\x43"), fd[i].temperature_min, fd[i].temperature_max);
-		if( ws.wind_speedF ) pos += sprintf_P(pos, PSTR(" %s %0.1f-%0.1f %s"), txt_wind[gs.language], fd[i].wind_speed, fd[i].wind_gusts, txt_wind_speed[gs.language]);
-		if( ws.wind_directionF ) {
+		if (ws.temperatureF) {
+			pos += sprintf_P(pos, SPACE);
+			pos += add_temperature(pos, fd[i].temperature_min, false, false);
+			pos += sprintf_P(pos, DOTS);
+			pos += add_temperature(pos, fd[i].temperature_max, true, false);
+		}
+		if (ws.wind_speedF) {
+			pos += sprintf_P(pos, SPSTR, txt_wind[gs.language]);
+			pos += add_speed(pos, fd[i].wind_speed, false);
+			pos += sprintf_P(pos, DOTS);
+			pos += add_speed(pos, fd[i].wind_gusts);
+		}
+		if (ws.wind_directionF) {
 			const char* wc = nullptr;
 			if( fd[i].wind_direction > 340 || fd[i].wind_direction <= 20 ) wc = txt_d_northern[gs.language];
 			if( fd[i].wind_direction > 20 && fd[i].wind_direction <= 68 ) wc = txt_d_north_eastern[gs.language];
@@ -369,10 +448,10 @@ const char* generate_forecast_string(char* a) {
 			if( fd[i].wind_direction > 202 && fd[i].wind_direction <= 248 ) wc = txt_d_south_western[gs.language];
 			if( fd[i].wind_direction > 248 && fd[i].wind_direction <= 292 ) wc = txt_d_western[gs.language];
 			if( fd[i].wind_direction > 292 && fd[i].wind_direction <= 340 ) wc = txt_d_north_western[gs.language];
-			pos += sprintf(pos, " ");
+			pos += sprintf(pos, SPACE);
 			pos += sprintf_P(pos, wc);
 		}
-		if( i < ws.forecast_days-1 ) pos += sprintf_P(pos, PSTR(","));
+		if (i < ws.forecast_days-1) pos += sprintf_P(pos, PSTR(","));
 	}
 	return a;
 }
@@ -666,13 +745,13 @@ void quotePrepare(bool force) {
 				quote.quote = qs.quote_field;
 				quote.author = qs.author_field;
 				break;
-			default: // forismatic.com
-				quote.url = F("http://api.forismatic.com/api/1.0/");
-				quote.params = F("method=getQuote&format=text&lang=");
+			default: // forismatic.com умер, временная заглушка 
+				quote.url = F("https://dummyjson.com/quotes/random"); //http://api.forismatic.com/api/1.0/"); forismatic.com умер :(
+				quote.params = ""; //F("method=getQuote&format=text&lang=");
 				quote.method = Q_GET;
-				quote.type = Q_TEXT;
-				quote.quote = "";
-				quote.author = "";
+				quote.type = Q_JSON; //Q_TEXT;
+				quote.quote = F("quote");
+				quote.author = F("author");
 				break;
 		}
 		quote.fl_init = true;

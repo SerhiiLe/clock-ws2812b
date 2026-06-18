@@ -116,6 +116,10 @@
 					<fieldset>
 						<legend i18="display">Display</legend>
 						<div class="row">
+							<div i18="w_icon">Weather icon</div>
+							<div><input name="weather_icon" type="checkbox" value="1"></div>
+						</div>
+						<div class="row">
 							<div i18="w_dec">Weather Deciphering</div>
 							<div><input name="weather_code" type="checkbox" value="1"></div>
 						</div>
@@ -218,6 +222,10 @@
 					<fieldset>
 						<legend i18="display">Display</legend>
 						<div class="row">
+							<div i18="w_icon">Weather icon</div>
+							<div><input name="weather_iconF" type="checkbox" value="1"></div>
+						</div>
+						<div class="row">
 							<div i18="w_dec">Weather Deciphering</div>
 							<div><input name="weather_codeF" type="checkbox" value="1"></div>
 						</div>
@@ -234,6 +242,41 @@
 							<div><input name="wind_directionF" type="checkbox" value="1"></div>
 						</div>
 					</fieldset>
+				</div>
+				<div class="one i b center" i18="w_units">Units of measurement</div>
+				<div class="row">
+					<div i18="w_ut">Temperature</div>
+					<div>
+						<select name="u_t">
+							<option value="0">°C</option>
+							<option value="1">°F</option>
+							<option value="2">K</option>
+						</select>
+					</div>
+				</div>
+				<div class="row">
+					<div i18="w_up">Atmospheric pressure</div>
+					<div>
+						<select name="u_p">
+							<option value="0">hPa</option>
+							<option value="1">kPa</option>
+							<option value="2">Pa</option>
+							<option value="3">mbar</option>
+							<option value="4">inHg</option>
+							<option value="5">mmHg</option>
+						</select>
+					</div>
+				</div>
+				<div class="row">
+					<div i18="w_uv">Wind speed</div>
+					<div>
+						<select name="u_v">
+							<option value="0">m/s</option>
+							<option value="1">km/h</option>
+							<option value="2">mph</option>
+							<option value="3">kn</option>
+						</select>
+					</div>
 				</div>
 				<button i18="save">Save</button>
 			</form>

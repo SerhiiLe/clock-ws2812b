@@ -24,6 +24,7 @@
 			<a href="alarms.html" i18="alarm">Alarms</a>
 			<a href="weather.html" i18="weather">Weather</a>
 			<a href="quotes.html" i18="quotes">Quotes</a>
+			<a href="cuckoo.html" id="cuckoo" i18="cuckoo">Сuckoo</a>
 			<a href="settings.html" i18="settings">Settings</a>
 			<a href="sounds.html" id="sounds" i18="melodies">Melodies</a>
 			<a href="security.html" i18="security">Security</a>
@@ -37,7 +38,10 @@
 function applyInfo(info) {
 	$g("hostname").innerHTML = info.hostname + ".local";
 	if(!info.is_auth) $g("logout").style.display = 'none';
-	if(!info.use_mp3) $g("sounds").style.display = 'none';
+	if(!info.use_mp3) {
+		$g("sounds").style.display = 'none';
+		$g("cuckoo").style.display = 'none';
+	}
 }
 function start() {
 	if (typeof ajaxRequest !== "undefined") {

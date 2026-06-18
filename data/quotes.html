@@ -65,7 +65,7 @@
 					<div class="row">
 						<div i18="q_server">Quotes server</div>
 						<select name="server" onchange="show_own_block()">
-							<option value="0">forismatic.com</option>
+							<option value="0">dummyjson.com</option>
 							<option value="1">ultragenerator.com</option>
 							<option value="2" i18="own">Own</option>
 						</select>
@@ -83,11 +83,11 @@
 						<div><span i18="q_own_s">Your own server</span>
 							<span class="small">(<span i18="q_oun_s2">https requests are very slow and cause noticeable clock freezes, it is better to use http if possible</span>)</span>
 						</div>
-						<input class="long" type="text" name="url" placeholder="http://api.forismatic.com/api/1.0/">
+						<input class="long" type="text" name="url" placeholder="http://joy.ps.od.ua/quotes/api.php">
 					</div>
 					<div class="one own">
 						<div><span i18="q_param">Parameters</span> <span class="small">(<span i18="q_param2">You can enter the language code directly here or leave the "=" at the end</span>)</span></span></div>
-						<input class="long" type="text" name="params" placeholder="method=getQuote&format=text&lang=">
+						<input class="long" type="text" name="params" placeholder="language=">
 					</div>
 					<div class="row own">
 						<div i18="q_req_t">Request type</div>
@@ -111,7 +111,7 @@
 						</div>
 						<div class="one own">
 							<div><span i18="q_author">Field name with author</span> <span class="small">(<span i18="q_author2">or empty if not needed</span>)</span>:</span></div>
-							<input class="long" type="text" name="author_field" placeholder="quoteAuthor">
+							<input class="long" type="text" name="author_field" placeholder="author">
 						</div>
 					</div>
 				</div>

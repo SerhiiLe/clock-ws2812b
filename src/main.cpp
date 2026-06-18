@@ -2,8 +2,8 @@
  * @file main.cpp
  * @author Serhii Lebedenko (slebedenko@gmail.com)
  * @brief Clock
- * @version 2.5.2
- * @date 2026-06-13
+ * @version 2.5.3
+ * @date 2026-06-18
  * 
  * @copyright Copyright (c) 2021,2022,2023,2024,2025,2026
  */
@@ -37,6 +37,7 @@
 #include "barometer.h"
 #include "forecaster.h"
 #include "nvram.h"
+#include "main_translation.h"
 
 #if SENSOR_BUTTON == 1
 	GButton btn(PIN_BUTTON, LOW_PULL, NORM_OPEN); // комбинация для сенсорной кнопки
@@ -199,18 +200,18 @@ bool boot_check() {
 					LOG(println, PSTR("LittleFS mounted"));
 				} else {
 					LOG(println, PSTR("LittleFS is empty"));
-					initRString(PSTR("Диск пустой, загрузите файлы!"));
+					initRString(txt_disk_empty[gs.language]);
 				}
 			} else {
 				LOG(println, PSTR("ERROR LittleFS mount"));
-				initRString(PSTR("Ошибка подключения встроенного диска!!!"));
+				initRString(txt_disk_error[gs.language]);
 			}
 			break;
 		case 2: // проверка наличия NVRAM
 			#if USE_I2C == 1 && USE_NVRAM == 1
 			if( ! nvram_init()) {
 				LOG(println, PSTR("Couldn't find NVRAM"));
-				initRString(PSTR("NVRAM не найден."));
+				initRString(txt_nvram_error[gs.language]);
 			}
 			#endif
 			break;
@@ -219,48 +220,49 @@ bool boot_check() {
 				LOG(println, PSTR("Create new config file"));
 				//  Создаем файл запив в него данные по умолчанию, при любой ошибке чтения
 				save_config_main();
-				initRString(PSTR("Создан новый файл конфигурации."));
+				initRString(txt_config_new[gs.language]);
 			}
 			break;
 		case 4: // Загрузка или создание файла со списком будильников
 			if(!load_config_alarms()) {
 				LOG(println, PSTR("Create new alarms file"));
 				save_config_alarms(); // Создаем файл
-				initRString(PSTR("Создан новый файл списка будильников."));
+				initRString(txt_alarms_new[gs.language]);
 			}
 			break;
 		case 5: // Загрузка или создание файла со списком бегущих строк
 			if(!load_config_texts()) {
 				LOG(println, PSTR("Create new texts file"));
 				save_config_texts(); // Создаем файл
-				initRString(PSTR("Создан новый файл списка строк."));
+				initRString(txt_texts_new[gs.language]);
 			}
 			break;
 		case 6: // Файл хранящий текущий статус "охраны" на случай перезагрузки
 			if(!load_config_security()) {
 				LOG(println, PSTR("Create new security file"));
 				save_config_security();	// Создаем файл
+				initRString(txt_security_new[gs.language]);
 			}
 			break;
 		case 7: // Загрузка или создание файла с настройками телеграм клиента
 			if(!load_config_telegram()) {
 				LOG(println, PSTR("Create new telegram file"));
 				save_config_telegram();	// Создаем файл
-				initRString(PSTR("Создан новый файл настроек telegram."));
+				initRString(txt_telegram_new[gs.language]);
 			}
 			break;
 		case 8: // Загрузка или создание файла с настройками цитат
 			if( ! load_config_quote()) {
 				LOG(println, PSTR("Create new quote file"));
 				save_config_quote(); // Создаем файл
-				initRString(PSTR("Создан новый файл настроек цитат."));
+				initRString(txt_quote_new[gs.language]);
 			}
 			break;
 		case 9: // Загрузка или создание файла с настройками погоды
 			if( ! load_config_weather()) {
 				LOG(println, PSTR("Create new weather file"));
 				save_config_weather(); // Создаем файл
-				initRString(PSTR("Создан новый файл настроек погоды."));
+				initRString(txt_weather_new[gs.language]);
 			}
 			break;
 		case 10: // Подключение к модулю RTC и первичная установка времени
@@ -268,11 +270,11 @@ bool boot_check() {
 			switch(rtc_init()) {
 				case 0:
 					LOG(println, PSTR("Couldn't find RTC"));
-					initRString(PSTR("Модуль часов не работает :("));
+					initRString(txt_rtc_error[gs.language]);
 					break;
 				case 2:
 					LOG(println, PSTR("RTC init"));
-					initRString(PSTR("Модуль часов инициализирован."));
+					initRString(txt_rtc_init[gs.language]);
 					break;
 				default:
 					fl_timeNotSync = false;
@@ -286,7 +288,7 @@ bool boot_check() {
 			#if USE_I2C == 1 && USE_BMP == 1
 			if( ! barometer_init()) {
 				LOG(println, PSTR("Couldn't find BMP module"));
-				initRString(PSTR("Барометр не подключился :("));
+				initRString(txt_bmp_error[gs.language]);
 			}
 			#endif
 			break;
@@ -306,7 +308,7 @@ bool boot_check() {
 				LOG(println, PSTR("Create new cuckoo file"));
 				save_config_cuckoo(); // даже если dfplayer не подключен, по тихому создать файл настроек
 				#ifdef SRX
-				initRString(PSTR("Создан новый файл настроек кукушки."));
+				initRString(txt_cuckoo_new[gs.language]);
 				#endif
 			}
 			break;
@@ -420,7 +422,7 @@ void alarmsStop() {
 // функция которая отвечает за будильник вынесена из основного цикла из-за медленной работы с dfPlayer. Часы будут продолжать идти, web будет недоступен
 // возможны перезагрузки ядра, надо тестировать
 void alarms_pool() {
-	int16_t i = 0;
+	int16_t m = 0; // время в минутах от полуночи
 	bool fl_doit = false;
 	bool fl_save = false;
 	tm t;
@@ -429,13 +431,13 @@ void alarms_pool() {
 		fl_save = false;
 		t = getTime();
 		// проверка времени работы бегущей строки
-		i = t.tm_hour*60+t.tm_min;
-		fl_run_allow = gs.run_allow == 0 || (gs.run_allow == 1 && i >= gs.run_begin && i <= gs.run_end);
+		m = t.tm_hour*60+t.tm_min;
+		fl_run_allow = gs.run_allow == 0 || (gs.run_allow == 1 && m >= gs.run_begin && m <= gs.run_end);
 		fl_bright_boost = gs.boost_mode != 0 && 
-			((gs.boost_mode > 0 && gs.boost_mode < 5 && i >= sunrise && i <= sunset) ||
-			(gs.boost_mode == 5 && i >= gs.bright_begin && i <= gs.bright_end));
+			((gs.boost_mode > 0 && gs.boost_mode < 5 && m >= sunrise && m <= sunset) ||
+			(gs.boost_mode == 5 && m >= gs.bright_begin && m <= gs.bright_end));
 		// сдвиг гаммы от времени суток.
-		hue_shift = uint8_t(240 - i/5 - (gs.hue_shift-1)*64);
+		hue_shift = uint8_t(240 - m/5 - (gs.hue_shift-1)*64);
 		// работа кукушки
 		#ifdef SRX
 		static uint8_t cuckoo_last = t.tm_hour;
@@ -467,10 +469,10 @@ void alarms_pool() {
 		}
 		#endif
 		// перебор всех будильников, чтобы найти активный
-		for(i=0; i<MAX_ALARMS; i++)
+		for(uint8_t i=0; i<MAX_ALARMS; i++)
 			if(alarms[i].settings & 512) {
 				// активный будильник найден, проверка времени срабатывания
-				if(alarms[i].hour == t.tm_hour && alarms[i].minute == t.tm_min) {
+				if(alarms[i].time == m) {
 					// защита от повторного запуска
 					if(!(alarms[i].settings & 1024)) {
 						// определение других критериев срабатывания
@@ -515,7 +517,7 @@ void alarms_pool() {
 	if(alarmStartTime && alarmStepTimer.isReady()) {
 		if(screenIsFree && alarms[active_alarm].text.length() > 0) {
 			// вывод текста только на время работы будильника
-			initRString(alarms[active_alarm].text, alarms[i].color_mode > 0 ? alarms[i].color_mode: alarms[i].color);
+			initRString(alarms[active_alarm].text, alarms[active_alarm].color_mode > 0 ? alarms[active_alarm].color_mode: alarms[active_alarm].color);
 		}
 		if(!mp3_isPlay()) {
 			// мелодия не запустилась, повторить весь цикл сначала. Редко, но случается :(

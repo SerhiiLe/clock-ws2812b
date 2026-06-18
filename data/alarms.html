@@ -144,7 +144,7 @@ function show_edit(i) {
 	// if(! $g("e"+i).checked) return;
 	var f = document.forms["settings"];
 	f.elements["target"].value = i;
-	f.elements["time"].value = print_time(i);
+	f.elements["time"].value = doc[i].m;
 	var t = (doc[i].s >> 7) & 3;
 	f.elements["rmode"].selectedIndex = t;
 	select_days();
@@ -164,12 +164,6 @@ function show_edit(i) {
 	$g("list").style.display = "none";
 	$g("edit").style.display = "block";
 }
-function print_time(i) {
-	var h = doc[i].h;
-	var m = doc[i].m;
-	return (h<10?"0"+h:h)+":"+(m<10?"0"+m:m);
-}
-var texts = [];
 var doc = [];
 function start() {
 	if (typeof ajaxRequest !== "undefined") {
@@ -177,7 +171,7 @@ function start() {
 			doc = JSON.parse(ajaxResp.responseText);
 			var li = $g("list_items");
 			for(var i=0; i<doc.length; i++) {
-				var sp1 = $ee("span",print_time(i),{class:"big"});
+				var sp1 = $ee("span",doc[i].m,{class:"big"});
 				var sp2 = $e("span",{class:"small"});
 				var sp3 = doc[i].t.length ? $ee("div",doc[i].t,{class:"small top_line"}): "";
 				if(doc[i].s & 128) {
