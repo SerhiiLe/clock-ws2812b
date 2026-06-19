@@ -2,8 +2,8 @@
  * @file main.cpp
  * @author Serhii Lebedenko (slebedenko@gmail.com)
  * @brief Clock
- * @version 2.5.3
- * @date 2026-06-18
+ * @version 2.5.4
+ * @date 2026-06-19
  * 
  * @copyright Copyright (c) 2021,2022,2023,2024,2025,2026
  */
@@ -593,7 +593,7 @@ void loop() {
 					if (fl_barometerIsInit) {
 						if (current >= dclick_func) {
 							initRString(currentPressureTemp(timeString, false),
-								gs.show_date_color > 0 ? gs.show_date_color: gs.show_date_color0);
+								ws.term_color_mode > 0 ? ws.term_color_mode: ws.term_color);
 							execute = true;
 						} else current++;
 					}
@@ -808,10 +808,10 @@ void loop() {
 		if(fl_barometerIsInit && screenIsFree && showTermTimer.isReady()) {
 			if(ws.tiny_term)
 				printTinyText(currentPressureTemp(timeString, true),
-					gs.show_date_color > 0 ? gs.show_date_color: gs.show_date_color0, 1);
+					ws.term_color_mode > 0 ? ws.term_color_mode: ws.term_color, 1);
 			else
 				initRString(currentPressureTemp(timeString, false),
-					gs.show_date_color > 0 ? gs.show_date_color: gs.show_date_color0);
+					ws.term_color_mode > 0 ? ws.term_color_mode: ws.term_color);
 		}
 		// затем дата
 		if(!fl_timeNotSync && screenIsFree && clockDate.isReady()) {

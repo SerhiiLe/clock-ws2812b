@@ -352,7 +352,7 @@ void save_telegram() {
 	web.to_int(F("tb_ban"), ts.tb_ban, 900, 3600);
 	web.to_int(F("rcount"), ts.rcount, 1, 32000);
 	web.to_int(F("rint"), ts.rint, 1, 65000);
-	web.to_int(F("color_mode"), ts.color_mode, 0, 5);
+	web.to_int(F("color_mode"), ts.color_mode, 0, 4);
 	web.color(F("color"), ts.color);
 	web.to_int(F("melody"), ts.melody, 0, 4096);
 	web.to_int(F("vol"), ts.volume, 1, 30);
@@ -506,7 +506,7 @@ void save_text() {
 		web.to_string(F("text"), texts[target].text);
 		if( web.to_int(F("period"), texts[target].period, 30, 3600) )
 			textTimer[target].setInterval(texts[target].period*1000U);
-		web.to_int(F("color_mode"), texts[target].color_mode, 0, 5);
+		web.to_int(F("color_mode"), texts[target].color_mode, 0, 4);
 		web.color(F("color"), texts[target].color);
 		name = F("rmode");
 		if( HTTP.hasArg(name) ) settings |= constrain(HTTP.arg(name).toInt(), 0, 3) << 7;

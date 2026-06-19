@@ -63,7 +63,7 @@ const char* PROGMEM txt_bmp_error[LANGUAGES] = {T_bmp_error_en, T_bmp_error_ru, 
 
 const char PROGMEM T_cuckoo_new_en[] = "Created a new cuckoo settings file.";
 const char PROGMEM T_cuckoo_new_ru[] = "Создан новый файл настроек кукушки.";
-const char PROGMEM T_cuckoo_new_ua[] = "Створено новий файл налаштувань кукушки.";
+const char PROGMEM T_cuckoo_new_ua[] = "Створено новий файл налаштувань зозулі.";
 const char* PROGMEM txt_cuckoo_new[LANGUAGES] = {T_cuckoo_new_en, T_cuckoo_new_ru, T_cuckoo_new_ua};
 
 const char PROGMEM T_weather_new_en[] = "Created a new weather settings file.";
