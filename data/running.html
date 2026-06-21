@@ -136,7 +136,7 @@ function start() {
 			doc = JSON.parse(ajaxResp.responseText);
 			var li = $g("list_items");
 			for(var i=0; i<doc.length; i++) {
-				var sp1 = $ee("div",(doc[i].t.length? doc[i].t: "&lt;Пусто&gt;"));
+				var sp1 = $ee("div",(doc[i].t.length? doc[i].t: "&lt;<span i18='empty'>Empty</span>&gt;"));
 				var sp2 = $e("div",{class:"small top_line"});
 				switch((doc[i].r >> 7) & 3) {
 					case 1:

@@ -307,6 +307,7 @@ function start() {
 		fill_settings("weather.json", "settings", ()=> {
 			show_block("sensors");
 			show_block("weather");
+			show_predict_block();
 			show_block("pressure_dir", "altitude");
 			show_block("forecast");
 			init_color_demo();

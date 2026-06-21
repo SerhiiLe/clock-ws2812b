@@ -22,6 +22,7 @@
 #include "ntp.h"
 #include "webClient_translation.h"
 #include "weather_icons.h"
+#include <StringConverters.h>
 
 #ifdef ESP32
 WiFiClientSecure WEB_S;
@@ -71,6 +72,7 @@ const char* EMPTY PROGMEM = "";
 const char* SPACE PROGMEM = " ";
 const char* DOTS PROGMEM = "\xe2\x80\xa6";
 const char* SPSTR PROGMEM = " %s ";
+const char* SPSTR1 PROGMEM = " %s";
 
 /*
 0 	Clear sky
@@ -90,129 +92,68 @@ const char* SPSTR PROGMEM = " %s ";
 
 // расшифровка кода погоды
 const char* descript_weather_code(uint8_t code) {
-	const char* wc;
 
 	switch (code) {
-		case 0:
-			// wc = PSTR(" Ясно");
-			wc = txt_w0[gs.language];
-			break;
-		case 1:
-			// wc = PSTR(" Почти ясно");
-			wc = txt_w1[gs.language];
-			break;
-		case 2:
-			// wc = PSTR(" Переменная облачность");
-			wc = txt_w2[gs.language];
-			break;
-		case 3:
-			// wc = PSTR(" Облачно");
-			wc = txt_w3[gs.language];
-			break;
-		case 45:
-			// wc = PSTR(" Туман");
-			wc = txt_w45[gs.language];
-			break;
-		case 48:
-			// wc = PSTR(" Оседающий туман");
-			wc = txt_w48[gs.language];
-			break;
-		case 51:
-			// wc = PSTR(" Мряка");
-			wc = txt_w51[gs.language];
-			break;
-		case 53:
-			// wc = PSTR(" Лёгкая морось");
-			wc = txt_w53[gs.language];
-			break;
-		case 55:
-			// wc = PSTR(" Морось");
-			wc = txt_w55[gs.language];
-			break;
-		case 56:
-			// wc = PSTR(" Оседающий иней");
-			wc = txt_w56[gs.language];
-			break;
-		case 57:
-			// wc = PSTR(" Сильный иней");
-			wc = txt_w57[gs.language];
-			break;
-		case 61:
-			// wc = PSTR(" Небольшой дождь");
-			wc = txt_w61[gs.language];
-			break;
-		case 63:
-			// wc = PSTR(" Дождь");
-			wc = txt_w63[gs.language];
-			break;
-		case 65:
-			// wc = PSTR(" Сильный дождь");
-			wc = txt_w65[gs.language];
-			break;
-		case 66:
-			// wc = PSTR(" Небольшое оледенение");
-			wc = txt_w66[gs.language];
-			break;
-		case 67:
-			// wc = PSTR(" Оледенение");
-			wc = txt_w67[gs.language];
-			break;
-		case 71:
-			// wc = PSTR(" Небольшой снег");
-			wc = txt_w71[gs.language];
-			break;
-		case 73:
-			// wc = PSTR(" Снег");
-			wc = txt_w73[gs.language];
-			break;
-		case 75:
-			// wc = PSTR(" Сильный снег");
-			wc = txt_w75[gs.language];
-			break;
-		case 77:
-			// wc = PSTR(" Град");
-			wc = txt_w77[gs.language];
-			break;
-		case 80:
-			// wc = PSTR(" Небольшой ливень");
-			wc = txt_w80[gs.language];
-			break;
-		case 81:
-			// wc = PSTR(" Ливень");
-			wc = txt_w81[gs.language];
-			break;
-		case 82:
-			// wc = PSTR(" Сильный ливень");
-			wc = txt_w82[gs.language];
-			break;
-		case 85:
-			// wc = PSTR(" Снегопад");
-			wc = txt_w85[gs.language];
-			break;
-		case 86:
-			// wc = PSTR(" Сильный снегопад");
-			wc = txt_w86[gs.language];
-			break;
-		case 95:
-			// wc = PSTR(" Небольшая гроза");
-			wc = txt_w95[gs.language];
-			break;
-		case 96:
-			// wc = PSTR(" Гроза");
-			wc = txt_w96[gs.language];
-			break;
-		case 99:
-			// wc = PSTR(" Сильная гроза");
-			wc = txt_w99[gs.language];
-			break;
+		case 0: // Ясно
+			return txt_w0[gs.language];
+		case 1: // Почти ясно
+			return txt_w1[gs.language];
+		case 2: // Переменная облачность
+			return txt_w2[gs.language];
+		case 3: // Облачно
+			return txt_w3[gs.language];
+		case 45: // Туман
+			return txt_w45[gs.language];
+		case 48: // Оседающий туман
+			return txt_w48[gs.language];
+		case 51: // Мряка
+			return txt_w51[gs.language];
+		case 53: // Лёгкая морось
+			return txt_w53[gs.language];
+		case 55: // Морось
+			return txt_w55[gs.language];
+		case 56: // Оседающий иней
+			return txt_w56[gs.language];
+		case 57: // Сильный иней
+			return txt_w57[gs.language];
+		case 61: // Небольшой дождь
+			return txt_w61[gs.language];
+		case 63: // Дождь
+			return txt_w63[gs.language];
+		case 65: // Сильный дождь
+			return txt_w65[gs.language];
+		case 66: // Небольшое оледенение
+			return txt_w66[gs.language];
+		case 67: // Оледенение
+			return txt_w67[gs.language];
+		case 71: // Небольшой снег
+			return txt_w71[gs.language];
+		case 73: // Снег
+			return txt_w73[gs.language];
+		case 75: // Сильный снег
+			return txt_w75[gs.language];
+		case 77: // Град
+			return txt_w77[gs.language];
+		case 80: // Небольшой ливень
+			return txt_w80[gs.language];
+		case 81: // Ливень
+			return txt_w81[gs.language];
+		case 82: // Сильный ливень
+			return txt_w82[gs.language];
+		case 85: // Снегопад
+			return txt_w85[gs.language];
+		case 86: // Сильный снегопад
+			return txt_w86[gs.language];
+		case 95: // Небольшая гроза
+			return txt_w95[gs.language];
+		case 96: // Гроза
+			return txt_w96[gs.language];
+		case 99: // Сильная гроза
+			return txt_w99[gs.language];
 
-		default:
-			// wc = PSTR(" непонятно");
-			wc = txt_w100[gs.language];
-			break;
+		default: // непонятно
+			return txt_w100[gs.language];
 	}
-
-	return wc;
 }
 
 uint32_t weather_icon_code(uint8_t code) {
@@ -307,7 +248,7 @@ const char* generate_weather_string(char* a) {
 	pos += sprintf_P(pos, txt_weather[gs.language]);
 
 	if (ws.weather_icon) {
-		pos += sprintf_P(pos, PSTR(" %s"), utf8_to_str(weather_icon_code(wd.weather_code)));
+		pos += sprintf_P(pos, SPSTR1, utf8_to_str(weather_icon_code(wd.weather_code)));
 	}
 	if (ws.weather_code) {
 		pos += sprintf_P(pos, SPACE);
@@ -348,7 +289,7 @@ const char* generate_weather_string(char* a) {
 			if ( wd.wind_direction > 202 && wd.wind_direction <= 248 ) wc = txt_d_south_western[gs.language];
 			if ( wd.wind_direction > 248 && wd.wind_direction <= 292 ) wc = txt_d_western[gs.language];
 			if ( wd.wind_direction > 292 && wd.wind_direction <= 340 ) wc = txt_d_north_western[gs.language];
-			pos += sprintf(pos, " ");
+			pos += sprintf_P(pos, SPACE);
 			pos += sprintf_P(pos, wc);
 		}
 	}
@@ -418,9 +359,9 @@ const char* generate_forecast_string(char* a) {
 	char* pos = a;
 	pos += sprintf_P(pos, txt_forecast[gs.language]);
 	for(uint8_t i=0; i<ws.forecast_days; i++) {
-		pos += sprintf_P(pos, PSTR(" %s"), txt_ForecastDay[i][gs.language]);
+		pos += sprintf_P(pos, SPSTR1, txt_ForecastDay[i][gs.language]);
 		if (ws.weather_iconF) {
-			pos += sprintf_P(pos, PSTR(" %s"), utf8_to_str(weather_icon_code(fd[i].weather_code)));
+			pos += sprintf_P(pos, SPSTR1, utf8_to_str(weather_icon_code(fd[i].weather_code)));
 		}
 		if (ws.weather_codeF) {
 			pos += sprintf_P(pos, SPACE);
@@ -448,7 +389,7 @@ const char* generate_forecast_string(char* a) {
 			if( fd[i].wind_direction > 202 && fd[i].wind_direction <= 248 ) wc = txt_d_south_western[gs.language];
 			if( fd[i].wind_direction > 248 && fd[i].wind_direction <= 292 ) wc = txt_d_western[gs.language];
 			if( fd[i].wind_direction > 292 && fd[i].wind_direction <= 340 ) wc = txt_d_north_western[gs.language];
-			pos += sprintf(pos, SPACE);
+			pos += sprintf_P(pos, SPACE);
 			pos += sprintf_P(pos, wc);
 		}
 		if (i < ws.forecast_days-1) pos += sprintf_P(pos, PSTR(","));
@@ -477,7 +418,7 @@ uint8_t parseForecast(const char* json) {
 		fd[i].wind_direction = doc[daily][F("wind_direction_10m_dominant")][i];
 	}
 
-	char txt[512];
+	char txt[150*FORECAST_DAYS];
 	messages[MESSAGE_FORECAST].text = String(generate_forecast_string(txt));
 	messages[MESSAGE_FORECAST].count = ws.forecast ? 1440: 0;
 	messages[MESSAGE_FORECAST].color = ws.color_modeF > 0 ? ws.color_modeF: ws.colorF;
@@ -541,76 +482,7 @@ uint8_t weatherUpdate(uint8_t wType) {
 	return status;
 }
 
-/*
-Эти переходы между различными кодировками немного задолбали. На языках более высокого уровня обычно этого даже не замечаешь, а здесь функции длинной в километр.
-*/
-
-// Конвертер utf16 вида \uABCD в текст utf8
-String decodeUTF16(const char* unicodeStr) {
-	// int len = unicodeStr.length();
-	int len = strlen(unicodeStr);
-	if( len > 4000 ) len = 4000;
-	char out[len];
-	char* cursor = out;
-	char iChar;
-	char* error; // указатель на символ который не является шестнадцатеричным числом.
-	char unicode[6] = "0x"; // буфер в котором будем создавать число по формату функции strtol 0xABCD
-	for (int i = 0; i < len; i++) {
-		iChar = unicodeStr[i];
-		if(iChar == '\\') { // если найден esc символ, то приступаем
-			iChar = unicodeStr[++i];
-			if(iChar == 'u') { // о, да это же похоже на utf16
-				// выборка из 4х последовательных символов, чтобы получить формат 0xABCD (16 бит)
-				for (int j = 2; j < 6; j++){
-					iChar = unicodeStr[++i];
-					unicode[j] = iChar;
-				}
-				long uFirst = strtol(unicode, &error, 16); // первый промежуточный вариант
-
-				uint32_t codepoint = 0; // выделенный код символа utf16
-				// utf16 может быть 16 бит и 32 бита (utf8 может иметь 8, 16, 24, 32 бита)
-				if( uFirst <= 0xD7FF ) { // это похоже на 16 битный вариант utf16
-					codepoint = uFirst;
-				} else if (uFirst <= 0xDBFF) { // это похоже на 32 битный вариант utf16
-					// надо повторить предыдущий шаг, чтобы получить ещё 16 бит.
-					for (int j = 2; j < 6; j++){
-						iChar = unicodeStr[++i];
-						unicode[j] = iChar;
-					}
-					long uSecond = strtol(unicode, &error, 16); // второй промежуточный вариант
-					codepoint = (((uFirst - 0xD800) << 10) | (uSecond - 0xDC00)) + 0x10000;
-				}
-				//-------(2) Codepoint to UTF-8 -------
-				if( codepoint <= 0x007F && codepoint != 0 ) {
-					*cursor++ = (char)codepoint;
-				} else if( codepoint <= 0x07FF ) {
-					*cursor++ = ((codepoint >> 6) & 0x1F) | 0xC0;
-					*cursor++ = (codepoint & 0x3F) | 0x80;
-				} else if( codepoint <= 0xFFFF ) {
-					*cursor++ = ((codepoint >> 12) & 0x0F) | 0xE0;
-					*cursor++ = ((codepoint >> 6) & 0x3F) | 0x80;
-					*cursor++ = ((codepoint) & 0x3F) | 0x80;
-				} else if (codepoint <= 0x10FFFF) {
-					*cursor++ = ((codepoint >> 18) & 0x07) | 0xF0;
-					*cursor++ = ((codepoint >> 12) & 0x3F) | 0x80;
-					*cursor++ = ((codepoint >> 6) & 0x3F) | 0x80;
-					*cursor++ = ((codepoint) & 0x3F) | 0x80;
-				}
-			// Кроме непосредственно utf16 могут быть другие символы, которые должны быть экранированы в json
-			} else if(iChar == 'n') *cursor++ = '\n';
-			else if(iChar == 'r') *cursor++ = '\r';
-			else if(iChar == 't') *cursor++ = '\t';
-			else if(iChar == 'b') *cursor++ = '\b';
-			else if(iChar == 'f') *cursor++ = '\f';
-			else *cursor++ = iChar;
-		} else {
-			*cursor++ = iChar;
-		}
-	}
-	*cursor = 0;
-	return String(out);
-}
-
+// Примитивный парсер json и XML
 String digJSON(String& str, const char* search, bool json=true) {
 	if( strlen(search) == 0 ) return String("");
 	int s1, s2, s3;
@@ -621,7 +493,7 @@ String digJSON(String& str, const char* search, bool json=true) {
 			s2 += json ? 2: 1;
 			while( (s3 = str.indexOf(json ? "\"": "</", s2)) > 0 ) { 
 				if( !json || (json && str[s3-1] != '\\') )
-					return decodeUTF16(str.substring(s2, s3).c_str());
+					return StringConverters::jsonDecode(str.substring(s2, s3));
 				s2 = s3+1;
 			};
 		}

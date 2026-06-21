@@ -2,8 +2,8 @@
  * @file main.cpp
  * @author Serhii Lebedenko (slebedenko@gmail.com)
  * @brief Clock
- * @version 2.5.4
- * @date 2026-06-19
+ * @version 2.5.5
+ * @date 2026-06-21
  * 
  * @copyright Copyright (c) 2021,2022,2023,2024,2025,2026
  */
@@ -377,7 +377,7 @@ void network_pool() {
 		// если файловая система пустая, то включить FTP, чтобы можно было просто скопировать файлы.
 		if ( ! fs_isStarted && ! ftp_isAllow && screenIsFree ) {
 			ftp_isAllow = true;
-			sprintf_P(timeString, PSTR("FTP для загрузки файлов включён IP: %s"), wifi_currentIP().c_str());
+			sprintf_P(timeString, txt_ftp_enable[gs.language], wifi_currentIP().c_str());
 			initRString(timeString);
 		}
 		if (fl_run_allow) {

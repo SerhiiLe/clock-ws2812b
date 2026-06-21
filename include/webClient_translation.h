@@ -269,8 +269,8 @@ const char PROGMEM T_d_north_western_ru[] = "Северо-западный";
 const char PROGMEM T_d_north_western_ua[] = "Північно-західний";
 const char* PROGMEM txt_d_north_western[LANGUAGES] = {T_d_north_western_en, T_d_north_western_ru, T_d_north_western_ua};
 
-const char PROGMEM T_quote_en[] = "Quote:";
-const char PROGMEM T_quote_ru[] = "Цитата:";
+const char PROGMEM T_quote_en[] = "Quote: ";
+const char PROGMEM T_quote_ru[] = "Цитата: ";
 const char* PROGMEM txt_quote[LANGUAGES] = {T_quote_en, T_quote_ru, T_quote_ru};
 
 const char PROGMEM T_forecast_en[] = "Forecast:";

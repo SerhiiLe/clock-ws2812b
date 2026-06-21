@@ -661,10 +661,12 @@ bool load_config_weather() {
 	ws.u_p = doc[F("u_p")];
 	ws.u_v = doc[F("u_v")];
 
+	showTermTimer.setInterval(1000U * ws.term_period);
 	syncWeatherTimer.setInterval(60000U * ws.sync_weather_period);
 	messages[MESSAGE_WEATHER].timer.setInterval(1000U * ws.show_weather_period);
 	syncForecastTimer.setInterval(3600000U * ws.sync_forecast_period);
 	messages[MESSAGE_FORECAST].timer.setInterval(1000U * ws.show_forecast_period);
+
 	return true;
 }
 

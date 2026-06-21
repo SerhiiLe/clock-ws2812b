@@ -114,7 +114,7 @@ void forecaster_addP(uint32_t P, float t) {
 		sumX -= afd.Parr[i];
 		sumY += i+1;
 	}
-	afd.delta = (_FC_SIZE+1) * sumX / sumY;
+	afd.delta = _FC_SIZE * sumX / sumY;
 
 	// расчёт прогноза по Zambretti
 	P /= 100;   // -> ГПа

@@ -959,6 +959,7 @@ void save_quote() {
 	if(web.checkbox(F("enabled"), qs.enabled)) {
 		// если цитаты отключили, то сбросить текущую цитату 
 		if( qs.enabled == 0 ) messages[MESSAGE_QUOTE].count = 0;
+		else quoteUpdateTimer.setNext(100);
 	}
 	if(web.to_int(F("period"), qs.period, 120, 3600))
 		messages[MESSAGE_QUOTE].timer.setInterval(1000U * qs.period);
@@ -1130,13 +1131,13 @@ void save_weather() {
 		}
 		if (ws.forecast) {
 			if( need_forecast ) syncForecastTimer.setNext(1000);
-			char txt[512];
+			char txt[150*FORECAST_DAYS];
 			messages[MESSAGE_FORECAST].text = String(generate_forecast_string(txt));
 		} else {
 			messages[MESSAGE_FORECAST].count = 0;
 		}
 		if (need_redraw) {
-			char txt[512];
+			char txt[150*FORECAST_DAYS<512?512:150*FORECAST_DAYS];
 			if (ws.weather) messages[MESSAGE_WEATHER].text = String(generate_weather_string(txt));
 			if (ws.forecast) messages[MESSAGE_FORECAST].text = String(generate_forecast_string(txt));
 		}

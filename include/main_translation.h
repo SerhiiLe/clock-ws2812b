@@ -71,4 +71,9 @@ const char PROGMEM T_weather_new_ru[] = "Создан новый файл нас
 const char PROGMEM T_weather_new_ua[] = "Створено новий файл налаштувань погоди.";
 const char* PROGMEM txt_weather_new[LANGUAGES] = {T_weather_new_en, T_weather_new_ru, T_weather_new_ua};
 
+const char PROGMEM T_ftp_enable_en[] = "FTP server for file upload enabled. IP: %s";
+const char PROGMEM T_ftp_enable_ru[] = "FTP для загрузки файлов включён IP: %s";
+const char PROGMEM T_ftp_enable_ua[] = "FTP для завантаження файлів включений IP: %s";
+const char* PROGMEM txt_ftp_enable[LANGUAGES] = {T_ftp_enable_en, T_ftp_enable_ru, T_ftp_enable_ua};
+
 #endif

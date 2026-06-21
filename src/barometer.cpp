@@ -28,20 +28,20 @@ unsigned long lastTempTime = 0; // время последнего опроса
 uint8_t address_bme280 = 0x76; // адрес датчика BME280
 
 bool barometer_init() {
-	if( bmp0.begin(BMP085_STANDARD) ) {
+	if ( bmp0.begin(BMP085_STANDARD) ) {
 		fl_barometerIsInit = 1;
 		LOG(println, PSTR("BMP180 found"));
 	} else 
-	if( bmp2.begin(address_bme280) ) {
+	if ( bmp2.begin(address_bme280) ) {
 		fl_barometerIsInit = 2;
 		LOG(printf_P, PSTR("BMP280 found, type: 0x%02X\n"), bmp2.sensorID());
 	} else
-	if( bme.begin(address_bme280) ) {
+	if ( bme.begin(address_bme280) ) {
 		fl_barometerIsInit = 4;
 		LOG(printf_P, PSTR("BME280 found, type: 0x%02X\n"), bme.sensorID());
 		return true;
 	}
-	if( aht.begin() ) {
+	if ( aht.begin() ) {
 		fl_barometerIsInit |= 8;
 		LOG(println, PSTR("AHTX0 found"));
 	}
@@ -49,28 +49,28 @@ bool barometer_init() {
 }
 
 int32_t getPressure(bool fl_cor) {
-	if(!fl_barometerIsInit) return 0;
+	if (!fl_barometerIsInit) return 0;
 	int32_t p = 0;
-	if( fl_barometerIsInit & 1 ) {
+	if (fl_barometerIsInit & 1) {
 		p = bmp0.readPressure();
-	} else if( fl_barometerIsInit & 2 ) {
+	} else if (fl_barometerIsInit & 2) {
 		p = bmp2.readPressure();
-	} else if( fl_barometerIsInit & 4 ) {
+	} else if (fl_barometerIsInit & 4) {
 		p = bme.readPressure();
 	}
 	return p + (fl_cor ? ws.bar_cor * 100: 0);
 }
 
 float getTemperature(bool fl_cor) {
-	if(!fl_barometerIsInit) return -100.0f;
+	if (!fl_barometerIsInit) return -100.0f;
 	float t = 0.0f;
-	if( fl_barometerIsInit & 1 ) {
+	if (fl_barometerIsInit & 1) {
 		t = bmp0.readTemperature();
-	} else if( fl_barometerIsInit & 2 ) {
+	} else if (fl_barometerIsInit & 2) {
 		t = bmp2.readTemperature();
-	} else if( fl_barometerIsInit & 4 ) {
+	} else if (fl_barometerIsInit & 4) {
 		t = bme.readTemperature();
-	} else if( fl_barometerIsInit & 8 ) {
+	} else if (fl_barometerIsInit & 8) {
 		sensors_event_t humidity, temp;
 		aht.getEvent(&humidity, &temp);
 		t = temp.temperature;
@@ -79,11 +79,11 @@ float getTemperature(bool fl_cor) {
 }
 
 float getHumidity() {
-	if(!fl_barometerIsInit) return 0.0f;
+	if (!fl_barometerIsInit) return 0.0f;
 	float h = 0.0f;
-	if( fl_barometerIsInit & 4 ) {
+	if (fl_barometerIsInit & 4) {
 		h = bme.readHumidity();
-	} else if( fl_barometerIsInit & 8 ) {
+	} else if (fl_barometerIsInit & 8) {
 		sensors_event_t humidity, temp;
 		aht.getEvent(&humidity, &temp);
 		h = humidity.relative_humidity;
@@ -94,7 +94,7 @@ float getHumidity() {
 const char* currentPressureTemp (char *a, bool fl_tiny) {
 	char ft[100] = "";
 	char *pos;
-	if(ws.pressure_dir) {
+	if (ws.pressure_dir) {
 		int16_t trend = forecaster_getTrend();
 		int8_t cast = forecaster_getCast();
 		if(fl_tiny)
@@ -104,8 +104,8 @@ const char* currentPressureTemp (char *a, bool fl_tiny) {
 	}
 
 	// если есть аппаратные датчики, то вывести их показания
-	if(fl_barometerIsInit) {
-		if(millis() - lastTempTime > 1000ul * ws.term_pool || lastTempTime == 0) {
+	if (fl_barometerIsInit) {
+		if (millis() - lastTempTime > 1000ul * ws.term_pool || lastTempTime == 0) {
 			Temperature = getTemperature(false);
 			Pressure = getPressure(false)/100;
 			Humidity = getHumidity();
@@ -113,12 +113,12 @@ const char* currentPressureTemp (char *a, bool fl_tiny) {
 		}
 		float t = Temperature + ws.term_cor;
 		int32_t p = Pressure + ws.bar_cor;
-		if( fl_barometerIsInit == 8 ) p = weatherGetPressure()/100;
+		if (fl_barometerIsInit == 8) p = weatherGetPressure()/100;
 		float h = Humidity;
 
 		// есть датчик влажности (BME280 или AHTX0), вывести её
 		char ht[20] = "";
-		if( fl_barometerIsInit & 12 ) {
+		if (fl_barometerIsInit & 12) {
 			if(fl_tiny)
 				sprintf_P(ht, PSTR("\n%5.1f%% h"), h);
 			else
@@ -127,12 +127,12 @@ const char* currentPressureTemp (char *a, bool fl_tiny) {
 		// есть датчик давления (BMP180,BMP280,BME280), вывести его
 		char pt[20] = "";
 		pos = pt;
-		if( fl_barometerIsInit & 7 ) {
+		if (fl_barometerIsInit & 7) {
 			pos += fl_tiny ? sprintf_P(pt, PSTR("\n")): sprintf_P(pt, SPACE);
 			add_pressure(pos, 1.0f*p);
 		}
 		pos = a;
-		if(fl_tiny) {
+		if (fl_tiny) {
 			pos += sprintf_P(a, SPACE);
 			pos += add_temperature(pos, t);
 			sprintf_P(pos, PSTR("%s%s%s"), ht, pt, ft);

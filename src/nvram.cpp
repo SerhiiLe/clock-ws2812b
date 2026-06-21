@@ -70,7 +70,7 @@ bool readBlock(uint8_t num, uint8_t *data, uint16_t block_size) {
 	} while(num--);
 	LOG(printf_P, PSTR("load read nvram size=%u, csum=%04x, addr=%u\n"), size, csum, addr);
 	if( size != block_size ) return false; // размер блока не совпал
-	nvram->read(addr+4, data, size);	
+	nvram->read(addr+4, data, size);
 	LOG(printf_P, PSTR("loaded %u, csum %04x\n"), size, cs.fletcher16(data, size));
 	if( cs.fletcher16(data, size) != csum ) return false; // контрольная сумма не совпала
 	return true;
