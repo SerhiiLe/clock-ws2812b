@@ -25,7 +25,7 @@
 					<div class="one i b center" i18="s_watch">Sensors in this clock</div>
 					<div class="row">
 						<div i18="s_enable">Enable display of sensors</div>
-						<div><input type="checkbox" name="sensors" value="1" onchange="show_block('sensors');show_predict_block();"></div>
+						<div><input type="checkbox" name="sensors" value="1" onchange="show_block('sensors')"></div>
 					</div>
 					<div class="sensors">
 						<fieldset style="margin-bottom: 1em;">
@@ -69,12 +69,21 @@
 							<div><input name="term_pool" type="number" value="120"></div>
 						</div>
 					</div>
+					<div class="one i b center" i18="a_weather">Autonomous weather forecast</div>
+					<div class="row">
+						<div i18="a_show">Show atmospheric pressure change and short-term forecast</div>
+						<div><input name="pressure_dir" type="checkbox" value="1" onchange="show_block('pressure_dir', 'altitude')"></div>
+					</div>
+					<div class="row altitude">
+						<div i18="a_altitude">The altitude of the area above sea level in meters (you can look it up in Google)</div>
+						<div><input name="altitude" type="number" value="60"></div>
+					</div>
 				</div>
 				<div class="one i b center" i18="w_internet">Weather from the Internet</div>
 				<div class="row">
 					<div><span i18="w_use">Use weather from</span>&nbsp;<a href="https://open-meteo.com/en/docs" target="_blank" class="nb">https://open-meteo.com</a>
 						<br><span class="small">(<span i18="need_coord">you need to specify the coordinates in</span> <a href="settings.html" target="_blank" i18="in_settings">settings</a>)</span></div>
-					<div><input name="weather" type="checkbox" value="1" onchange="show_block('weather');show_predict_block();"></div>
+					<div><input name="weather" type="checkbox" value="1" onchange="show_block('weather')"></div>
 				</div>
 				<div class="weather">
 					<fieldset style="margin-bottom: 1em;">
@@ -160,17 +169,6 @@
 							<div><input name="wind_direction2" type="checkbox" value="1"></div>
 						</div>
 					</fieldset>
-				</div>
-				<div class="predict">
-					<div class="one i b center" i18="a_weather">Autonomous weather forecast</div>
-					<div class="row">
-						<div i18="a_show">Show atmospheric pressure change and short-term forecast</div>
-						<div><input name="pressure_dir" type="checkbox" value="1" onchange="show_block('pressure_dir', 'altitude')"></div>
-					</div>
-					<div class="row altitude">
-						<div i18="a_altitude">The altitude of the area above sea level in meters (you can look it up in Google)</div>
-						<div><input name="altitude" type="number" value="60"></div>
-					</div>
 				</div>
 				<div class="one i b center" i18="wf_from">Weather forecast from the Internet</div>
 				<div class="row">
@@ -289,13 +287,6 @@
 		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
-function show_predict_block() {
-	if(document.forms["settings"].elements["weather"].checked ||
-		document.forms["settings"].elements["sensors"].checked)
-		toggle_by_class("predict",true);
-	else
-		toggle_by_class("predict",false);
-}
 function applyInfo(info) {
 	if(!info.use_i2c || !info.use_bmp) {
 		document.forms["settings"].elements["sensors"].checked = false;
@@ -307,7 +298,6 @@ function start() {
 		fill_settings("weather.json", "settings", ()=> {
 			show_block("sensors");
 			show_block("weather");
-			show_predict_block();
 			show_block("pressure_dir", "altitude");
 			show_block("forecast");
 			init_color_demo();

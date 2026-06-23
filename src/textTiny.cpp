@@ -7,6 +7,7 @@
 #include "leds.h"
 #include "textTiny.h"
 #include "fontTini.h"
+#include "weather_icons.h"
 
 #define MAX_LENGTH 256	// максимальная длина пачки слайдов
 #define SPACE 1			// отступ между буквами
@@ -29,6 +30,16 @@ uint32_t _tinyColor = 1;
 int16_t drawTinyLetter(int16_t x, int16_t y, uint32_t c, uint32_t color, int16_t index) {
 	uint8_t cn = 0;
 	uint8_t fw = 3;
+
+	if ((c >= 0xEFB880 && c <= 0xEFB88F) || // Основной диапазон селекторов (VS1 - VS16), куда входят модификаторы цвета
+		(c >= 0xF3A08480 && c <= 0xF3A087AF)) {// Расширенный диапазон селекторов (VS17 - VS256), используемый в редких шрифтах
+        return -SPACE; // непечатный символ, просто выйти, ширина 0, курсор не двигается
+    }
+	if (is_weather_symbol(c)) {
+		return draw_weather_icon(c, x, y);
+	}
+	if (c == '\b') return -(fw+SPACE); // ASCII backspace character
+
 	if( (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ) // A-Z maps to 1-26
 		cn = c & 0x1F;
 	else if (c >= 0x21 && c <= 0x40)
@@ -158,4 +169,9 @@ void printTinyText(const char *txt, uint32_t color, int16_t posX, bool instant, 
 	_oneSlide = instant;
 	_tinyColor = color;
 	if( clear ) clearALL();
+}
+void printTinyText_P(const char *txt, int16_t posX, bool instant, bool clear) {
+	char buf[strlen_P(txt) + 1];
+	strcpy_P(buf, (const char*)txt);
+	printTinyText(buf, posX, instant, clear);
 }

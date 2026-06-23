@@ -79,7 +79,6 @@
 #define RELAY_TYPE 1 // relay type, activates on: 0 - low level, 1 - high level.
 
 // if using circuit with i2c.
-#define USE_NVRAM 0 // use separate RTC chip on board instead of flash esp8266/esp32. 0 - files, 1 - NVRAM chip
 #define USE_RTC 1	// use hardware RTC chip (clock). 0 - internet only, 1 - use
 #define USE_BMP 1	// use pressure/temperature sensor (BMP180). 0 - do not use, 1 - use
 

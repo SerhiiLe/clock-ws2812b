@@ -170,6 +170,7 @@ function auto_update() {
 function start() {
 	if (typeof ajaxRequest !== "undefined") {
 		getInfo( () => {
+			$g("update").checked = false;
 			ajaxRequest("status", "GET", null, function(ajaxResp) {
 				hideUnused(JSON.parse(ajaxResp.responseText));
 				localization(null, ()=> {$g("shadow").style.display = "none";});

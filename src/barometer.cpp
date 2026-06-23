@@ -14,6 +14,7 @@
 #include "forecaster.h"
 #include "webClient.h"
 #include "barometer_translation.h"
+#include "weather_icons.h"
 
 Adafruit_BMP085 bmp0;
 Adafruit_BMP280 bmp2;
@@ -91,6 +92,16 @@ float getHumidity() {
 	return h;
 }
 
+const char* forecastIcon(int8_t trend) {
+	if (trend <= 2) return utf8_to_str(Icons::Sunny);
+	if (trend <= 3) return utf8_to_str(Icons::MostlyClear);
+	if (trend <= 4) return utf8_to_str(Icons::PartlyCloudy);
+	if (trend <= 5) return utf8_to_str(Icons::Cloudy);
+	if (trend <= 6) return utf8_to_str(Icons::Umbrella);
+	if (trend <= 8) return utf8_to_str(Icons::Rain);
+	return utf8_to_str(Icons::Thunderstorm);
+} 
+
 const char* currentPressureTemp (char *a, bool fl_tiny) {
 	char ft[100] = "";
 	char *pos;
@@ -98,9 +109,12 @@ const char* currentPressureTemp (char *a, bool fl_tiny) {
 		int16_t trend = forecaster_getTrend();
 		int8_t cast = forecaster_getCast();
 		if(fl_tiny)
-			sprintf_P(ft, PSTR("\n%+i %i"), trend, cast);
-		else
-			sprintf_P(ft, PSTR(" trend:%+i cast:%i"), trend, cast);
+			sprintf_P(ft, PSTR("\n.\b%+4i%s%i"), trend, forecastIcon(cast), cast); // костыль с .\b нужен потому, что просто \n\b не отображается совсем
+		else {
+			char tr[5] = {0};
+			strcpy(tr, trend > 0 ? utf8_to_str(Icons::Rise): utf8_to_str(Icons::Fall));
+			sprintf_P(ft, PSTR(" %s%+i %s %i"), tr, trend, forecastIcon(cast), cast);
+		}
 	}
 
 	// если есть аппаратные датчики, то вывести их показания

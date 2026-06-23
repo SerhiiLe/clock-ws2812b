@@ -6,7 +6,7 @@ const char* generate_weather_string(char* a);
 const char* generate_forecast_string(char* a);
 int16_t weatherGetElevation();
 float weatherGetTemperature();
-int16_t weatherGetPressure();
+int32_t weatherGetPressure();
 int add_temperature(char *buf, float t, bool units=true, bool dec=true);
 int add_pressure(char *buf, float p);
 int add_speed(char *buf, float v, bool units=true);

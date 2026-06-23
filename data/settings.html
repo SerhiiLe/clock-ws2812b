@@ -382,16 +382,10 @@ function show_color_block1() {
 	}
 }
 function show_dots_block() {
-	switch(document.forms["settings"].elements["tiny_clock"].value) {
-		case "0":
-		case "1":
-		case "2":
-		case "3":
-			toggle_by_class("dots",true);
-			break;
-		default:
-			toggle_by_class("dots",false);
-	}
+	if (document.forms["settings"].elements["tiny_clock"].value <= 4)
+		toggle_by_class("dots",true);
+	else
+		toggle_by_class("dots",false);
 	show_color_block1();
 }
 function updateRange(label) {

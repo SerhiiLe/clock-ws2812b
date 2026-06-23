@@ -78,11 +78,11 @@ void forecaster_setH(int h) {
 
 // добавить текущее давление в Па и температуру в С (КАЖДЫЕ 30 МИНУТ)
 // здесь же происходит расчёт прогноза
-void forecaster_addP(uint32_t P, float t) {
+void forecaster_addP(int32_t P, float t) {
 	time_t now = getTimeU();
 	if(now-afd.last<_FC_TIME_DELTA) return;
 	afd.last = now;
-	P = (float)P * pow(1 - afd.H / (t + afd.H + 273.15), -5.257);   // над уровнем моря
+	P = lroundf((float)P * pow(1 - afd.H / (t + afd.H + 273.15), -5.257));   // над уровнем моря
 
 	if( afd.start ) {
 		afd.start = false;
@@ -92,29 +92,16 @@ void forecaster_addP(uint32_t P, float t) {
 		afd.Parr[_FC_SIZE - 1] = P;
 	}
 	
-	// // расчёт изменения по наименьшим квадратам
-	// long sumX = 0, sumY = 0, sumX2 = 0, sumXY = 0;        
-	// for (int i = 0; i < _FC_SIZE; i++) {
-	// 	sumX += i;
-	// 	sumY += afd.Parr[i];
-	// 	sumX2 += i * i;
-	// 	sumXY += afd.Parr[i] * i;
-	// }
-	// float a = _FC_SIZE * sumXY - sumX * sumY;
-	// a /= _FC_SIZE * sumX2 - sumX * sumX;
-	// afd.delta = a * (_FC_SIZE - 1);
-	
-	// Эксперементальный вариант с простой разницей
-	// afd.delta = (afd.Parr[_FC_SIZE-1] + afd.Parr[_FC_SIZE-2])/2 - (afd.Parr[0] + afd.Parr[1])/2;
-
-	// Вариант с фильтром с конечной импульсной характеристикой
-	long sumX = (_FC_SIZE - 1) * afd.Parr[_FC_SIZE-1];
-	int sumY = 0;
-	for (int i=0; i < _FC_SIZE-1; i++) {
-		sumX -= afd.Parr[i];
-		sumY += i+1;
-	}
-	afd.delta = _FC_SIZE * sumX / sumY;
+	// расчёт изменения по наименьшим квадратам
+    long sumX = 0, sumY = 0, sumXX = 0, sumXY = 0;
+    for (int i = 0; i < _FC_SIZE; i++) {
+        sumX  += i;
+        sumY  += afd.Parr[i];
+        sumXX += i * i;
+        sumXY += i * afd.Parr[i];
+    }
+    afd.delta = lroundf((float)(_FC_SIZE * sumXY - sumX * sumY) /
+              (float)(_FC_SIZE * sumXX - sumX * sumX) * (_FC_SIZE - 1));
 
 	// расчёт прогноза по Zambretti
 	P /= 100;   // -> ГПа
@@ -140,7 +127,7 @@ void forecaster_addP(uint32_t P, float t) {
 
 // добавить текущее давление в мм.рт.ст и температуру в С (КАЖДЫЕ 30 МИНУТ)
 void forecaster_addPmm(float P, float t) {
-	forecaster_addP(P * 133.322f, t);
+	forecaster_addP(lroundf(P * 133.322f), t);
 }
 
 // установить месяц (1-12)

@@ -99,7 +99,7 @@ void web_disable() {
 
 // отправка простого текста
 void text_send(String s, uint16_t r = 200) {
-	HTTP.send(r, text_plain, s);
+	HTTP.send(r, F("text/plain"), s);
 }
 void text_send_P(const char* s, uint16_t r = 200) {
 	HTTP.send_P(r, text_plain, s);
@@ -326,7 +326,7 @@ void save_settings() {
 	delay(1);
 	if( web.need_save ) save_config_main();
 	// initRString(PSTR("Настройки сохранены"));
-	printTinyText(txt_save,1,9);
+	printTinyText_P(txt_save,1,9);
 	if( sync_time ) syncTime();
 	if( need_bright ) old_bright_boost = !old_bright_boost;
 	if(need_web_restart) httpUpdater.setup(&HTTP, gs.web_login, gs.web_password);
@@ -362,7 +362,7 @@ void save_telegram() {
 	delay(1);
 	if( web.need_save ) save_config_telegram();
 	// initRString(PSTR("Настройки сохранены"));
-	printTinyText(txt_save,1,9);
+	printTinyText_P(txt_save,1,9);
 	if(fl_setTelegram) setup_telegram();
 }
 
@@ -988,7 +988,7 @@ void save_quote() {
 		quote.fl_init = false;
 	}
 	// initRString(PSTR("Настройки сохранены"));
-	printTinyText(txt_save,1,9);
+	printTinyText_P(txt_save,1,9);
 }
 
 void show_quote() {
@@ -1131,19 +1131,19 @@ void save_weather() {
 		}
 		if (ws.forecast) {
 			if( need_forecast ) syncForecastTimer.setNext(1000);
-			char txt[150*FORECAST_DAYS];
+			char txt[200*FORECAST_DAYS+50];
 			messages[MESSAGE_FORECAST].text = String(generate_forecast_string(txt));
 		} else {
 			messages[MESSAGE_FORECAST].count = 0;
 		}
 		if (need_redraw) {
-			char txt[150*FORECAST_DAYS<512?512:150*FORECAST_DAYS];
+			char txt[(200*FORECAST_DAYS+50)<512?512:150*FORECAST_DAYS+50];
 			if (ws.weather) messages[MESSAGE_WEATHER].text = String(generate_weather_string(txt));
 			if (ws.forecast) messages[MESSAGE_FORECAST].text = String(generate_forecast_string(txt));
 		}
 	}
 	// initRString(PSTR("Настройки сохранены"));
-	printTinyText(txt_save,1,9);
+	printTinyText_P(txt_save,1,9);
 }
 
 void show_sensors() {
@@ -1208,5 +1208,5 @@ void save_cuckoo () {
 	HTTP.send(303);
 	delay(1);
 	if( web.need_save )	save_config_cuckoo();
-	printTinyText(txt_save,1,9);
+	printTinyText_P(txt_save,1,9);
 }

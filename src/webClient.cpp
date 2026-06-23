@@ -418,7 +418,7 @@ uint8_t parseForecast(const char* json) {
 		fd[i].wind_direction = doc[daily][F("wind_direction_10m_dominant")][i];
 	}
 
-	char txt[150*FORECAST_DAYS];
+	char txt[200*FORECAST_DAYS+50];
 	messages[MESSAGE_FORECAST].text = String(generate_forecast_string(txt));
 	messages[MESSAGE_FORECAST].count = ws.forecast ? 1440: 0;
 	messages[MESSAGE_FORECAST].color = ws.color_modeF > 0 ? ws.color_modeF: ws.colorF;
@@ -434,8 +434,8 @@ float weatherGetTemperature() {
 	return wd.temperature;
 }
 
-int16_t weatherGetPressure() {
-	return static_cast<int16_t>(wd.pressure*100);
+int32_t weatherGetPressure() {
+	return lroundf(wd.pressure*100);
 }
 
 // https://api.open-meteo.com/v1/forecast?latitude=46.4857&longitude=30.7438&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=ms&timeformat=unixtime&timezone=auto&past_days=1&forecast_days=1

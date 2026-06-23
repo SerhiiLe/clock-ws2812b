@@ -30,7 +30,7 @@
 void forecaster_restore_data();
 void forecaster_update_data();
 void forecaster_setH(int h);
-void forecaster_addP(uint32_t P, float t);
+void forecaster_addP(int32_t P, float t);
 void forecaster_addPmm(float P, float t);
 void forecaster_setMonth(uint8_t month);
 int8_t forecaster_getCast();
