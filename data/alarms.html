@@ -55,19 +55,21 @@
 						<div class="row sel_days"><div i18="fri">Friday</div><div><input type="checkbox" name="Fr" value="1"></div></div>
 						<div class="row sel_days"><div i18="sat">Saturday</div><div><input type="checkbox" name="Sa" value="1"></div></div>
 						<div class="row sel_days"><div i18="sun">Sunday</div><div><input type="checkbox" name="Su" value="1"></div></div>
-						<div class="row">
-							<div><span i18="alarm_melody">Alarm melody</span> <button onclick="test_ring();return false;" id="ss" i18="check">check</button></div>
-							<div>
-								<input type="number" name="melody" value="1" id="track" onkeypress="sendTr(event)" onfocus="fl_allowUpdate=false;" onfocusout="fl_allowUpdate=true;">
-								<span class="show_tracks" style="display: none;"> из <span id="col">0</span></span>
-								<input type="hidden" id="cur" name="cur" value="1">
+						<div id="sounds">
+							<div class="row">
+								<div><span i18="alarm_melody">Alarm melody</span> <button onclick="test_ring();return false;" id="ss" i18="check">check</button></div>
+								<div>
+									<input type="number" name="melody" value="1" id="track" onkeypress="sendTr(event)" onfocus="fl_allowUpdate=false;" onfocusout="fl_allowUpdate=true;">
+									<span class="show_tracks" style="display: none;"> из <span id="col">0</span></span>
+									<input type="hidden" id="cur" name="cur" value="1">
+								</div>
 							</div>
-						</div>
-						<div class="one">
-							<div>
-								<span i18="volume">volume</span>: <span id="volume">0</span> <span id="wait"></span>
+							<div class="one">
+								<div>
+									<span i18="volume">volume</span>: <span id="volume">0</span> <span id="wait"></span>
+								</div>
+								<input type="range" min="1" max="30" step="1" value="15" class="long" id="vol" oninput="sendVol()">
 							</div>
-							<input type="range" min="1" max="30" step="1" value="15" class="long" id="vol" oninput="sendVol()">
 						</div>
 						<div class="row">
 							<div i18="text">Text</div>
@@ -164,6 +166,9 @@ function show_edit(i) {
 	$g("list").style.display = "none";
 	$g("edit").style.display = "block";
 }
+function applyInfo(info) {
+	if(!info.use_mp3) $g("sounds").style.display = 'none';
+}
 var doc = [];
 function start() {
 	if (typeof ajaxRequest !== "undefined") {
@@ -192,7 +197,7 @@ function start() {
 				if(fl) input.checked = true;
 				li.appendChild($em("tr",[td1,$ee("td",input)]));
 			}
-			localization(null, ()=> {$g("shadow").style.display = "none"});
+			localization(applyInfo, ()=> {$g("shadow").style.display = "none"});
 		}, dummy);
 	} else setTimeout(start, 100);
 }

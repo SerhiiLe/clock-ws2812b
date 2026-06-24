@@ -1176,7 +1176,7 @@ void show_status() {
 	HPP2("\"is_auth\":%i,", HTTP.authenticate(gs.web_login.c_str(), gs.web_password.c_str()) && gs.web_password.length() > 0 ? 1 : 0);
 	HPP2("\"use_i2c\":%i,", USE_I2C);
 	HPP2("\"use_rtc\":%i,", USE_RTC);
-	HPP2("\"use_nvram\":%i,", USE_NVRAM);
+	HPP2("\"use_nvram\":%i,", nvram_enable);
 	HPP2("\"use_bmp\":%i,", USE_BMP);
 	HPP2("\"use_mp3\":%i,",
 		#ifdef SRX
