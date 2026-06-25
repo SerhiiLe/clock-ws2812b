@@ -104,19 +104,21 @@
 						<div><span i18="color_text">Text color</span> (<span class="red">RR</span><span class="green">GG</span><span class="blue">BB</span>)</div><div class="color_demo" id="color"></div>
 						<div class="fix"><input name="color" type="color" value="#FFFFFF" oninput="color_demo(this)"></div>
 					</div>
-					<div class="row">
-						<div><span i18="ts_melody">Melody</span> (<span i18="cu_none"></span>) <button onclick="test_ring();return false;" id="ss" i18="check">check</button></div>
-						<div>
-							<input type="number" name="melody" value="1" id="track" onkeypress="sendTr(event)" onfocus="fl_allowUpdate=false;" onfocusout="fl_allowUpdate=true;">
-							<span class="show_tracks" style="display: none;"> из <span id="col">0</span></span>
-							<input type="hidden" id="cur" name="cur" value="1">
+					<div id="sounds">
+						<div class="row">
+							<div><span i18="ts_melody">Melody</span> (<span i18="cu_none"></span>) <button onclick="test_ring();return false;" id="ss" i18="check">check</button></div>
+							<div>
+								<input type="number" name="melody" value="1" id="track" onkeypress="sendTr(event)" onfocus="fl_allowUpdate=false;" onfocusout="fl_allowUpdate=true;">
+								<span class="show_tracks" style="display: none;"> из <span id="col">0</span></span>
+								<input type="hidden" id="cur" name="cur" value="1">
+							</div>
 						</div>
-					</div>
-					<div class="one">
-						<div>
-							<span i18="volume">volume</span>: <span id="volume">0</span> <span id="wait"></span>
+						<div class="one">
+							<div>
+								<span i18="volume">volume</span>: <span id="volume">0</span> <span id="wait"></span>
+							</div>
+							<input type="range" min="1" max="30" step="1" value="15" class="long" id="vol" name="vol" oninput="sendVol()">
 						</div>
-						<input type="range" min="1" max="30" step="1" value="15" class="long" id="vol" name="vol" oninput="sendVol()">
 					</div>
 				</div>
 				<button i18="save">Save</button>
@@ -157,14 +159,16 @@ function sendTr(e) {
 	if(e.keyCode === 13)
 		is_play = false;
 }
-
+function applyInfo(info) {
+	if(!info.use_mp3) $g("sounds").style.display = 'none';
+}
 function start() {
 	if (typeof ajaxRequest !== "undefined") {
 		fill_settings("telegram.json","settings", () => {
 			init_color_demo();
 			show_color_block();
 			$g("volume").innerHTML = $g("vol").value;
-			localization(null, ()=> {$g("shadow").style.display = "none";});
+			localization(applyInfo, ()=> {$g("shadow").style.display = "none";});
 		});
 	} else setTimeout(start, 100);
 }
