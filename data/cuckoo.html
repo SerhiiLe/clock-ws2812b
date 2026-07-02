@@ -51,7 +51,7 @@
 							<input type="range" min="1" max="30" step="1" value="15" class="long" name="vol" id="vol" oninput="sendVol()">
 						</div>
 						<div class="row">
-							<div><button onclick="test_ring();return false;" id="ss" i18="check">check</button></div>
+							<div><button onclick="test_ring(true);return false;" id="ss" i18="check">check</button></div>
 							<div>
 								<input type="number" name="track" value="1" id="track" onkeypress="sendTr(event)" onfocus="fl_allowUpdate=false;" onfocusout="fl_allowUpdate=true;">
 								<span class="show_tracks" style="display: none;"> из <span id="col">0</span></span>
@@ -69,42 +69,16 @@
 		<div id="shadow"><div>Loading...</div></div>
 	</body>
 <script type="text/javascript" encoding="UTF-8">
-
-var is_play = false;
-var fl_allowUpdate = true;
-function update_info() {
-	ajaxRequest("play","POST","p=0&f="+$g("folder").value, function(ajaxResp) {
-			const a = ajaxResp.responseText.split(":");
-			if( a[3] == 0 && is_play ) test_ring();
-			if(fl_allowUpdate) show(a);
-			if( a[1] == 0 && ! is_play ) setTimeout(update_info, 2000);
-			else toggle_by_class("show_tracks", true);
-	}, dummy);
-}
-function test_ring() {
-	if(is_play) {
-		$g("ss").innerHTML="check";
-		send(6);
-		is_play=false;
-	} else {
-		$g("cur").value = $g("track").value;
-		$g("ss").innerHTML="stop";
-		send(3);
-		is_play=true;
-		setTimeout(update_info, 5000);
-	}
-}
-function sendTr(e) {
-	if(e.keyCode === 13)
-		is_play = false;
-}
-
 function start() {
 	if (typeof ajaxRequest !== "undefined") {
 		fill_settings("cuckoo.json","settings", () => {
 			show_block('enable', 'cuckoo');
 			$g("volume").innerHTML = $g("vol").value;
-			localization(null, ()=> {$g("shadow").style.display = "none";});
+			localization(null, ()=> {
+				const ss = $g("ss");
+				if (ss) txt_check = ss.innerHTML;
+				$g("shadow").style.display = "none";
+			});
 		});
 	} else setTimeout(start, 100);
 }

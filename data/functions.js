@@ -84,6 +84,35 @@ function toggle_edit(n,s) {
 		ajaxRequest(url[s], "POST", "t="+n, dummy, dummy);
 	}
 };
+var txt_check = "check";
+var is_play = false;
+var fl_allowUpdate = true;
+function update_info(useFolder=false) {
+	ajaxRequest("play","POST","p=0"+(useFolder?"&f="+$g("folder").value:""), function(ajaxResp) {
+			const a = ajaxResp.responseText.split(":");
+			if( a[3] == 0 && is_play ) test_ring(useFolder);
+			if(fl_allowUpdate) show(a);
+			if( a[1] == 0 && ! is_play ) setTimeout(update_info, 2000, useFolder);
+			else toggle_by_class("show_tracks", true);
+	}, dummy);
+};
+function test_ring(useFolder=false) {
+	if(is_play) {
+		$g("ss").innerHTML=txt_check;
+		send(6);
+		is_play=false;
+	} else {
+		$g("cur").value = $g("track").value;
+		$g("ss").innerHTML="stop";
+		send(3);
+		is_play=true;
+		setTimeout(update_info, 5000, useFolder);
+	}
+};
+function sendTr(e) {
+	if(e.keyCode === 13)
+		is_play = false;
+};
 var cur = 0;
 var col = 0;
 var vol = 15;

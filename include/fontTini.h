@@ -1,3 +1,6 @@
+#ifndef fontTini_h
+#define fontTini_h
+
 // крошечные и уродливые шрифты, зато можно выводить не 5.5 символа, а 8.5 ...
 const uint8_t fontTiny[][3] PROGMEM = {
 	 //a-z
@@ -106,3 +109,5 @@ const uint8_t fontTiny[][3] PROGMEM = {
 
 // костыль для отрисовки буквы Ю, единственной которая ну совсем не лезет в три пикселя ширины
 const uint8_t fontTinyU[] PROGMEM = {0x0e};
+
+#endif

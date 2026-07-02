@@ -113,34 +113,6 @@ function select_days() {
 			toggle_by_class("sel_days",true);
 	}
 }
-var is_play = false;
-var fl_allowUpdate = true;
-function update_info() {
-	ajaxRequest("play","POST","p=0", function(ajaxResp) {
-			const a = ajaxResp.responseText.split(":");
-			if( a[3] == 0 && is_play ) test_ring();
-			if(fl_allowUpdate) show(a);
-			if( a[1] == 0 && ! is_play ) setTimeout(update_info, 2000);
-			else toggle_by_class("show_tracks", true);
-	}, dummy);
-}
-function test_ring() {
-	if(is_play) {
-		$g("ss").innerHTML="check";
-		send(6);
-		is_play=false;
-	} else {
-		$g("cur").value = $g("track").value;
-		$g("ss").innerHTML="stop";
-		send(3);
-		is_play=true;
-		setTimeout(update_info, 5000);
-	}
-}
-function sendTr(e) {
-	if(e.keyCode === 13)
-		is_play = false;
-}
 const days = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 function show_edit(i) {
 	// if(! $g("e"+i).checked) return;
@@ -197,7 +169,11 @@ function start() {
 				if(fl) input.checked = true;
 				li.appendChild($em("tr",[td1,$ee("td",input)]));
 			}
-			localization(applyInfo, ()=> {$g("shadow").style.display = "none"});
+			localization(applyInfo, ()=> {
+				const ss = $g("ss");
+				if (ss) txt_check = ss.innerHTML;
+				$g("shadow").style.display = "none";
+			});
 		}, dummy);
 	} else setTimeout(start, 100);
 }
