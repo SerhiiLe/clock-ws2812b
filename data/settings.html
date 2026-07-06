@@ -128,8 +128,8 @@
 								<option value="4" i18="ms_s_wide">Wide</option>
 								<option value="5" i18="ms_s_narrow">Narrow</option>
 								<option value="6" i18="ms_s_narrow2">Narrow 2</option>
-								<option value="7" i18="ms_s_segmental">Segmental</option>
-								<option value="8" i18="ms_s_segmental2">Segmental 2</option>
+								<option value="7" i18="ms_s_segments">Segmental</option>
+								<option value="8" i18="ms_s_segments2">Segmental 2</option>
 								<option value="9" i18="ms_s_tiny">Tiny</option>
 							</select>
 						</div>
@@ -143,9 +143,9 @@
 								<option value="2" i18="ms_s_swing">Swing</option>
 								<option value="3" i18="ms_s_swing1">Swing 1</option>
 								<option value="4" i18="ms_s_beat">Beating</option>
-								<option value="5" i18="ms_s_beat">Beating 1</option>
+								<option value="5" i18="ms_s_beat1">Beating 1</option>
 								<option value="6" i18="ms_s_sem">Semaphore</option>
-								<option value="7" i18="ms_s_sem">Semaphore 1</option>
+								<option value="7" i18="ms_s_sem1">Semaphore 1</option>
 								<option value="8" i18="ms_s_drop">Drop</option>
 								<option value="9" i18="ms_s_qrt">Quarter</option>
 								<option value="10" i18="ms_s_moz">Mosaic</option>
@@ -177,14 +177,18 @@
 						<div><input name="date_period" type="number" value="0"></div>
 					</div>
 					<div class="row">
+						<div i18="ms_anim">Additional animations</div>
+						<div><input name="anim" type="checkbox" value="1"></div>
+					</div>
+					<div class="row">
 						<div i18="ms_color_t">Time color mode</div>
 						<div>
 							<select name="time_color" onchange="show_color_block1()">
 								<option value="0" i18="one">One</option>
 								<option value="1" i18="rainbow">Rainbow</option>
 								<option value="2" i18="rainbow2">Rainbow 2</option>
-								<!-- option value="3" i18="different">Different</option>
-								<option value="4"> <span i18="different">Different</span> 2</option -->
+								<option value="3" i18="different">Different</option>
+								<option value="4" i18="different2">Different 2</option>
 								<option value="5" i18="own">Own</option>
 							</select>
 						</div>

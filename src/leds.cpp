@@ -7,7 +7,7 @@
 #include "runningText.h"
 #include "textTiny.h"
 
-CRGB leds[NUM_LEDS];
+CRGB leds[NUM_LEDS], ledsNext[NUM_LEDS];
 
 bool screenIsFree = true; // экран свободен (текст полностью прокручен, слайды выведены)
 bool itsTinyText = false; // сейчас время выводить слайды (tiny) вместо бегущей строки
@@ -48,12 +48,12 @@ void drawChar(const uint8_t* pointer, int16_t startX, int16_t startY, uint8_t LW
 	if( startX < 0 ) start_col = -startX;
 	if( startX > WIDTH - LW ) finish_col = WIDTH - startX;
 
-	for (int8_t x = start_col; x < finish_col; x++) {
+	for (int x = start_col; x < finish_col; x++) {
 		// отрисовка столбца (x - горизонтальная позиция, y - вертикальная)
 		if(color == 2) letterColor = CHSV(byte(((startX + x) << 3) + hs), 255, 255);
 		if(color == 4) letterColor = CHSV(byte(((index * LW + x) << 2) + hs), 255, 255);
 		uint8_t fontColumn = pgm_read_byte(pointer + x); // все шрифты читаются как однобайтовые, 8 точек высотой!
-		for (int8_t y = 0; y < LH; y++) {
+		for (int y = 0; y < LH; y++) {
 			if( y + startY + TEXT_BASELINE >= 0 && y + startY + TEXT_BASELINE < HEIGHT ) { // отображать только видимую часть
 				// в этой матрице отрисовка снизу вверх, шрифты записаны сверху вниз
 				if( fontColumn & (1 << (LH - 1 - y)) )
@@ -63,11 +63,38 @@ void drawChar(const uint8_t* pointer, int16_t startX, int16_t startY, uint8_t LW
 	}
 }
 
+// обмен содержимим буферов
+void swapBuffers() {
+	std::swap_ranges(leds, leds + NUM_LEDS, ledsNext);
+}
+
+// копирование текущего буфера
+void saveBuffer() {
+	memcpy(ledsNext, leds, sizeof(ledsNext));
+}
+
+// CrossFade эффект перехода - смешение
+void crossFade(bool init) {
+	static int8_t step = 0;
+	if (init) {
+		swapBuffers(); // вернуть старую картинку
+		step = 9; // переход за 8 шагов
+	}
+	if (!step) return;
+	if (step-- == 1) { // последний шаг - просто поставить нужный буфер, без эффектов
+		swapBuffers(); // вернуть новую картинку
+		return;
+	}
+	for (int i=0; i<NUM_LEDS; i++) {
+		leds[i] = blend(leds[i], ledsNext[i], 80); // смешение на каждом шаге 31%
+	}
+}
+
 // функция отрисовки точки по координатам X Y
 void drawPixelXY(int8_t x, int8_t y, CRGB color) {
 	if (x < 0 || x > WIDTH - 1 || y < 0 || y > HEIGHT - 1) return;
 	int thisPixel = getPixelNumber(x, y) * SEGMENTS;
-	for (byte i = 0; i < SEGMENTS; i++) {
+	for (int i = 0; i < SEGMENTS; i++) {
 		leds[thisPixel + i] = color;
 	}
 }
@@ -81,7 +108,7 @@ uint32_t getPixColor(int num) {
 
 // функция получения цвета пикселя в матрице по его координатам
 uint32_t getPixColorXY(int8_t x, int8_t y) {
-	return getPixColor(getPixelNumber(x, y));
+	return getPixColor(getPixelNumber(x, y) * SEGMENTS);
 }
 
 // Увеличение яркости до максимума с сохранением оттенка
@@ -172,6 +199,7 @@ void display_setup() {
 	set_brightness(BRIGHTNESS);
 	if(DEFAULT_POWER > 0) FastLED.setMaxPowerInVoltsAndMilliamps(5, DEFAULT_POWER);
 	FastLED.clear();
+	saveBuffer();
 
 	// проверка правильности ориентации
 	// левый нижний угол - начало координат
@@ -184,12 +212,16 @@ void display_setup() {
 }
 
 void display_tick(bool clear) {
-	if(screenIsFree) return;
+	if(screenIsFree) {
+		if (gs.anim) crossFade();
+		return;
+	}
 	if(itsTinyText) {
 		drawSlide();
 	} else if(fl_tiny_clock) {
 		screenIsFree = true;
 		fl_tiny_clock = false;
+		if (gs.anim) crossFade();
 	} else {
 		// очистить буфер для заполнения новыми данными, чтобы не накладывались кадры
 		// только в режиме циферблата и бегущей строки

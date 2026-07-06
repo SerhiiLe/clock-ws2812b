@@ -170,7 +170,7 @@ void printTinyText(const char *txt, uint32_t color, int16_t posX, bool instant, 
 	_tinyColor = color;
 	if( clear ) clearALL();
 }
-void printTinyText_P(const char *txt, int16_t posX, bool instant, bool clear) {
+void printTinyText_P(const char *txt, uint32_t color, int16_t posX, bool instant, bool clear) {
 	char buf[strlen_P(txt) + 1];
 	strcpy_P(buf, (const char*)txt);
 	printTinyText(buf, posX, instant, clear);

@@ -2,8 +2,8 @@
  * @file main.cpp
  * @author Serhii Lebedenko (slebedenko@gmail.com)
  * @brief Clock
- * @version 2.5.7
- * @date 2026-06-24
+ * @version 2.6.0
+ * @date 2026-07-06
  * 
  * @copyright Copyright (c) 2021,2022,2023,2024,2025,2026
  */
@@ -146,6 +146,7 @@ void setup() {
 	// initRString(PSTR("..."),1,8);
 	initRString(PSTR("boot"),1,7); //5
 	display_tick(false);
+	clearALL();
 	#ifdef ESP32
 		esp_chip_info(&chip_info); // get the ESP32 chip information
 	#endif
@@ -825,6 +826,7 @@ void loop() {
 
 	// если всё уже показано, то вывести время
 	if(!fl_demo && screenIsFree && clockTimer.isReady()) {
+		if (gs.anim) saveBuffer();
 		switch (gs.tiny_clock) {
 			case FONT_BOLD: // толстый шрифт
 			case FONT_BOLD2: // гибридный толстый

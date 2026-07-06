@@ -3,7 +3,7 @@
 
 #include <FastLED.h>
 #include "leds.h"
-extern CRGB leds[];
+extern CRGB leds[], ledsNext[];
 extern uint8_t led_brightness; // текущая яркость
 
 extern bool fs_isStarted;
@@ -76,6 +76,7 @@ struct Global_Settings {
 	uint8_t tiny_clock = 0; // вариант циферблата
 	uint8_t dots_style = 0; // вариант отображение разделителя (двоеточия)
 	uint8_t t12h = 0; // отображение в 24 или 12 часовом формате (am/pm)
+	uint8_t anim = 1; // даполнительные анимации
 	uint8_t show_time_color = 0; // режим выбора цветов циферблата часов
 	uint32_t show_time_color0 = 0xFFFFFF; // цвет цифр часов (белый)
 	uint32_t show_time_col[8] = {0xF6D32D,0xF6D32D,0x4444FF,0x57E389,0x57E389,0x4444FF,0xF6D32D,0xF6D32D}; // отдельно для каждой цифры

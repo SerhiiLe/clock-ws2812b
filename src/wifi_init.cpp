@@ -59,6 +59,10 @@ int8_t wifi_rssi() {
 	return WiFi.RSSI();
 }
 
+void wifi_resetSettings() {
+	wm.resetSettings();
+}
+
 // Включение или отключение ConfigPortal для настройки WiFi
 void wifi_startConfig(bool fl) {
 	if(fl) {

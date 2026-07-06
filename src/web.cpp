@@ -263,13 +263,14 @@ void save_settings() {
 	sync_time |= web.checkbox(F("tz_dst"), gs.tz_dst);
 	web.checkbox(F("tz_adjust"), gs.tz_adjust);
 	// отображение времени
-	web.to_int(F("tiny_clock"), gs.tiny_clock, 0, 8);
+	web.to_int(F("tiny_clock"), gs.tiny_clock, 0, 9);
 	web.to_int(F("dots_style"), gs.dots_style, 0, 11);
 	web.checkbox(F("t12h"), gs.t12h);
 	web.to_int(F("date_short"), gs.show_date_short, 0, 3);
 	web.checkbox(F("tiny_date"), gs.tiny_date);
 	if( web.to_int(F("date_period"), gs.show_date_period, 20, 1439) )
 		clockDate.setInterval(1000U * gs.show_date_period);
+	web.checkbox(F("anim"), gs.anim);
 	web.to_int(F("time_color"), gs.show_time_color, 0, 5);
 	web.color(F("time_color0"), gs.show_time_color0);
 	// цвет часов
@@ -430,6 +431,8 @@ void maintence() {
 			// сброс всех настроек (кроме wifi)
 			for(uint8_t i=0; i<=6; i++)
 				reset_settings(i);
+			// сброс настроек WiFi
+			wifi_resetSettings();
 		} else if(t > 0) {
 			// сброс конкретного раздела настроек
 			reset_settings(t-1);

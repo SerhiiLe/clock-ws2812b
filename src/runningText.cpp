@@ -136,9 +136,24 @@ void drawString() {
 	if(runningMode) {
 		screenIsFree = true;
 		_runningText[0] = 0;
+		if (gs.anim) crossFade(true); // запустить эффект перехода
 	} else {
 		currentOffset--;
-		if(currentOffset < -delta) { // строка полностью пробежала
+		if (gs.anim) {
+			if (currentOffset > 0) { // процесс смешения нового и старого буфера, если новая строка ещё не заполнила экран
+				int c = WIDTH-currentOffset+LET_WIDTH;
+				for (int x=0; x<currentOffset-LET_WIDTH; x++)
+					for (int y=0; y<HEIGHT; y++)
+						drawPixelXY(x, y, ledsNext[getPixelNumber(x+c, y) * SEGMENTS]);
+			} else
+			if (currentOffset + delta + LET_WIDTH <= WIDTH) { // процесс смешения нового и старого буфера, если новая строка уже уходит за экран
+				int c = currentOffset + delta + LET_WIDTH +1; // +1 нужен для того, чтобы последним кадром была предпоследняя позиция, а следующим нормальная отрисовка
+				for (int x=c; x>=0 && x<WIDTH; x++)
+					for (int y=0; y<HEIGHT; y++)
+						drawPixelXY(x, y, ledsNext[getPixelNumber(x-c, y) * SEGMENTS]);
+			}
+		}
+		if (currentOffset + (gs.anim ? LET_WIDTH: 0) < -delta) { // строка полностью пробежала
 			screenIsFree = true;
 			_runningText[0] = 0;
 			last_time_display = millis();
@@ -149,9 +164,10 @@ void drawString() {
 void initRunning(uint32_t color, int16_t posX) {
 	_currentColor = color > 5 ? maximizeBrightness(color): color;
 	runningMode = posX >= 0 && posX <= WIDTH; // если указана позиция и она в рамках экрана - текст не прокручивать
-	currentOffset = runningMode ? posX: WIDTH; // установить начальную позицию в указанную или по правому краю матрицы
+	currentOffset = runningMode ? posX: WIDTH + (gs.anim ? LET_WIDTH: 0); // установить начальную позицию в указанную или по правому краю матрицы
 	if(_runningText[0]==32) currentOffset -= gs.wide_font ? (LET_WIDTH + SPACE) >> 1: LET_WIDTH >> 1;
 	if(_runningText[0]==49 && gs.wide_font) currentOffset--;
+	saveBuffer(); // сохранить старый буфер, на всякий случай
 	screenIsFree = false;
 	itsTinyText = false;
 	fl_tiny_clock = false;

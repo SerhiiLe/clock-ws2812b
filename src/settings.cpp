@@ -73,6 +73,7 @@ bool load_config_main() {
 	gs.show_date_short = doc[F("date_short")];
 	gs.tiny_date = doc[F("tiny_date")];
 	gs.show_date_period = doc[F("date_period")]; clockDate.setInterval(1000U * gs.show_date_period);
+	gs.anim = doc[F("anim")];
 	gs.show_time_color = doc[F("time_color")];
 	gs.show_time_color0 = conv.text_to_color(doc[F("time_color0")]);
 	gs.show_time_col[0] = conv.text_to_color(doc[F("time_color1")]);
@@ -142,6 +143,7 @@ void save_config_main() {
 	doc[F("date_short")] = gs.show_date_short;
 	doc[F("tiny_date")] = gs.tiny_date;
 	doc[F("date_period")] = gs.show_date_period;
+	doc[F("anim")] = gs.anim;
 	doc[F("time_color")] = gs.show_time_color;
 	doc[F("time_color0")] = conv.color_to_text(gs.show_time_color0);
 	doc[F("time_color1")] = conv.color_to_text(gs.show_time_col[0]);
