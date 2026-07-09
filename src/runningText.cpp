@@ -136,24 +136,25 @@ void drawString() {
 	if(runningMode) {
 		screenIsFree = true;
 		_runningText[0] = 0;
-		if (gs.anim) crossFade(true); // запустить эффект перехода
+		// if (gs.anim) crossFade(true); // запустить эффект перехода - растворение
+		if (gs.anim) slideDown(true); // запустить эффект перехода - скольжение
 	} else {
 		currentOffset--;
 		if (gs.anim) {
 			if (currentOffset > 0) { // процесс смешения нового и старого буфера, если новая строка ещё не заполнила экран
-				int c = WIDTH-currentOffset+LET_WIDTH;
-				for (int x=0; x<currentOffset-LET_WIDTH; x++)
+				int c = WIDTH-currentOffset+TEXT_PADDING;
+				for (int x=0; x<currentOffset-TEXT_PADDING; x++)
 					for (int y=0; y<HEIGHT; y++)
 						drawPixelXY(x, y, ledsNext[getPixelNumber(x+c, y) * SEGMENTS]);
 			} else
-			if (currentOffset + delta + LET_WIDTH <= WIDTH) { // процесс смешения нового и старого буфера, если новая строка уже уходит за экран
-				int c = currentOffset + delta + LET_WIDTH +1; // +1 нужен для того, чтобы последним кадром была предпоследняя позиция, а следующим нормальная отрисовка
+			if (currentOffset + delta + TEXT_PADDING <= WIDTH) { // процесс смешения нового и старого буфера, если новая строка уже уходит за экран
+				int c = currentOffset + delta + TEXT_PADDING +1; // +1 нужен для того, чтобы последним кадром была предпоследняя позиция, а следующим нормальная отрисовка
 				for (int x=c; x>=0 && x<WIDTH; x++)
 					for (int y=0; y<HEIGHT; y++)
 						drawPixelXY(x, y, ledsNext[getPixelNumber(x-c, y) * SEGMENTS]);
 			}
 		}
-		if (currentOffset + (gs.anim ? LET_WIDTH: 0) < -delta) { // строка полностью пробежала
+		if (currentOffset + (gs.anim ? TEXT_PADDING: 0) < -delta) { // строка полностью пробежала
 			screenIsFree = true;
 			_runningText[0] = 0;
 			last_time_display = millis();

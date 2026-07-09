@@ -74,41 +74,114 @@ void saveBuffer() {
 }
 
 // CrossFade эффект перехода - смешение
-void crossFade(bool init) {
+bool crossFade(bool init) {
 	static int8_t step = 0;
 	if (init) {
 		swapBuffers(); // вернуть старую картинку
 		step = 9; // переход за 8 шагов
 	}
-	if (!step) return;
+	if (!step) return false;
 	if (step-- == 1) { // последний шаг - просто поставить нужный буфер, без эффектов
 		swapBuffers(); // вернуть новую картинку
-		return;
+		return true;
 	}
 	for (int i=0; i<NUM_LEDS; i++) {
 		leds[i] = blend(leds[i], ledsNext[i], 80); // смешение на каждом шаге 31%
 	}
+	return true;
+}
+
+// дополнительный эффект смены цыфр в циферблате по одной, падением вниз
+bool slideDown(bool start) {
+	static int8_t step = 0;
+	static struct Zones {
+		int8_t x, to;
+	} zone[6]; // максимальное число сегметов, которые надо будет менять 12:34:56
+	static uint8_t zones = 0;
+
+	if (fl_timeNotSync) return false; // костыль для правильного отображения во время загрузки
+
+	if (start) {
+		// надо найти все блоки разделённые пробелами и шире 2х пикселей
+		zones = 0;
+		int t=0, c1=0, c2=0, c3=0;
+		bool fl = true;
+		for (int x=0; x<WIDTH; x++) {
+			c1 = 0; c2 = 0;
+			for (int y=0; y<HEIGHT; y++) {
+				// получение двух колонок
+				c1 |= getPixColorXY(x,y) << y;
+				c2 |= getPixColorXY(x,y, ledsNext) << y;
+			}
+			if (c1 || c2) { // колонки не пустые
+				fl &= c1 == c2; // если хотя-бы одна колока не совпала - будет false
+				t++; // счётчик не пустых колонок
+			} else {
+				if (t>2) { // были не пустые колонки, а сейчас пустая. Значит дошли до конца знакоместа
+					if (!fl) { zone[zones].x = x-t; zone[zones++].to = x; } // знакоместо отличается, занесенение в очередь
+					if (zones == sizeof(zone)/sizeof(Zones)) break;
+				}
+				fl = true; // взведение флага отличия
+				t = 0; // сброс счётчика различий
+			}
+			c3 += c2;
+			// LOG(printf_P, PSTR("sD: x=%i, c1=%i, c2=%i, fl=%i, t=%i, zones=%i, c3=%i\n"), x, c1, c2, fl, t, zones, c3);
+		}
+		// проверка последней колонки, считаем, что за краем матрицы пустая колонка :)
+		if (t>2 && !fl && zones < sizeof(zone)/sizeof(Zones)) { zone[zones].x = WIDTH-t; zone[zones++].to = WIDTH; }
+		if (zones && c3) {
+			// вернуть старую картинку на отличающихся участках
+			for (int i=0; i<zones; i++)
+				for(int16_t x=zone[i].x; x<zone[i].to; x++)
+					for(int16_t y=0; y<HEIGHT; y++) {
+						uint32_t oldP = getPixColorXY(x, y, ledsNext);
+						uint32_t newP = getPixColorXY(x, y);
+						drawPixelXY(x, y, newP, ledsNext);
+						drawPixelXY(x, y, oldP);
+					}
+			step = HEIGHT; // переход за 8 шагов, высота матрицы
+		}
+		// LOG(printf_P, PSTR("sD final: zones=%i\n"), zones);
+	}
+	if (!step || start) return false;
+	step--;
+	// LOG(printf_P, PSTR("sD step=%i\n"), step);
+	for (int i=0; i<zones; i++) {
+		// LOG(printf_P, PSTR("zone=%i, x=%i, to=%i\n"), i, zone[i].x, zone[i].to);
+		for(int x=zone[i].x; x<zone[i].to; x++) {
+			for(int y=0; y<HEIGHT-1; y++) // сдвиг колонки вниз
+				drawPixelXY(x, y, getPixColorXY(x, y+1));
+			drawPixelXY(x, HEIGHT-1, getPixColorXY(x, (HEIGHT-1)-step, ledsNext)); // дорисовка одной строки текущей колонки данными из второго буфера
+		}
+	}
+	return true;
 }
 
 // функция отрисовки точки по координатам X Y
-void drawPixelXY(int8_t x, int8_t y, CRGB color) {
+void drawPixelXY(int8_t x, int8_t y, CRGB color, CRGB arr[]) {
 	if (x < 0 || x > WIDTH - 1 || y < 0 || y > HEIGHT - 1) return;
 	int thisPixel = getPixelNumber(x, y) * SEGMENTS;
 	for (int i = 0; i < SEGMENTS; i++) {
-		leds[thisPixel + i] = color;
+		if (arr)
+			arr[thisPixel + i] = color;
+		else
+			leds[thisPixel + i] = color;
 	}
 }
 
 // функция получения цвета пикселя по его номеру
-uint32_t getPixColor(int num) {
+uint32_t getPixColor(int num, CRGB arr[]) {
 	int thisPixel = num * SEGMENTS;
 	if (thisPixel < 0 || thisPixel > NUM_LEDS - 1) return 0;
-	return (((uint32_t)leds[thisPixel].r << 16) | ((long)leds[thisPixel].g << 8 ) | (long)leds[thisPixel].b);
+	if (arr)
+		return (((uint32_t)arr[thisPixel].r << 16) | ((long)arr[thisPixel].g << 8 ) | (long)arr[thisPixel].b);
+	else
+		return (((uint32_t)leds[thisPixel].r << 16) | ((long)leds[thisPixel].g << 8 ) | (long)leds[thisPixel].b);
 }
 
 // функция получения цвета пикселя в матрице по его координатам
-uint32_t getPixColorXY(int8_t x, int8_t y) {
-	return getPixColor(getPixelNumber(x, y) * SEGMENTS);
+uint32_t getPixColorXY(int8_t x, int8_t y, CRGB arr[]) {
+	return getPixColor(getPixelNumber(x, y) * SEGMENTS, arr);
 }
 
 // Увеличение яркости до максимума с сохранением оттенка
@@ -213,7 +286,8 @@ void display_setup() {
 
 void display_tick(bool clear) {
 	if(screenIsFree) {
-		if (gs.anim) crossFade();
+		if (gs.anim && slideDown()) goto doit;
+		// if (gs.anim && crossFade()) goto doit;
 		return;
 	}
 	if(itsTinyText) {
@@ -221,13 +295,15 @@ void display_tick(bool clear) {
 	} else if(fl_tiny_clock) {
 		screenIsFree = true;
 		fl_tiny_clock = false;
-		if (gs.anim) crossFade();
+		// if (gs.anim) crossFade(true);
+		if (gs.anim) slideDown(true);
 	} else {
 		// очистить буфер для заполнения новыми данными, чтобы не накладывались кадры
 		// только в режиме циферблата и бегущей строки
 		if( clear ) FastLED.clearData();
 		drawString();
 	}
+	doit:
 	// питания 5V нет и нет разрешения на отображение - матрица не запитана и нет смысла выводить
 	if(!fl_allowLEDS) return;
 	// нет отдельного светодиода для индикации движения, засветить нижний левый светодиод зелёным

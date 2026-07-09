@@ -91,11 +91,11 @@ void drawSlide() {
 	// сдвиг содержимого экрана на одну строку вниз (ужасно не эффективно и медленно, но работает)
 	// только если строка ещё не достигла "базовой линии"
 	if(_curY <= _baseY && ! _oneSlide) {
-		for(int16_t x=0; x<WIDTH; x++) {
-			for(int16_t y=HEIGHT-1; y>0 || y>_curY+5; y--)
+		for(int x=0; x<WIDTH; x++) {
+			for(int y=HEIGHT-1; y>0 || y>_curY+5; y--)
 				drawPixelXY(x,y,getPixColorXY(x,y-1));
 		}
-		for(int16_t x=0; x<WIDTH; x++)
+		for(int x=0; x<WIDTH; x++)
 			drawPixelXY(x,0,0);
 	}
 	// отрисовка последовательности символов до конца строки (\0) или перевода строки (\n)
@@ -123,6 +123,7 @@ void drawSlide() {
 	// это разовая отрисовка - обычно циферблат
 	if(_oneSlide) {
 		screenIsFree = true;
+		if (gs.anim) slideDown(true);
 		return;
 	}
 
@@ -168,10 +169,13 @@ void printTinyText(const char *txt, uint32_t color, int16_t posX, bool instant, 
 	fl_tiny_clock = false;
 	_oneSlide = instant;
 	_tinyColor = color;
-	if( clear ) clearALL();
+	if( clear ) {
+		saveBuffer();
+		clearALL();
+	}
 }
 void printTinyText_P(const char *txt, uint32_t color, int16_t posX, bool instant, bool clear) {
 	char buf[strlen_P(txt) + 1];
 	strcpy_P(buf, (const char*)txt);
-	printTinyText(buf, posX, instant, clear);
+	printTinyText(buf, color, posX, instant, clear);
 }
