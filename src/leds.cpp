@@ -110,8 +110,8 @@ bool slideDown(bool start) {
 			c1 = 0; c2 = 0;
 			for (int y=0; y<HEIGHT; y++) {
 				// получение двух колонок
-				c1 |= getPixColorXY(x,y) << y;
-				c2 |= getPixColorXY(x,y, ledsNext) << y;
+				c1 |= (getPixColorXY(x,y) ? 1: 0) << y;
+				c2 |= (getPixColorXY(x,y, ledsNext) ? 1: 0) << y;
 			}
 			if (c1 || c2) { // колонки не пустые
 				fl &= c1 == c2; // если хотя-бы одна колока не совпала - будет false
