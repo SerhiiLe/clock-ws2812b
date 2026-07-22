@@ -154,6 +154,12 @@ String telegramCallback(TResult& msg) {
 			LOG(println, String(F("rewrite to: ")) + msg.text);
 		}
 
+		// открепить датчик
+		if (bot.is_command(msg.text, F("unpin")) || msg.text == "/") {
+			pinned = -1;
+			msg.text = F("menu");
+		} else
+
 		// закрепление номера датчика
 		if (bot.is_command(msg.text, F("pin"))) {
 			int n = constrain(msg.text.substring(msg.text.lastIndexOf(" ")).toInt(), 0, MAX_SENSORS-1);
@@ -170,12 +176,6 @@ String telegramCallback(TResult& msg) {
 			String n = String(pinned) + " " + msg.text;
 			msg.text = n;
 			LOG(println, String(F("rewrite to: ")) + msg.text);
-		}
-
-		// открепить датчик
-		if (bot.is_command(msg.text, F("unpin")) || msg.text == "/") {
-			pinned = -1;
-			msg.text = F("menu");
 		}
 
 		if (bot.is_command(msg.text, F("last"))) {
