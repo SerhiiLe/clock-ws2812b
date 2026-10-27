@@ -5,7 +5,8 @@
 */
 
 #include <Arduino.h>
-#include <TelegramESP.h>
+// #include <TelegramESP.h>
+#include <AsyncTelegramAPI.h>
 #include <WiFiClient.h>
 #ifdef ESP32
 #include <HTTPClient.h>
@@ -21,17 +22,18 @@
 #include "dfplayer.h"
 #include <StringConverters.h>
 
-TelegramESP bot;
+AsyncTelegramAPI bot;
 
 String telegramCallback(TResult& msg);
 bool fl_secretWanted = false;
-time_t last_telegram = 0;
 int8_t pinned = -1;
 
 // Установка токена и списка подписанных чатов
 void setup_telegram() {
 	// bot.setChatID(bot.extractFirstNumber(ts.tb_chats)); // не нужно, так как передаётся при каждой отправке
 	bot.setBotToken(ts.tb_token);
+	bot.start();
+	tb_set_periods();
 }
 
 // Инициализация бота
@@ -42,17 +44,12 @@ void init_telegram() {
 
 // Опрос телеграмм в ожидании команд для обработки
 void tb_tick() {
-	// проверка времени ускорения работы telegram
-	if(last_telegram)
-		if(getTimeU() - last_telegram > ts.tb_accelerate) {
-			telegramTimer.setInterval(ts.tb_rate * 1000UL);
-			last_telegram = 0;
-		}
-	// собственно сам запрос новых сообщений телеграм
-	if (bot.checkMessage(true) < 0) telegramTimer.setNext(ts.tb_ban * 1000UL);
+	// если ошибка сети, то временно приостановить опросы
+	if (bot.checkMessage() < 0) bot.setNext(ts.tb_ban);
 }
 
-void tb_real_send_message(const char* text) {
+// Отправка сообщений (постановка в очередь)
+void tb_send_msg(const String& text) {
 	// [[maybe_unused]] bool r = bot.sendMessage(bot.extractFirstNumber(ts.tb_chats), text); // отсылка только на первый номер
 	[[maybe_unused]] bool r = bot.sendMessageToAll(ts.tb_chats, text); // отсылка на все номера
 	#ifdef DEBUG
@@ -60,54 +57,11 @@ void tb_real_send_message(const char* text) {
 	#endif
 }
 
-#ifdef ESP32
-// Для ESP32 отправка сообщений через очередь. Потому, что на этой платформе есть несколько потоков и надо все сообщения свести в один поток
-
-// заведомо недостижимое число. В реальной жизни врядли будет занято больше одной ячейки
-#define QUEUE_SIZE 20
-QueueHandle_t strQueue = xQueueCreate(QUEUE_SIZE, sizeof(char*));
-char* received = nullptr;
-
-// Постановка сообщения в очередь на отправку
-void tb_send_msg(const char* text) {          // или const String&
-    if (text == nullptr) return;
-
-    size_t len = strlen(text) + 1;
-    char* copy = (char*)malloc(len);   // или  malloc(len); / pvPortMalloc(len);
-    if (copy == nullptr) return;
-
-    strcpy(copy, text);
-
-    if (xQueueSend(strQueue, &copy, 0) != pdPASS) {
-        free(copy);                    // не удалось отправить — освобождаем free(copy) / vPortFree(copy);
-		return;
-    }
+// Установка расписания для работы telegram
+void tb_set_periods() {
+	bot.setInterval(ts.tb_rate);
+	bot.setInteractiveWindow(ts.tb_accelerate, ts.tb_accelerated);
 }
-
-// Отправка сообщений из очереди во все подписанные чаты телеграмм
-void tb_send_delayed() {
-	while (xQueueReceive(strQueue, &received, 0) == pdPASS) {
-		if (received) {
-			// LOG(printf, "To send: %s\n", received);
-			tb_real_send_message(received);
-			free(received);               // ОБЯЗАТЕЛЬНО освобождаем! free() / vPortFree(received)
-			vTaskDelay(30);
-		}
-	}
-}
-
-#else
-// Отправка сообщения о во все подписанные чаты телеграмм
-void tb_send_msg(const char* text) {
-	// для esp8266 очередь не нужна, так как всё в одном потоке
-	tb_real_send_message(text);
-}
-#endif
-// Отправка сообщений (постановка в очередь)
-void tb_send_msg(const String& text) {
-	tb_send_msg(text.c_str());
-}
-
 
 // Обработка входящего сообщения телеграмм
 String telegramCallback(TResult& msg) {
@@ -115,10 +69,6 @@ String telegramCallback(TResult& msg) {
 
 	// выводим ID чата, имя юзера и текст сообщения
 	LOG(printf_P, PSTR("From telegram:%lld;%s;%lld;%s.\n"), msg.chatId, msg.from.c_str(), msg.messageId, msg.text.c_str());
-
-	if(ts.tb_rate > ts.tb_accelerated)
-		telegramTimer.setInterval(1000U * ts.tb_accelerated);
-	last_telegram = getTimeU();
 
 	String original = msg.text;
 	msg.text.trim();

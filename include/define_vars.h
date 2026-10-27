@@ -37,7 +37,6 @@ extern TimerMinim ntpSyncTimer;         // Таймер синхронизаци
 extern TimerMinim scrollTimer;          // Таймер задержки между обновлениями бегущей строки, определяет скорость движения
 extern TimerMinim clockDate;            // Таймер периодичности вывода даты в виде бегущей строки (длительность примерно 15 секунд)
 extern TimerMinim textTimer[];          // Таймеры бегущих строк
-extern TimerMinim telegramTimer;		// Таймер периодичности опроса новых сообщений
 extern TimerMinim alarmStepTimer;		// Таймер увеличения громкости будильника
 extern TimerMinim timeoutMp3Timer;
 extern TimerMinim showTermTimer;

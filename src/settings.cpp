@@ -10,6 +10,7 @@
 #include "settings.h"
 #include "ntp.h"
 #include <StringConverters.h>
+#include "telegram.h"
 
 Global_Settings gs;
 Telegram_Settings ts;
@@ -220,8 +221,8 @@ bool load_config_telegram() {
 	ts.tb_secret = doc[F("tb_secret")].as<String>();
 	ts.tb_rate = doc[F("tb_rate")];
 	ts.tb_accelerated = doc[F("tb_accelerated")];
-	telegramTimer.setInterval(1000U * ts.tb_rate);
 	ts.tb_accelerate = doc[F("tb_accelerate")];
+	tb_set_periods();
 	ts.tb_ban = doc[F("tb_ban")];
 	ts.rcount = doc[F("rcount")];
 	ts.rint = doc[F("rint")];

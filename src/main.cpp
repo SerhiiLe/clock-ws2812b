@@ -54,7 +54,6 @@ TimerMinim textTimer[MAX_RUNNING];		// таймеры бегущих строк
 TimerMinim alarmTimer(1000);			// для будильника, срабатывает каждую секунду
 TimerMinim alarmStepTimer(5000);		// шаг увеличения громкости будильника
 TimerMinim demoTimer(33);				// таймер для теста/демонстрации экрана
-TimerMinim telegramTimer(1000U * ts.tb_rate);	// период опроса команд из Телеграм
 TimerMinim timeoutMp3Timer(3600000U * gs.timeout_mp3); // таймер принудительного сброса mp3
 TimerMinim syncWeatherTimer(60000U * ws.sync_weather_period); // таймер обновления информации о погоде из интернета
 TimerMinim quoteUpdateTimer(900000U * (qs.update+1));	// периодичность обновления цитат
@@ -361,6 +360,7 @@ uint32_t networkErrorPenalty(uint8_t& errorCounter) {
 // все функции, которые используют сеть, из основного цикла для возможности работы на втором ядре esp32
 void network_pool() {
 	wifi_process();
+	tb_tick();
 	if( wifi_isConnected ) {
 		// установка времени по ntp.
 		if ( fl_timeNotSync || fl_needStartTime )
@@ -371,10 +371,6 @@ void network_pool() {
 		// запуск сервисов, которые должны запуститься после запуска сети. (сеть должна подниматься в фоне)
 		ftp_process();
 		web_process();
-		if (telegramTimer.isReady()) tb_tick();
-		#ifdef ESP32
-		tb_send_delayed();
-		#endif
 		// если файловая система пустая, то включить FTP, чтобы можно было просто скопировать файлы.
 		if ( ! fs_isStarted && ! ftp_isAllow && screenIsFree ) {
 			ftp_isAllow = true;
