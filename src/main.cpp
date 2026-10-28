@@ -300,8 +300,8 @@ bool boot_check() {
 			break;
 		case 14: // Сброс таймеров обновления погоды и цитат, для быстрого первого запроса
 			syncWeatherTimer.setNext(5000);
+			syncForecastTimer.setNext(5000);
 			quoteUpdateTimer.setNext(9000);
-			syncForecastTimer.setNext(15000);
 			break;
 		case 15: // чтение настроек кукушки
 			if( ! load_config_cuckoo()) {
@@ -361,6 +361,7 @@ uint32_t networkErrorPenalty(uint8_t& errorCounter) {
 void network_pool() {
 	wifi_process();
 	tb_tick();
+	http_tick();
 	if( wifi_isConnected ) {
 		// установка времени по ntp.
 		if ( fl_timeNotSync || fl_needStartTime )
@@ -380,18 +381,17 @@ void network_pool() {
 		if (fl_run_allow) {
 			// обновление цитат с сервера
 			if (qs.enabled && quoteUpdateTimer.isReady()) {
-				if (quoteUpdate() != 1) quoteUpdateTimer.setNext(networkErrorPenalty(errors_quotes)); // повторить запрос через penalty
-				else errors_quotes = 0;
+				quoteUpdate();
+				// if (quoteUpdate() != 1) quoteUpdateTimer.setNext(networkErrorPenalty(errors_quotes)); // повторить запрос через penalty
+				// else errors_quotes = 0;
 			}
 			// обновление погоды с сервера
 			if(ws.weather && syncWeatherTimer.isReady()) {
-				if (weatherUpdate() != 1) syncWeatherTimer.setNext(networkErrorPenalty(errors_weather));
-				else errors_weather = 0;
-			}
-			// обновление прогноза погоды
-			if(ws.forecast && syncForecastTimer.isReady()) {
-				if (weatherUpdate(FORECAST) != 1) syncForecastTimer.setNext(networkErrorPenalty(errors_forecast));
-				else errors_forecast = 0;
+				weatherUpdate();
+				// обновление прогноза погоды. Формируется только в паре с запросом текущей погоды
+				if(ws.forecast && syncForecastTimer.isReady()) {
+					weatherUpdate(FORECAST);
+				}
 			}
 			// при сбоях сети будет выводится старая информация
 		}

@@ -94,9 +94,9 @@
 
 /*** power consumption limits for the matrix ***/
 
-#define BRIGHTNESS 50		// standard maximum brightness (0-255)
-#define DEFAULT_POWER 2000	// default 2000 mA or 2A
-#define MAX_POWER 15000		// maximum current for the matrix with 256 LEDs (32x8 or 16x16)
+#define DEFAULT_BRIGHTNESS 50		// standard maximum brightness (0-255)
+#define DEFAULT_POWER 2000			// default 2000 mA or 2A
+#define MAX_POWER 15000				// maximum current for the matrix with 256 LEDs (32x8 or 16x16)
 
 /*** matrix description ***/
 

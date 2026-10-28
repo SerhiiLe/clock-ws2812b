@@ -345,10 +345,10 @@ void save_telegram() {
 	web.to_string(F("tb_name"), ts.tb_name);
 	bool fl_setTelegram = web.to_string(F("tb_chats"), ts.tb_chats);
 	fl_setTelegram |= web.to_string(F("tb_token"), ts.tb_token);
-	web.to_string(F("tb_secret"), ts.tb_secret);
-	bool fl_setTPeriods = web.to_int(F("tb_rate"), ts.tb_rate, 0, 3600);
-	fl_setTPeriods |= web.to_int(F("tb_accelerated"), ts.tb_accelerated, 1, 600);
-	fl_setTPeriods |= web.to_int(F("tb_accelerate"), ts.tb_accelerate, 1, 3600);
+	fl_setTelegram |= web.to_string(F("tb_secret"), ts.tb_secret);
+	fl_setTelegram |= web.to_int(F("tb_rate"), ts.tb_rate, 0, 3600);
+	fl_setTelegram |= web.to_int(F("tb_accelerated"), ts.tb_accelerated, 1, 600);
+	fl_setTelegram |= web.to_int(F("tb_accelerate"), ts.tb_accelerate, 1, 3600);
 	web.to_int(F("tb_ban"), ts.tb_ban, 900, 3600);
 	web.to_int(F("rcount"), ts.rcount, 1, 32000);
 	web.to_int(F("rint"), ts.rint, 1, 65000);
@@ -364,7 +364,6 @@ void save_telegram() {
 	// initRString(PSTR("Настройки сохранены"));
 	printTinyText_P(txt_save,1,9);
 	if (fl_setTelegram) setup_telegram();
-	if (fl_setTPeriods) tb_set_periods();
 }
 
 // перезагрузка часов, сброс ком-порта, отключение сети и диска, чтобы ничего не мешало перезагрузке

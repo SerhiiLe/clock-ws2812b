@@ -7,14 +7,6 @@
 */
 
 #include <Arduino.h>
-#ifdef ESP32
-#include <HTTPClient.h>
-#else // ESP8266
-#include <ESP8266HTTPClient.h>
-#include <WiFiClientSecureBearSSL.h>
-#endif
-#include <WiFiClientSecure.h>
-#include <WiFiClient.h>
 #include <ArduinoJson.h>
 #include "defines.h"
 #include "webClient.h"
@@ -23,27 +15,13 @@
 #include "webClient_translation.h"
 #include "weather_icons.h"
 #include <StringConverters.h>
+#include "asyncHTTP_global.h"
 
-#ifdef ESP32
-WiFiClientSecure WEB_S;
-#endif
-#ifdef ESP8266
-BearSSL::WiFiClientSecure WEB_S;
-#endif
-WiFiClient WEB_P;
-HTTPClient httpReq;
+AsyncHTTP httpClient;
 
 Quote_Server quote;
 
 bool fl_https_notInit = true;
-
-void https_Init() {
-	#ifdef ESP8266
-	WEB_S.setBufferSizes(1536, 256);
-	#endif
-	WEB_S.setInsecure();
-	fl_https_notInit = false;
-}
 
 struct weatherData {
 	int utc_offset_seconds;
@@ -447,15 +425,10 @@ int32_t weatherGetPressure() {
 2 - адрес не работает
 3 - ошибка сети
 */
-
-uint8_t weatherUpdate(uint8_t wType) {
-	if (fl_https_notInit) https_Init();
-	// WiFiClient WEB_client;
-	// HTTPClient httpReq;
+void weatherUpdate(uint8_t wType) {
 
 	char LatLong[50];
 	sprintf_P(LatLong, PSTR("latitude=%.4f&longitude=%.4f"), gs.latitude, gs.longitude);
-	uint8_t status = 1;
 	#ifdef USE_HTTPS
 	String req = F("https");
 	#else
@@ -468,18 +441,23 @@ uint8_t weatherUpdate(uint8_t wType) {
 	else
 		req += F("&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=ms&timeformat=unixtime&timezone=auto&past_days=0&forecast_days=1");
 	LOG(println, req);
-	if (httpReq.begin(WEB_P, req)) {
-		int httpCode = httpReq.GET();
-		LOG(printf_P, PSTR("http answer code: %i, %s\n"), httpCode, httpReq.errorToString(httpCode).c_str());
-		if( httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY )
-			if( wType == FORECAST )
-				status = parseForecast(httpReq.getString().c_str()); // простой прогноз на 3 дня, включая текущий
+	httpClient.get(req, [wType](AsyncHttpResponse& res) {
+        if (res.isSuccess()) {
+            if (wType == FORECAST) {
+				parseForecast(res.body.c_str());
+				errors_forecast = 0;
+			} else {
+				parseWeather(res.body.c_str());
+            	errors_weather = 0;
+			}
+        } else {
+            LOG(printf_P, PSTR("Weather error: %d (%s)\n"), res.code, res.errorString().c_str());
+			if (wType == FORECAST)
+				syncForecastTimer.setNext(networkErrorPenalty(errors_forecast));
 			else
-				status = parseWeather(httpReq.getString().c_str()); //, _httpReq.getSize()); // текущая погода
-		else status = 2;
-		httpReq.end();
-	} else status = 3;
-	return status;
+				syncWeatherTimer.setNext(networkErrorPenalty(errors_weather));
+        }
+    });
 }
 
 // Примитивный парсер json и XML
@@ -532,15 +510,12 @@ void parseQuote(String txt, bool type=true) {
 1 - успех
 2 - адрес не работает
 */
-uint8_t quoteGet() {
-	#ifdef DEBUG
-	unsigned long start_time = millis();
-	#endif
-	uint8_t result = 0;
-	if (fl_https_notInit) https_Init();
-	bool fl_isSecure = quote.url.indexOf("https://") >= 0;
+void quoteGet() {
 
-	String req = quote.url; // F("api.forismatic.com/api/1.0/?method=getQuote&format=text&lang=ru");
+	AsyncHttpRequest req;
+
+	req.url = quote.url; // F("api.forismatic.com/api/1.0/?method=getQuote&format=text&lang=ru");
+
 	String params = quote.params;
 	if( params.length() > 0 ) {
 		switch (qs.lang) {
@@ -555,39 +530,41 @@ uint8_t quoteGet() {
 				break;
 		}
 		if(quote.method == Q_GET) {
-			req += "?";
-			req += params;
+			req.url += "?";
+			req.url += params;
 		}
 	}
 
-	LOG(println, req);
-	if (httpReq.begin(fl_isSecure? WEB_S: WEB_P, req)) {
-		int httpCode;
-		if(quote.method) {
-			httpReq.addHeader("Content-Type", "application/x-www-form-urlencoded");
-			httpCode = httpReq.POST(params);
-		} else
-			httpCode = httpReq.GET();
+	if (quote.method == Q_GET) {
+		req.method = ASYNC_HTTP_GET;
+	} else { // POST
+		req.method = ASYNC_HTTP_POST;
+		req.contentType = "application/x-www-form-urlencoded";
+		// req.headers.push_back({"Content-Type", "application/x-www-form-urlencoded"});
+		req.payload = params;
+	}
 
-		LOG(printf_P, PSTR("http answer code: %i, %s\n"), httpCode, httpReq.errorToString(httpCode).c_str());
-		if( httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY ) {
+	LOG(println, req.url);
+
+	req.callback = [](AsyncHttpResponse& res) {
+		if (res.isSuccess()) {
 			if(quote.type)
-				parseQuote(httpReq.getString(), quote.type == Q_JSON);
+				parseQuote(res.body, quote.type == Q_JSON);
 			else {
 				messages[MESSAGE_QUOTE].text = String(txt_quote[gs.language]);
-				messages[MESSAGE_QUOTE].text += httpReq.getString();
+				messages[MESSAGE_QUOTE].text += res.body;
 			}
 			messages[MESSAGE_QUOTE].count = qs.enabled ? 100: 0;
 			messages[MESSAGE_QUOTE].timer.setInterval(1000U * (qs.period+1));
 			messages[MESSAGE_QUOTE].color = qs.color_mode > 0 ? qs.color_mode: qs.color;
 			LOG(printf_P, PSTR("Quote: %s\n"), messages[MESSAGE_QUOTE].text.c_str());
-			result = 1;
-		} else
-			result = 2;
-		httpReq.end();
-	}
-	LOG(printf_P, PSTR("request time is: %lu msec\n"), millis()-start_time);
-	return result;
+		} else {
+			LOG(printf_P, PSTR("Quote error: %d (%s)\n"), res.code, res.errorString().c_str());
+            quoteUpdateTimer.setNext(networkErrorPenalty(errors_quotes));
+		}
+	};
+
+	httpClient.send(req);
 }
 
 // Заполнение структуры с параметрами сервера.
@@ -630,7 +607,11 @@ void quotePrepare(bool force) {
 	}
 }
 
-uint8_t quoteUpdate() {
+void quoteUpdate() {
 	quotePrepare(qs.server == 1);
-	return quoteGet();
+	quoteGet();
+}
+
+void http_tick() {
+	httpClient.tick();
 }

@@ -1,7 +1,7 @@
 #ifndef webClient_h
 #define webClient_h
 
-uint8_t weatherUpdate(uint8_t wType=0);
+void weatherUpdate(uint8_t wType=0);
 const char* generate_weather_string(char* a);
 const char* generate_forecast_string(char* a);
 int16_t weatherGetElevation();
@@ -10,8 +10,9 @@ int32_t weatherGetPressure();
 int add_temperature(char *buf, float t, bool units=true, bool dec=true);
 int add_pressure(char *buf, float p);
 int add_speed(char *buf, float v, bool units=true);
-uint8_t quoteUpdate();
+void quoteUpdate();
 void quotePrepare(bool force=false);
+void http_tick();
 
 extern const char* EMPTY PROGMEM;
 extern const char* SPACE PROGMEM;

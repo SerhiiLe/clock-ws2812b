@@ -5,14 +5,6 @@
 */
 
 #include <Arduino.h>
-// #include <TelegramESP.h>
-#include <AsyncTelegramAPI.h>
-#include <WiFiClient.h>
-#ifdef ESP32
-#include <HTTPClient.h>
-#else // ESP8266
-#include <ESP8266HTTPClient.h>
-#endif
 #include "defines.h"
 #include "telegram.h"
 #include "telegram_translation.h"
@@ -21,6 +13,8 @@
 #include "barometer.h"
 #include "dfplayer.h"
 #include <StringConverters.h>
+#include <AsyncTelegramAPI.h>
+#include "asyncHTTP_global.h"
 
 AsyncTelegramAPI bot;
 
@@ -32,14 +26,15 @@ int8_t pinned = -1;
 void setup_telegram() {
 	// bot.setChatID(bot.extractFirstNumber(ts.tb_chats)); // не нужно, так как передаётся при каждой отправке
 	bot.setBotToken(ts.tb_token);
-	bot.start();
-	tb_set_periods();
+	bot.setInteractiveWindow(ts.tb_accelerate, ts.tb_accelerated, ts.tb_rate);
+	bot.triggerInteractive();
 }
 
 // Инициализация бота
 void init_telegram() {
 	setup_telegram();
 	bot.attachCallback(telegramCallback);
+	bot.start();
 }
 
 // Опрос телеграмм в ожидании команд для обработки
@@ -55,12 +50,6 @@ void tb_send_msg(const String& text) {
 	#ifdef DEBUG
 	LOG(printf_P, PSTR("Send to telegram: %d\n"), r);
 	#endif
-}
-
-// Установка расписания для работы telegram
-void tb_set_periods() {
-	bot.setInterval(ts.tb_rate);
-	bot.setInteractiveWindow(ts.tb_accelerate, ts.tb_accelerated);
 }
 
 // Обработка входящего сообщения телеграмм
@@ -194,20 +183,28 @@ String telegramCallback(TResult& msg) {
 					}
 				}
 				LOG(println, url);
-				WiFiClient client;
-				HTTPClient html;
-				html.begin(client, url.c_str());
-				int httpResponseCode = html.GET();
-				String res;
-				if (httpResponseCode == 200) {
+				httpClient.get(url, [c_id = msg.chatId, n](AsyncHttpResponse& res) {
 					// ответ от датчика запихивается сразу в telegram, обработку делает ArduinoJson
-					res = sensor[n].hostname + "\n" + html.getString();
-				} else {
-					res = sensor[n].hostname + " error: " + String(httpResponseCode);
-				}
-		        // Free resources
-		        html.end();
-				return res;
+					String answer = res.isSuccess() ?
+						sensor[n].hostname + "\n" + res.body:
+						sensor[n].hostname + " error: " + res.errorString();
+					bot.sendMessage(c_id, answer);
+				});
+				// WiFiClient client;
+				// HTTPClient html;
+				// html.begin(client, url.c_str());
+				// int httpResponseCode = html.GET();
+				// String res;
+				// if (httpResponseCode == 200) {
+				// 	// ответ от датчика запихивается сразу в telegram, обработку делает ArduinoJson
+				// 	res = sensor[n].hostname + "\n" + html.getString();
+				// } else {
+				// 	res = sensor[n].hostname + " error: " + String(httpResponseCode);
+				// }
+		        // // Free resources
+		        // html.end();
+				// return res;
+				return "";
 			} else {
 				return F("датчик неактивен");
 			}

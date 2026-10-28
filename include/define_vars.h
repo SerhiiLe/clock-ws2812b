@@ -29,6 +29,11 @@ extern unsigned long last_time_display;
 extern bool fl_action_move;
 extern bool fl_run_allow;
 
+uint32_t networkErrorPenalty(uint8_t& errorCounter);
+extern uint8_t errors_weather;
+extern uint8_t errors_forecast;
+extern uint8_t errors_quotes;
+
 // таймеры должны быть доступны в разных местах
 #include <TimerMinim.h>
 extern TimerMinim scrollTimer;          // таймер скроллинга

@@ -269,7 +269,7 @@ void set_brightness(uint8_t br) {
 
 void display_setup() {
 	FastLED.addLeds<WS2812B, PIN_LED, GRB>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
-	set_brightness(BRIGHTNESS);
+	set_brightness(DEFAULT_BRIGHTNESS);
 	if(DEFAULT_POWER > 0) FastLED.setMaxPowerInVoltsAndMilliamps(5, DEFAULT_POWER);
 	FastLED.clear();
 	saveBuffer();

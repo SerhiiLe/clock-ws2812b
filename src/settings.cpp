@@ -222,7 +222,6 @@ bool load_config_telegram() {
 	ts.tb_rate = doc[F("tb_rate")];
 	ts.tb_accelerated = doc[F("tb_accelerated")];
 	ts.tb_accelerate = doc[F("tb_accelerate")];
-	tb_set_periods();
 	ts.tb_ban = doc[F("tb_ban")];
 	ts.rcount = doc[F("rcount")];
 	ts.rint = doc[F("rint")];

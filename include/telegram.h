@@ -5,6 +5,5 @@ void init_telegram();
 void setup_telegram();
 void tb_tick();
 void tb_send_msg(const String& text);
-void tb_set_periods();
 
 #endif
