@@ -9,3 +9,4 @@ data/*.json
 data/log*.txt
 include/defines.h
 lib
+compile_commands.json

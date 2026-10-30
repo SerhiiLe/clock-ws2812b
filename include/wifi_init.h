@@ -9,7 +9,7 @@ void wifi_resetSettings();
 void wifi_startConfig(bool a);
 
 const char PROGMEM _SSID[] = AP_SSID;
-#ifdef PASSWORD
+#if defined(PASSWORD)
 const char PROGMEM _PASSWORD[] = AP_PASSWORD;
 #endif
 

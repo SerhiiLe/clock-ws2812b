@@ -39,7 +39,7 @@ bool barometer_init() {
 	} else
 	if ( bme.begin(address_bme280) ) {
 		fl_barometerIsInit = 4;
-		LOG(printf_P, PSTR("BME280 found, type: 0x%02X\n"), bme.sensorID());
+		LOG(printf_P, PSTR("BME280 found, type: 0x%02lX\n"), bme.sensorID());
 		return true;
 	}
 	if ( aht.begin() ) {

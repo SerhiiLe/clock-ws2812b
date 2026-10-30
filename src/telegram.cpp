@@ -47,7 +47,7 @@ void tb_tick() {
 void tb_send_msg(const String& text) {
 	// [[maybe_unused]] bool r = bot.sendMessage(bot.extractFirstNumber(ts.tb_chats), text); // отсылка только на первый номер
 	[[maybe_unused]] bool r = bot.sendMessageToAll(ts.tb_chats, text); // отсылка на все номера
-	#ifdef DEBUG
+	#if defined(DEBUG)
 	LOG(printf_P, PSTR("Send to telegram: %d\n"), r);
 	#endif
 }
@@ -183,27 +183,14 @@ String telegramCallback(TResult& msg) {
 					}
 				}
 				LOG(println, url);
-				httpClient.get(url, [c_id = msg.chatId, n](AsyncHttpResponse& res) {
+				int64_t c_id = msg.chatId;
+				httpClient.get(url, [c_id, n](AsyncHttpResponse& res) {
 					// ответ от датчика запихивается сразу в telegram, обработку делает ArduinoJson
 					String answer = res.isSuccess() ?
 						sensor[n].hostname + "\n" + res.body:
 						sensor[n].hostname + " error: " + res.errorString();
 					bot.sendMessage(c_id, answer);
 				});
-				// WiFiClient client;
-				// HTTPClient html;
-				// html.begin(client, url.c_str());
-				// int httpResponseCode = html.GET();
-				// String res;
-				// if (httpResponseCode == 200) {
-				// 	// ответ от датчика запихивается сразу в telegram, обработку делает ArduinoJson
-				// 	res = sensor[n].hostname + "\n" + html.getString();
-				// } else {
-				// 	res = sensor[n].hostname + " error: " + String(httpResponseCode);
-				// }
-		        // // Free resources
-		        // html.end();
-				// return res;
 				return "";
 			} else {
 				return F("датчик неактивен");
@@ -229,7 +216,7 @@ String telegramCallback(TResult& msg) {
 			} else 
 				return txt_TB_nothing_to_show[gs.language];
 		}
-#ifdef SRX
+#if defined(SRX)
 		if (bot.is_command(msg.text, "play")) {
 			int pos = msg.text.lastIndexOf(" ");
 			if (pos>0) {

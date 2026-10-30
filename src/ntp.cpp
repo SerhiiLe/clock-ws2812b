@@ -7,7 +7,7 @@
 #include "settings.h"
 #include "rtc.h"
 #include <WiFiUdp.h>
-#ifdef ESP8266
+#if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #else
 #include <WiFi.h>
@@ -55,7 +55,11 @@ bool syncTimeRequest() {
 	ntp_udp.write(buf, 48);
 	if(!ntp_udp.endPacket()) return false;
 	request_time = millis();
+	#if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)
+	ntp_udp.clear();
+	#else
 	ntp_udp.flush();
+	#endif
 	delay(0);
 	fl_ntpRequestIsSend = true;
 	server_num = (server_num + 1) % (sizeof(NTP)/sizeof(char*)); // прокрутка номера сервера
@@ -100,7 +104,7 @@ bool syncTime() {
 	if((millis() - request_time) < REQUEST_TIMEOUT) {
 		if(ntp_udp.parsePacket() == 48) {
 			time_t t = ntpReadAnswer();
-			LOG(printf_P,PSTR("Got from NTP: %lu (GMT)\n"),t);
+			LOG(printf_P,PSTR("Got from NTP: %lli (GMT)\n"),t);
 			if( t > 0 ) {
 				// что-то похожее на время получено, устанавливаем его как системное + сдвиг часового пояса
 				time_t tz = (gs.tz_shift + gs.tz_dst)*3600;
@@ -110,7 +114,7 @@ bool syncTime() {
 				fl_timeNotSync = false;
 				fl_ntpRequestIsSend = false;
 				ntp_udp.stop();
-				LOG(printf_P,PSTR("Set time from NTP to: %lu (GMT)\n"),t);
+				LOG(printf_P,PSTR("Set time from NTP to: %lli (GMT)\n"),t);
 				if(fl_needStartTime) {
 					start_time = now - millis()/1000;
 					fl_needStartTime = false;

@@ -10,7 +10,7 @@
 #define USE_I2C 1 // использовать I2C для датчики. 1 - схема с i2c, 0 - схема без i2c.
 
 // Назначение PIO для разных типов микроконтроллеров. Сверяйтесь с pinout вашего модуля.
-#if ESP32C3 == 1 // ESP32-c3
+#if defined(ESP32C3) // ESP32-c3
 	#define PIN_LED 6 // LED матрица
 	#define PIN_PHOTO_SENSOR A0 // фоторезистор
 	#define PIN_BUTTON 1 // кнопка управления
@@ -23,7 +23,7 @@
 	// -> SDA 8 // I2C SDA Для справки, определены в Arduino
 	// -> SCL 9 // I2C SCL
 	// #define BAT_LEVEL 4 // напряжение аккумулятора
-#elif ESP32 == 1 // ESP32
+#elif defined(ESP32) // ESP32
 	#define PIN_PHOTO_SENSOR 36 // "VP" - фоторезистор
 	#define PIN_BUTTON 19 // кнопка управления
 	#define PIN_MOTION 18 // детектор движения. Закомментировать, если не подключен

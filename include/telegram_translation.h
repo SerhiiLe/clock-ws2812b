@@ -51,7 +51,7 @@ const char PROGMEM T_TB_help_en[] =
 	"pin X - pin the external sensor number.\n"
 	"/unpin - unpin.\n"
 	"show some_text - display text on the screen"
-#ifdef SRX
+#if defined(SRX)
 	"play X - start playing track number X, 0 - turn off\n"
 	"volume X - set volume to X"
 #endif
@@ -71,7 +71,7 @@ const char PROGMEM T_TB_help_ru[] =
 	"pin X - \"закрепить\" номер внешнего датчика.\n"
 	"/unpin - убрать закрепление.\n"
 	"show some_text - отобразить текст на экране."
-#ifdef SRX
+#if defined(SRX)
 	"\nplay X - запустить проигрываение трека с номером X, 0 - выключить\n"
 	"volume X - установить громкость X"
 #endif
@@ -91,7 +91,7 @@ const char PROGMEM T_TB_help_ua[] =
 	"pin X - \"закріпити\" номер зовнішнього датчика.\n" 
 	"/unpin - прибрати закріплення.\n" 
 	"show some_text - відобразити текст на екрані."
-#ifdef SRX 
+#if defined(SRX) 
 	"\nplay X - запустити програвання треку з номером X, 0 - вимкнути\n" 
 	"volume X - встановити гучність X"
 #endif

@@ -7,14 +7,14 @@
 */
 
 #include <Arduino.h>
-#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
+#include <WiFiSetup.h>
 #include "defines.h"
 #include "runningText.h"
 #include "web.h"
 #include "wifi_init.h"
 #include "wifi_init_translation.h"
 
-WiFiManager wm;
+WiFiSetup wm;
 
 bool wifi_isConnected = false;
 bool wifi_isPortal = false;
@@ -29,9 +29,9 @@ void wifi_setup() {
 	//automatically connect using saved credentials if they exist
 	//If connection fails it starts an access point with the specified name
 	if(wm.autoConnect()) {
-		LOG(println, PSTR("WiFi is connected :)"));
+		LOG(println, F("WiFi is connected :)"));
 	} else {
-		LOG(println, PSTR("WiFi is not connected"));
+		LOG(println, F("WiFi is not connected"));
 		if(wm.getWiFiIsSaved()) initRString(txt_wifiNotConnected[gs.language],CRGB::White);
 		else wifi_startConfig(true);
 	}
@@ -41,12 +41,12 @@ void wifi_process() {
 	if(WiFi.status() == WL_CONNECTED) {
 		if( ! wifi_isConnected ) {
 			wifi_isConnected = true;
-			LOG(println, PSTR("WiFi now is connected"));
+			LOG(println, F("WiFi now is connected"));
 		}
 	} else {
 		if( wifi_isConnected ) {
 			wifi_isConnected = false;
-			LOG(println, PSTR("No WiFi now"));
+			LOG(println, F("No WiFi now"));
 		}
 		wm.process();
 	}
@@ -72,14 +72,14 @@ void wifi_startConfig(bool fl) {
 			WiFi.disconnect();
 		}
 		wm.setConfigPortalBlocking(false);
-		#ifdef AP_PASSWORD
+		#if defined(AP_PASSWORD)
 		wm.startConfigPortal(_SSID, _PASSWORD);
 		#else
 		wm.startConfigPortal(_SSID);
 		#endif
-		LOG(println, PSTR("ConfigPortal is started"));
+		LOG(println, F("ConfigPortal is started"));
 		char wifi_message_buf[150];
-		#ifdef AP_PASSWORD
+		#if defined(AP_PASSWORD)
 		snprintf_P(wifi_message_buf, sizeof(wifi_message_buf), txt_wifiMessage[gs.language], _SSID, _PASSWORD);
 		#else
 		snprintf_P(wifi_message_buf, sizeof(wifi_message_buf), txt_wifiMessage[gs.language], _SSID);
@@ -93,7 +93,7 @@ void wifi_startConfig(bool fl) {
 			initRString(txt_wifiOff[gs.language],CRGB::White);
 			wifi_isPortal = false;
 			if(wm.getConfigPortalActive()) wm.stopConfigPortal();
-			LOG(println, PSTR("ConfigPortal is stopped"));
+			LOG(println, F("ConfigPortal is stopped"));
 			return;
 		}
 		initRString(txt_wifiFirst[gs.language],CRGB::White);

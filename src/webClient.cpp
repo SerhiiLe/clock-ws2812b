@@ -429,7 +429,7 @@ void weatherUpdate(uint8_t wType) {
 
 	char LatLong[50];
 	sprintf_P(LatLong, PSTR("latitude=%.4f&longitude=%.4f"), gs.latitude, gs.longitude);
-	#ifdef USE_HTTPS
+	#if defined(USE_HTTPS)
 	String req = F("https");
 	#else
 	String req = F("http");
@@ -442,22 +442,22 @@ void weatherUpdate(uint8_t wType) {
 		req += F("&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=ms&timeformat=unixtime&timezone=auto&past_days=0&forecast_days=1");
 	LOG(println, req);
 	httpClient.get(req, [wType](AsyncHttpResponse& res) {
-        if (res.isSuccess()) {
-            if (wType == FORECAST) {
+		if (res.isSuccess()) {
+			if (wType == FORECAST) {
 				parseForecast(res.body.c_str());
 				errors_forecast = 0;
 			} else {
 				parseWeather(res.body.c_str());
-            	errors_weather = 0;
+				errors_weather = 0;
 			}
-        } else {
-            LOG(printf_P, PSTR("Weather error: %d (%s)\n"), res.code, res.errorString().c_str());
+		} else {
+			LOG(printf_P, PSTR("Weather error: %d (%s)\n"), res.code, res.errorString().c_str());
 			if (wType == FORECAST)
 				syncForecastTimer.setNext(networkErrorPenalty(errors_forecast));
 			else
 				syncWeatherTimer.setNext(networkErrorPenalty(errors_weather));
-        }
-    });
+		}
+	});
 }
 
 // Примитивный парсер json и XML
@@ -498,7 +498,7 @@ void parseQuote(String txt, bool type=true) {
 		myTrim(s);
 		messages[MESSAGE_QUOTE].text += ( s[0] == '-' || s[1] == ' ' ) ? " " + s: " (" + s + ")"; // perl я программист старый просто
 	}
-	#ifdef DEBUG
+	#if defined(DEBUG)
 	if( messages[MESSAGE_QUOTE].text.length() <= strlen_P(txt_quote[gs.language]) ) // если не нашли цитату в xml
 		LOG(printf_P, PSTR("Error parse JSON/XML.\nSource:\n%s\n"), txt.c_str());
 	#endif
@@ -560,7 +560,7 @@ void quoteGet() {
 			LOG(printf_P, PSTR("Quote: %s\n"), messages[MESSAGE_QUOTE].text.c_str());
 		} else {
 			LOG(printf_P, PSTR("Quote error: %d (%s)\n"), res.code, res.errorString().c_str());
-            quoteUpdateTimer.setNext(networkErrorPenalty(errors_quotes));
+			quoteUpdateTimer.setNext(networkErrorPenalty(errors_quotes));
 		}
 	};
 

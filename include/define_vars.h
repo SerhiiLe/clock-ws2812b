@@ -291,9 +291,10 @@ extern uint8_t hue_shift;
 #define FONT_DIGIT2 8
 #define FONT_TINY 9
 
-#ifdef ESP32
+#if defined(ESP32)
 #define SPIFFS LittleFS
 #define FORMAT_LITTLEFS_IF_FAILED true
+#include <esp_chip_info.h>
 extern esp_chip_info_t chip_info;
 #endif
 
@@ -302,7 +303,7 @@ extern esp_chip_info_t chip_info;
 #undef LOG
 #endif
 
-#ifdef DEBUG
+#if defined(DEBUG)
 	//#define LOG                   Serial
 	#define LOG(func, ...) Serial.func(__VA_ARGS__)
 #else

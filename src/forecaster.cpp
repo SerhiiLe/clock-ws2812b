@@ -68,7 +68,7 @@ void forecaster_restore_data() {
 	// датчик BMP180 выходит на рабочий режим не сразу
 	if(next < 120) next=120;
 	forecasterTimer.setNext(next * 1000U);
-	LOG(printf_P, PSTR("next forecaster update in %i sec\n"), next);
+	LOG(printf_P, PSTR("next forecaster update in %li sec\n"), next);
 }
 
 // установить высоту над уровнем моря (в метрах)

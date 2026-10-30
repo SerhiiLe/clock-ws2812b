@@ -10,7 +10,7 @@
 #define USE_I2C 1 // use I2C for sensors. 1 - circuit with i2c, 0 - circuit without i2c.
 
 // PIO pin assignments for different microcontroller types. Compare with your module pinout.
-#if ESP32C3 == 1 // ESP32-c3
+#if defined(ESP32C3) // ESP32-c3
 	#define PIN_LED 6 // LED matrix
 	#define PIN_PHOTO_SENSOR A0 // photoresistor
 	#define PIN_BUTTON 1 // control button
@@ -23,7 +23,7 @@
 	// -> SDA 8 // I2C SDA. For reference, defined in Arduino
 	// -> SCL 9 // I2C SCL
 	// #define BAT_LEVEL 4 // battery voltage
-#elif ESP32 == 1 // ESP32
+#elif defined(ESP32) // ESP32
 	#define PIN_PHOTO_SENSOR 36 // "VP" - photoresistor
 	#define PIN_BUTTON 19 // control button
 	#define PIN_MOTION 18 // motion detector. Comment out if not connected
