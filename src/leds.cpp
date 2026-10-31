@@ -313,12 +313,12 @@ void display_tick(bool clear) {
  	// выключение матрицы в ночном режиме и нет движения - погасить все светодиоды
 	if(gs.dsp_off && !fl_action_move && !fl_run_allow && !fl_led_motion) FastLED.clearData();
 
-	unsigned long start = 0;
+	// unsigned long start = 0;
 	// вывод часто срывается, по этому выводить кадр пока не получится. Признак неудачи - отклонение > 25%
-	do {
-		start = micros();
+	// do {
+		// start = micros();
 		FastLED.show();
 		// if(abs((long)(micros()-start-REFRESH_TIME))>(REFRESH_TIME >> 2))
 			// LOG(printf_P, PSTR("время обновления: %d (%d)\n"), micros()-start, REFRESH_TIME);
-	} while (abs((long)(micros()-start-REFRESH_TIME))>(REFRESH_TIME >> 2));
+	// } while (abs((long)(micros()-start-REFRESH_TIME))>(REFRESH_TIME >> 2));
 }

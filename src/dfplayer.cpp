@@ -23,10 +23,10 @@ bool mp3_isInit = false;
 bool mp3_isReady = false;
 bool mp3_playNow = false;
 
-#if defined(SRX)
+#ifdef SRX
 // плата установлена, подготовка к инициализации драйвера
 
-#if defined(ESP32)
+#ifdef ESP32_FAMILY
 	#define mp3Serial Serial1
 	#define DFMiniMp3_Thread_Safe
 #else // ESP8266
@@ -181,7 +181,7 @@ void mp3_update() {
 
 void dfSerialInit() {
 	// в ESP32 функции не привязаны к ножкам, инициализация указывает какие ножки задействовать и отключает их от другого функционала
-	#if defined(ESP32)
+	#ifdef ESP32_FAMILY
 		mp3Serial.begin(9600, SERIAL_8N1, SRX, STX);
 	#else
 		mp3Serial.begin(9600, SWSERIAL_8N1, SRX, STX, false); // EspSoftwareSerial

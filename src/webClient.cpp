@@ -181,40 +181,40 @@ uint32_t weather_icon_code(uint8_t code) {
 int add_temperature(char *buf, float t, bool units, bool dec) {
 	switch (ws.u_t)	{ // " %+0.1f°C" если нужен плюс перед цифрой
 		case 1: // Фаренгейта
-			return sprintf_P(buf, dec?PSTR("%0.1f%S"):PSTR("%1.0f%S"), t*1.8+32, units?PSTR("°F"):EMPTY); 
+			return sprintf_P(buf, dec?PSTR("%0.1f%s"):PSTR("%1.0f%s"), t*1.8f+32.0f, units?PSTR("°F"):EMPTY); 
 		case 2: // Кельвина
-			return sprintf_P(buf, PSTR("%1.0f%S"), t+273.15, units?PSTR("K"):EMPTY); 
+			return sprintf_P(buf, PSTR("%1.0f%s"), t+273.15f, units?PSTR("K"):EMPTY); 
 		default: // Целься
-			return sprintf_P(buf, dec?PSTR("%+1.1f%S"):PSTR("%+1.0f%S"), t, units?PSTR("°C"):EMPTY); 
+			return sprintf_P(buf, dec?PSTR("%+1.1f%s"):PSTR("%+1.0f%s"), t, units?PSTR("°C"):EMPTY); 
 	}
 }
 
 int add_pressure(char *buf, float p) {
 	switch (ws.u_p)	{
 		case 1: // kPa
-			return sprintf_P(buf, PSTR("%1.1f kPa"), p/10);
+			return sprintf_P(buf, PSTR("%1.1f kPa"), p/10.0f);
 		case 2: // Pa
-			return sprintf_P(buf, PSTR("%1.0f Pa"), p*100);
+			return sprintf_P(buf, PSTR("%1.0f Pa"), p*100.0f);
 		case 3: // mbar
 			return sprintf_P(buf, PSTR("%1.0f mbar"), p);
 		case 4: // inHg
-			return sprintf_P(buf, PSTR("%1.2f inHg"), p*0.02953);
+			return sprintf_P(buf, PSTR("%1.2f inHg"), p*0.02953f);
 		case 5: // mmHg
-			return sprintf_P(buf, PSTR("%1.0f mmHg"), p*0.750063755);
+			return sprintf_P(buf, PSTR("%1.0f mmHg"), p*0.750063755f);
 		default: // hPa
 			return sprintf_P(buf, PSTR("%1.0f hPa"), p);
 	}
 }
 
 int add_speed(char *buf, float v, bool units) {
-	const char* T = units?PSTR("%1.0f%S"):PSTR("%1.0f");
+	const char* T = units?PSTR("%1.0f%s"):PSTR("%1.0f");
 	switch (ws.u_v)	{
 		case 1: // km/h
-			return sprintf_P(buf, T, v*3.6, units?txt_wind_speedKM[gs.language]:EMPTY);
+			return sprintf_P(buf, T, v*3.6f, units?txt_wind_speedKM[gs.language]:EMPTY);
 		case 2: // mph
-			return sprintf_P(buf, T, v*2.2369, units?PSTR("mph"):EMPTY);
+			return sprintf_P(buf, T, v*2.2369f, units?PSTR("mph"):EMPTY);
 		case 3: // kn
-			return sprintf_P(buf, T, v*1.9438, units?txt_wind_speedK[gs.language]:EMPTY);
+			return sprintf_P(buf, T, v*1.9438f, units?txt_wind_speedK[gs.language]:EMPTY);
 		default: // m/s
 			return sprintf_P(buf, T, v, units?txt_wind_speed[gs.language]:EMPTY);
 	}
@@ -326,7 +326,7 @@ uint8_t parseWeather(const char* json) {
 		syncTime();
 	} else
 	if (abs(cur_time + wd.utc_offset_seconds - getTimeU()) > (interval + 100)) {
-		LOG(printf_P,PSTR("To big time drift (%+li sec.), request time sync.\n"), cur_time - getTimeU());
+		LOG(printf_P,PSTR("To big time drift (%+lli sec.), request time sync.\n"), (long long int)(cur_time - getTimeU()));
 		syncTime();
 	}
 
@@ -429,7 +429,7 @@ void weatherUpdate(uint8_t wType) {
 
 	char LatLong[50];
 	sprintf_P(LatLong, PSTR("latitude=%.4f&longitude=%.4f"), gs.latitude, gs.longitude);
-	#if defined(USE_HTTPS)
+	#ifdef USE_HTTPS
 	String req = F("https");
 	#else
 	String req = F("http");
@@ -498,7 +498,7 @@ void parseQuote(String txt, bool type=true) {
 		myTrim(s);
 		messages[MESSAGE_QUOTE].text += ( s[0] == '-' || s[1] == ' ' ) ? " " + s: " (" + s + ")"; // perl я программист старый просто
 	}
-	#if defined(DEBUG)
+	#ifdef DEBUG
 	if( messages[MESSAGE_QUOTE].text.length() <= strlen_P(txt_quote[gs.language]) ) // если не нашли цитату в xml
 		LOG(printf_P, PSTR("Error parse JSON/XML.\nSource:\n%s\n"), txt.c_str());
 	#endif

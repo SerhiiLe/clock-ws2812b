@@ -72,14 +72,14 @@ void wifi_startConfig(bool fl) {
 			WiFi.disconnect();
 		}
 		wm.setConfigPortalBlocking(false);
-		#if defined(AP_PASSWORD)
+		#ifdef AP_PASSWORD
 		wm.startConfigPortal(_SSID, _PASSWORD);
 		#else
 		wm.startConfigPortal(_SSID);
 		#endif
 		LOG(println, F("ConfigPortal is started"));
 		char wifi_message_buf[150];
-		#if defined(AP_PASSWORD)
+		#ifdef AP_PASSWORD
 		snprintf_P(wifi_message_buf, sizeof(wifi_message_buf), txt_wifiMessage[gs.language], _SSID, _PASSWORD);
 		#else
 		snprintf_P(wifi_message_buf, sizeof(wifi_message_buf), txt_wifiMessage[gs.language], _SSID);

@@ -9,7 +9,7 @@
 #include "weather_icons.h"
 
 // Всего 9 символов погоды. Каждый символ имеет два фрейма анимации. Некоторые имеют фрейм с наложенной картинкой цветового акцента
-namespace WeatheIcons {
+namespace WeatherIcons {
 
 // 0 солнечно
 const uint8_t Sunny_M[] PROGMEM = {
@@ -34,6 +34,8 @@ const uint8_t PartlyCloudy_O[] PROGMEM = {0x02, 0x07, 0x0F, 0x07, 0x02, 0x00, 0x
 const uint8_t Cloudy_M[] PROGMEM = {
 	0x10, 0x3C, 0x3C, 0x3E, 0x3C, 0x3E, 0x3F, 0x3F, 0x3F, 0x3F, 0x3E, 0x1C,
 	0x18, 0x3C, 0x3E, 0x3C, 0x3E, 0x3F, 0x3F, 0x3F, 0x3F, 0x3E, 0x3E, 0x1C};
+
+const uint8_t Cloudy_O[] PROGMEM = {0x00, 0x00, 0x00, 0x10, 0x10, 0x10, 0x18, 0x18, 0x1C, 0x0C, 0x00, 0x00};
 
 // 4 туман
 const uint8_t Foggy_M[] PROGMEM = {
@@ -71,7 +73,7 @@ const uint8_t* Icons[] PROGMEM = {
 	Sunny_M, nullptr, 						// 0 Sunny
 	MostlyClear_M, MostlyClear_O,			// 1 Mostly Clear
 	PartlyCloudy_M, PartlyCloudy_O,			// 2 Partly Cloudy
-	Cloudy_M, nullptr,						// 3 Cloudy
+	Cloudy_M, Cloudy_O,						// 3 Cloudy
 	Foggy_M, nullptr,						// 4 Foggy
 	Umbrella_M, Umbrella_O,					// 5 Umbrella
 	Rain_M, Rain_O,							// 6 Rain
@@ -84,7 +86,7 @@ const CRGB Colors[] = {
 	CRGB::Yellow, CRGB::Yellow,					// 0 Sunny
 	CRGB::Yellow, CHSV(170, 100, 220),			// 1 Mostly Clear
 	CHSV(170, 100, 200), CRGB::Yellow,			// 2 Partly Cloudy
-	CRGB::LightSteelBlue, CRGB::LightGrey,		// 3 Cloudy
+	CRGB::LightSteelBlue, CRGB::Grey,			// 3 Cloudy
 	CHSV(0, 0, 200), CHSV(0, 0, 200),			// 4 Foggy
 	CRGB::Aqua, CRGB::GreenYellow,				// 5 Umbrella
 	CRGB::Aqua, CRGB::LightSteelBlue,			// 6 Rain
@@ -134,10 +136,6 @@ bool is_weather_symbol(uint32_t code) {
     return false;
 }
 
-static inline uint8_t getWeatherIconFrame() {
-	return (millis() / 300) & 1;
-}
-
 // отрисовка иконки погоды
 int16_t draw_weather_icon(uint32_t letter, int16_t offset, int16_t baseline) {
 	// вычисление адреса символа и акцента
@@ -154,13 +152,13 @@ int16_t draw_weather_icon(uint32_t letter, int16_t offset, int16_t baseline) {
 	// вычисление фазы анимации
 	uint8_t shift = (uint8_t)(millis() / 256) & 1;
 
-	// первая стадия - основная картника
+	// первая стадия - основная картинка
 
 	// отрисовка буквы. Все битмапы жестко в разрешении 12x8, по этому константы жестко в коде
-	drawChar(WeatheIcons::Icons[icon*2]+(shift*12), offset, baseline, 12, 8, (uint32_t)WeatheIcons::Colors[icon*2]);
+	drawChar(WeatherIcons::Icons[icon*2]+(shift*12), offset, baseline, 12, 8, (uint32_t)WeatherIcons::Colors[icon*2]);
 	// отрисовка акцента, если он есть
-	if (WeatheIcons::Icons[icon*2+1])
-		drawChar(WeatheIcons::Icons[icon*2+1], offset, baseline, 12, 8, (uint32_t)WeatheIcons::Colors[icon*2+1]);
+	if (WeatherIcons::Icons[icon*2+1])
+		drawChar(WeatherIcons::Icons[icon*2+1], offset, baseline, 12, 8, (uint32_t)WeatherIcons::Colors[icon*2+1]);
 
 	return 12;
 }

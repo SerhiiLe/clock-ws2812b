@@ -7,7 +7,7 @@
 #include "settings.h"
 #include "rtc.h"
 #include <WiFiUdp.h>
-#if defined(ESP8266)
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
 #else
 #include <WiFi.h>

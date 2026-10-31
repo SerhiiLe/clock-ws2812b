@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 #include "defines.h"
-#if defined(ESP32)
+#ifdef ESP32_FAMILY
 #include <WebServer.h>
 #include "mHTTPUpdateServer.h"
 #include <ESPmDNS.h>
@@ -35,12 +35,12 @@
 
 #define HPP(txt, ...) HTTP.client().printf_P(PSTR(txt), __VA_ARGS__)
 
-#if defined(ESP32)
+#ifdef ESP32_FAMILY
 WebServer HTTP(80);
 HTTPUpdateServer httpUpdater;
 WebServerUtils<WebServer> web(HTTP);
 #endif
-#if defined(ESP8266)
+#ifdef ESP8266
 ESP8266WebServer HTTP(80);
 ESP8266HTTPUpdateServer httpUpdater;
 WebServerUtils<ESP8266WebServer> web(HTTP);
@@ -88,7 +88,7 @@ void web_disable() {
 	web_isStarted = false;
 	LOG(println, PSTR("HTTP server stoped"));
 
-	#if defined(ESP32)
+	#ifdef ESP32_FAMILY
 	MDNS.disableWorkstation();
 	#else // ESP8266
 	MDNS.close();
@@ -113,7 +113,7 @@ void not_found() {
 void web_process() {
 	if( web_isStarted ) {
 		HTTP.handleClient();
-		#if defined(ESP8266)
+		#ifdef ESP8266
 		if(fl_mdns) MDNS.update();
 		#endif
 	} else {
@@ -154,7 +154,7 @@ void web_process() {
   		httpUpdater.setup(&HTTP, gs.web_login, gs.web_password);
 		LOG(println, PSTR("HTTP server started"));
 
-		#if defined(ESP32)
+		#ifdef ESP32_FAMILY
 		if(MDNS.begin(gs.clock_name)) {
 		#else // ESP8266
 		if(MDNS.begin(gs.clock_name.c_str(), WiFi.localIP())) {
@@ -244,7 +244,7 @@ void save_settings() {
 	};
 	web.to_string(F("str_hello"), gs.str_hello);
 	if(web.to_string(F("clock_name"), gs.clock_name))
-		#if defined(ESP32)
+		#ifdef ESP32_FAMILY
 			if(fl_mdns)	MDNS.setInstanceName(gs.clock_name);
 		#else // ESP8266
 			if(fl_mdns)	MDNS.setHostname(gs.clock_name.c_str());
@@ -369,9 +369,7 @@ void save_telegram() {
 // перезагрузка часов, сброс ком-порта, отключение сети и диска, чтобы ничего не мешало перезагрузке
 void reboot_clock() {
 	Serial.flush();
-	#if defined(ESP32)
-	// WiFi.getSleep();
-	#else // ESP8266
+	#ifdef ESP8266
 	WiFi.forceSleepBegin(); //disable AP & station by calling "WiFi.mode(WIFI_OFF)" & put modem to sleep
 	#endif
 	LittleFS.end();
@@ -717,7 +715,7 @@ void set_clock() {
 		HTTP.client().print(PSTR("HTTP/1.1 200\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n{"));
 		HPP("\"time\":\"%u\",", t.tm_hour*60+t.tm_min);
 		HPP("\"date\":\"%u-%02u-%02u\"}", t.tm_year +1900, t.tm_mon +1, t.tm_mday);
-		#if defined(ESP8266)
+		#ifdef ESP8266
 		HTTP.client().stop();
 		#endif
 	}
@@ -755,7 +753,7 @@ void onoff() {
 	text_send_P(cond?one:zero);
 }
 
-#if defined(ESP32)
+#ifdef ESP32_FAMILY
 const char* print_full_platform_info(char* buf) {
 	int p = 0;
 	const char *cpu;
@@ -856,12 +854,12 @@ void sysinfo() {
 	HPP("\"IP\":\"%s\",", wifi_currentIP().c_str());
 	HPP("\"Barometer\":%u,", fl_barometerIsInit);
 	HPP("\"RTC\":%u,", rtc_enable);
-	HPP("\"TimeDrift\":%i,", rtc_enable ? getTimeU() - (gs.tz_shift+gs.tz_dst)*3600 - getRTCTimeU(): 0);
+	HPP("\"TimeDrift\":%lli,", (long long int)(rtc_enable ? getTimeU() - (gs.tz_shift+gs.tz_dst)*3600 - getRTCTimeU(): 0));
 	HPP("\"NVRAM\":%u,", nvram_enable ? eeprom_chip: 0);
-	HPP("\"FreeHeap\":%i,", ESP.getFreeHeap());
-	#if defined(ESP32)
-	HPP("\"MaxFreeBlockSize\":%i,", ESP.getMaxAllocHeap());
-	HPP("\"HeapFragmentation\":%i,", 100-ESP.getMaxAllocHeap()*100/ESP.getFreeHeap());
+	HPP("\"FreeHeap\":%lu,", ESP.getFreeHeap());
+	#ifdef ESP32_FAMILY
+	HPP("\"MaxFreeBlockSize\":%lu,", ESP.getMaxAllocHeap());
+	HPP("\"HeapFragmentation\":%lu,", 100-ESP.getMaxAllocHeap()*100/ESP.getFreeHeap());
 	HPP("\"ResetReason\":\"%s\",", print_reset_reason(buf));
 	HPP("\"FullVersion\":\"%s\",", print_full_platform_info(buf));
 	#else // ESP8266
@@ -870,9 +868,9 @@ void sysinfo() {
 	HPP("\"ResetReason\":\"%s\",", ESP.getResetReason().c_str());
 	HPP("\"FullVersion\":\"%s\",", ESP.getFullVersion().c_str());
 	#endif
-	HPP("\"CpuFreqMHz\":%i,", ESP.getCpuFreqMHz());
+	HPP("\"CpuFreqMHz\":%lu,", (long unsigned int)ESP.getCpuFreqMHz());
 	HPP("\"BuildTime\":\"%s %s\"}", PSTR(__DATE__), PSTR(__TIME__));
-	#if defined(ESP8266)
+	#ifdef ESP8266
 	HTTP.client().stop();
 	#endif
 }
@@ -890,12 +888,12 @@ void sensors() {
 			HPP("{\"num\":%i,", i);
 			HPP("\"hostname\":\"%s\",", StringConverters::jsonEscape(sensor[i].hostname).c_str());
 			HPP("\"ip\":\"%s\",", sensor[i].ip.toString().c_str());
-			HPP("\"timeout\":%i}", ts.sensor_timeout*60 + sensor[i].registered - getTimeU());
+			HPP("\"timeout\":%lli}", (long long int)(ts.sensor_timeout*60 + sensor[i].registered - getTimeU()));
 			fl = true;
 		}
 	}
 	HTTP.client().print("]");
-	#if defined(ESP8266)
+	#ifdef ESP8266
 	HTTP.client().stop();
 	#endif
 }
@@ -1178,7 +1176,7 @@ void show_status() {
 	HPP2("\"use_nvram\":%i,", nvram_enable);
 	HPP2("\"use_bmp\":%i,", USE_BMP);
 	HPP2("\"use_mp3\":%i,",
-		#if defined(SRX)
+		#ifdef SRX
 		1 
 		#else
 		0 

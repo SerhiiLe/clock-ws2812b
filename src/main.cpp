@@ -2,8 +2,8 @@
  * @file main.cpp
  * @author Serhii Lebedenko (slebedenko@gmail.com)
  * @brief Clock
- * @version 2.6.1
- * @date 2026-07-09
+ * @version 2.7.0
+ * @date 2026-10-31
  * 
  * @copyright Copyright (c) 2021,2022,2023,2024,2025,2026
  */
@@ -114,7 +114,7 @@ uint8_t errors_forecast = 0;
 // количество сбоев получения цитат
 uint8_t errors_quotes = 0;
 
-#if defined(ESP32)
+#ifdef ESP32_FAMILY
 	TaskHandle_t TaskWeb;
 	TaskHandle_t TaskAlarm;
 	void TaskWebCode( void * pvParameters );
@@ -126,13 +126,13 @@ uint8_t errors_quotes = 0;
 void setup() {
 	Serial.begin(115200);
 	Serial.println(PSTR("Starting..."));
-	#if defined(LED_MOTION)
+	#ifdef LED_MOTION
 		pinMode(LED_MOTION, OUTPUT);
 	#endif
-	#if defined(PIN_MOTION)
+	#ifdef PIN_MOTION
 		pinMode(PIN_MOTION, INPUT);
 	#endif
-	#if defined(PIN_5V)
+	#ifdef PIN_5V
 		pinMode(PIN_5V, INPUT);
 	#endif
 	pinMode(PIN_RELAY, OUTPUT);
@@ -146,7 +146,7 @@ void setup() {
 	initRString(PSTR("boot"),1,7); //5
 	display_tick(false);
 	clearALL();
-	#if defined(ESP32)
+	#ifdef ESP32_FAMILY
 		esp_chip_info(&chip_info); // get the ESP32 chip information
 	#endif
 	#if USE_I2C == 1
@@ -190,7 +190,7 @@ bool boot_check() {
 	}
 	switch (boot_stage)	{
 		case 1: // попытка подключить диск
-			#if defined(ESP32)
+			#ifdef ESP32_FAMILY
 			if( LittleFS.begin(true) ) {
 			#else
 			if( LittleFS.begin() ) {
@@ -307,7 +307,7 @@ bool boot_check() {
 			if( ! load_config_cuckoo()) {
 				LOG(println, PSTR("Create new cuckoo file"));
 				save_config_cuckoo(); // даже если dfplayer не подключен, по тихому создать файл настроек
-				#if defined(SRX)
+				#ifdef SRX
 				initRString(txt_cuckoo_new[gs.language]);
 				#endif
 			}
@@ -316,7 +316,7 @@ bool boot_check() {
 		default:
 			boot_stage = 0;
 			initRString(gs.str_hello);
-			#if defined(ESP32)
+			#ifdef ESP32_FAMILY
 			// создание задачи для FreeRTOS, которая будет исполняться на отдельном ядре, чтобы не тормозить и не сбивать основной цикл
 			// для esp32-c3 это не имеет большого значения, так как там всего одно ядро, но и хуже не будет
 			// если ядра два, то на #0 крутится wifi и сервисы, а на #1 задача "Arduino". Если ядро одно, то на #0 будет несколько задач.
@@ -436,7 +436,7 @@ void alarms_pool() {
 		// сдвиг гаммы от времени суток.
 		hue_shift = uint8_t(240 - m/5 - (gs.hue_shift-1)*64);
 		// работа кукушки
-		#if defined(SRX)
+		#ifdef SRX
 		static uint8_t cuckoo_last = t.tm_hour;
 		static uint8_t cuckoo_stage = 0;
 		if (fl_run_allow && t.tm_min == 0 && cs.enable && cuckoo_last != t.tm_hour) {
@@ -541,7 +541,7 @@ void loop() {
 		if( boot_check() ) return;
 	}
 
-	#if defined(ESP8266)
+	#ifdef ESP8266
 	network_pool();
 	#endif
 
@@ -640,7 +640,7 @@ void loop() {
 	}
 
 	// проверка наличия напряжения 5 Вольт
-	#if defined(PIN_5V)
+	#ifdef PIN_5V
 	if(digitalRead(PIN_5V) != fl_5v) {
 		fl_5v = ! fl_5v;
 		if(sec_enable) save_log_file(fl_5v ? SEC_TEXT_POWERED: SEC_TEXT_POWEROFF);
@@ -656,12 +656,12 @@ void loop() {
 	}
 	#endif
 
-	#if defined(PIN_MOTION)
+	#ifdef PIN_MOTION
 	// проверка статуса датчика движения
 	if(digitalRead(PIN_MOTION) != cur_motion) {
 		cur_motion = ! cur_motion;
 		fl_led_motion = gs.show_move || alarmStartTime ? cur_motion: false;
-		#if defined(LED_MOTION)
+		#ifdef LED_MOTION
 		digitalWrite(LED_MOTION, fl_led_motion);
 		#endif
 		last_move = millis(); // как включение, так и выключение датчика сбрасывает таймер
@@ -731,7 +731,7 @@ void loop() {
 			// дополнительная яркость по времени
 			uint8_t add_val = fl_bright_boost ? gs.bright_add: 0;
 			switch(gs.bright_mode) {
-				#if defined(ESP32)
+				#ifdef ESP32_FAMILY
 				case 0: // полный автомат от 1 до 255
 					set_brightness(constrain((val >> 4) + 1 + add_val, 1, 255));
 					break;
@@ -756,7 +756,7 @@ void loop() {
 		}
 	}
 
-	#if defined(ESP8266)
+	#ifdef ESP8266
 	alarms_pool();
 	#endif
 
@@ -861,7 +861,7 @@ void loop() {
 	}
 }
 
-#if defined(ESP32)
+#ifdef ESP32_FAMILY
 // Работа с сетью
 void TaskWebCode( void * pvParameters ) {
 	LOG(print, "TaskWeb running on core ");

@@ -47,9 +47,7 @@ void tb_tick() {
 void tb_send_msg(const String& text) {
 	// [[maybe_unused]] bool r = bot.sendMessage(bot.extractFirstNumber(ts.tb_chats), text); // отсылка только на первый номер
 	[[maybe_unused]] bool r = bot.sendMessageToAll(ts.tb_chats, text); // отсылка на все номера
-	#if defined(DEBUG)
 	LOG(printf_P, PSTR("Send to telegram: %d\n"), r);
-	#endif
 }
 
 // Обработка входящего сообщения телеграмм
@@ -197,7 +195,7 @@ String telegramCallback(TResult& msg) {
 			}
 		}
 		if (bot.is_command(msg.text, "show") || bot.is_command(msg.text, "send")) {
-			// будет конкурировать со строкой отправленой напрямую через сайт
+			// будет конкурировать со строкой отправленной напрямую через сайт
 			messages[MESSAGE_WEB].count = ts.rcount;
 			messages[MESSAGE_WEB].timer.setInterval(1000UL * ts.rint);
 			messages[MESSAGE_WEB].timer.setNext(10); // подвинуть начало показа, чтобы сразу
@@ -216,7 +214,7 @@ String telegramCallback(TResult& msg) {
 			} else 
 				return txt_TB_nothing_to_show[gs.language];
 		}
-#if defined(SRX)
+#ifdef SRX
 		if (bot.is_command(msg.text, "play")) {
 			int pos = msg.text.lastIndexOf(" ");
 			if (pos>0) {

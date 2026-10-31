@@ -6,7 +6,7 @@ const char PROGMEM T_wifiNotConnected_ru[] = "WiFi не подключился!"
 const char PROGMEM T_wifiNotConnected_ua[] = "WiFi не підключився!";
 const char* PROGMEM txt_wifiNotConnected[LANGUAGES] = {T_wifiNotConnected_en, T_wifiNotConnected_ru, T_wifiNotConnected_ua};
 
-#if defined(AP_PASSWORD)
+#ifdef AP_PASSWORD
 const char PROGMEM T_wifiMessage_en[] = "To configure WiFi connect to \"%s\" password \"%s\", IP: 192.168.4.1";
 const char PROGMEM T_wifiMessage_ru[] = "Для настройки WiFi подключитесь к \"%s\" с паролем \"%s\", IP: 192.168.4.1";
 const char PROGMEM T_wifiMessage_ua[] = "Для настройки WiFi підключіться до \"%s\" з паролем \"%s\", IP: 192.168.4.1";
