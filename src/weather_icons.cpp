@@ -86,7 +86,7 @@ const CRGB Colors[] = {
 	CRGB::Yellow, CRGB::Yellow,					// 0 Sunny
 	CRGB::Yellow, CHSV(170, 100, 220),			// 1 Mostly Clear
 	CHSV(170, 100, 200), CRGB::Yellow,			// 2 Partly Cloudy
-	CRGB::LightSteelBlue, CRGB::Grey,			// 3 Cloudy
+	CRGB::LightSteelBlue, CRGB::DarkGrey,		// 3 Cloudy
 	CHSV(0, 0, 200), CHSV(0, 0, 200),			// 4 Foggy
 	CRGB::Aqua, CRGB::GreenYellow,				// 5 Umbrella
 	CRGB::Aqua, CRGB::LightSteelBlue,			// 6 Rain

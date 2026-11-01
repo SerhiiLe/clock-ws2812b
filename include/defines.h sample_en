@@ -1,19 +1,8 @@
 #ifndef defines_h
 #define defines_h
+#include "platform_definition.h"
 
 #define DEBUG // enable debug messages. Comment out if not needed
-
-// --- architecture and chip identification ---
-#if defined(ESP8266)
-    #define ARCH_ESP8266
-#else
-    #define ESP32_FAMILY // a common flag for the entire ESP32 family
-    #if defined(CONFIG_IDF_TARGET_ESP32C3)
-        #define TARGET_ESP32C3
-    #else
-        #define TARGET_ESP32
-    #endif
-#endif
 
 /*** description of constants that describe the specific hardware ***/
 
