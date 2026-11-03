@@ -56,9 +56,9 @@ bool syncTimeRequest() {
 	if(!ntp_udp.endPacket()) return false;
 	request_time = millis();
 	#if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)
-	ntp_udp.clear();
+		ntp_udp.clear();
 	#else
-	ntp_udp.flush();
+		ntp_udp.flush();
 	#endif
 	delay(0);
 	fl_ntpRequestIsSend = true;

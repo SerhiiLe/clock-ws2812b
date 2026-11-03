@@ -857,16 +857,16 @@ void sysinfo() {
 	HPP("\"TimeDrift\":%lli,", (long long int)(rtc_enable ? getTimeU() - (gs.tz_shift+gs.tz_dst)*3600 - getRTCTimeU(): 0));
 	HPP("\"NVRAM\":%u,", nvram_enable ? eeprom_chip: 0);
 	HPP("\"FreeHeap\":%lu,", ESP.getFreeHeap());
-	#ifdef ESP32_FAMILY
+	#ifdef ESP8266
+	HPP("\"MaxFreeBlockSize\":%u,", ESP.getMaxFreeBlockSize());
+	HPP("\"HeapFragmentation\":%u,", ESP.getHeapFragmentation());
+	HPP("\"ResetReason\":\"%s\",", ESP.getResetReason().c_str());
+	HPP("\"FullVersion\":\"%s\",", ESP.getFullVersion().c_str());
+	#else // ESP32_FAMILY
 	HPP("\"MaxFreeBlockSize\":%lu,", ESP.getMaxAllocHeap());
 	HPP("\"HeapFragmentation\":%lu,", 100-ESP.getMaxAllocHeap()*100/ESP.getFreeHeap());
 	HPP("\"ResetReason\":\"%s\",", print_reset_reason(buf));
 	HPP("\"FullVersion\":\"%s\",", print_full_platform_info(buf));
-	#else // ESP8266
-	HPP("\"MaxFreeBlockSize\":%i,", ESP.getMaxFreeBlockSize());
-	HPP("\"HeapFragmentation\":%i,", ESP.getHeapFragmentation());
-	HPP("\"ResetReason\":\"%s\",", ESP.getResetReason().c_str());
-	HPP("\"FullVersion\":\"%s\",", ESP.getFullVersion().c_str());
 	#endif
 	HPP("\"CpuFreqMHz\":%lu,", (long unsigned int)ESP.getCpuFreqMHz());
 	HPP("\"BuildTime\":\"%s %s\"}", PSTR(__DATE__), PSTR(__TIME__));

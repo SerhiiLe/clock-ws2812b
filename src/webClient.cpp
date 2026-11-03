@@ -21,8 +21,6 @@ AsyncHTTP httpClient;
 
 Quote_Server quote;
 
-bool fl_https_notInit = true;
-
 struct weatherData {
 	int utc_offset_seconds;
 	int16_t elevation;
@@ -418,13 +416,7 @@ int32_t weatherGetPressure() {
 
 // https://api.open-meteo.com/v1/forecast?latitude=46.4857&longitude=30.7438&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=ms&timeformat=unixtime&timezone=auto&past_days=1&forecast_days=1
 
-/*
-Статусы ответа:
-0 - ошибка обработки запроса
-1 - успешно
-2 - адрес не работает
-3 - ошибка сети
-*/
+// Запрос обновления информации о погоде и прогнозе
 void weatherUpdate(uint8_t wType) {
 
 	char LatLong[50];
@@ -504,12 +496,7 @@ void parseQuote(String txt, bool type=true) {
 	#endif
 }
 
-/*
-Запрос новой цитаты
-0 - ошибка сети
-1 - успех
-2 - адрес не работает
-*/
+// запрос следующей цитаты
 void quoteGet() {
 
 	AsyncHttpRequest req;

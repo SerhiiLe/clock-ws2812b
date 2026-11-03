@@ -2,8 +2,8 @@
  * @file main.cpp
  * @author Serhii Lebedenko (slebedenko@gmail.com)
  * @brief Clock
- * @version 2.7.0
- * @date 2026-10-31
+ * @version 2.7.1
+ * @date 2026-10-03
  * 
  * @copyright Copyright (c) 2021,2022,2023,2024,2025,2026
  */
@@ -15,7 +15,7 @@
 
 #include <Arduino.h>
 #include "defines.h"
-#include <GyverButton.h>
+#include <Buttons.h>
 #include <LittleFS.h>
 #if USE_I2C == 1
 	#include <Wire.h>
@@ -40,9 +40,9 @@
 #include "main_translation.h"
 
 #if SENSOR_BUTTON == 1
-	GButton btn(PIN_BUTTON, LOW_PULL, NORM_OPEN); // комбинация для сенсорной кнопки
+	Button btn(PIN_BUTTON, INPUT, HIGH); // комбинация для сенсорной кнопки
 #else
-	GButton btn(PIN_BUTTON); // комбинация для обычной кнопки
+	Button btn(PIN_BUTTON); // комбинация для обычной кнопки
 #endif
 
 TimerMinim autoBrightnessTimer(500);	// Таймер отслеживания показаний датчика света при включенном авторегулировании яркости матрицы
@@ -114,7 +114,7 @@ uint8_t errors_forecast = 0;
 // количество сбоев получения цитат
 uint8_t errors_quotes = 0;
 
-#ifdef ESP32_FAMILY
+#ifndef ESP8266 // ESP32_FAMILY
 	TaskHandle_t TaskWeb;
 	TaskHandle_t TaskAlarm;
 	void TaskWebCode( void * pvParameters );
@@ -146,7 +146,7 @@ void setup() {
 	initRString(PSTR("boot"),1,7); //5
 	display_tick(false);
 	clearALL();
-	#ifdef ESP32_FAMILY
+	#ifndef ESP8266 // ESP32_FAMILY
 		esp_chip_info(&chip_info); // get the ESP32 chip information
 	#endif
 	#if USE_I2C == 1
@@ -190,10 +190,10 @@ bool boot_check() {
 	}
 	switch (boot_stage)	{
 		case 1: // попытка подключить диск
-			#ifdef ESP32_FAMILY
-			if( LittleFS.begin(true) ) {
-			#else
+			#ifdef ESP8266
 			if( LittleFS.begin() ) {
+			#else // ESP32_FAMILY
+			if( LittleFS.begin(true) ) {
 			#endif
 				if( LittleFS.exists(F("/index.html")) ) {
 					fs_isStarted = true; // встроенный диск подключился
@@ -316,7 +316,7 @@ bool boot_check() {
 		default:
 			boot_stage = 0;
 			initRString(gs.str_hello);
-			#ifdef ESP32_FAMILY
+			#ifndef ESP8266 // ESP32_FAMILY
 			// создание задачи для FreeRTOS, которая будет исполняться на отдельном ядре, чтобы не тормозить и не сбивать основной цикл
 			// для esp32-c3 это не имеет большого значения, так как там всего одно ядро, но и хуже не будет
 			// если ядра два, то на #0 крутится wifi и сервисы, а на #1 задача "Arduino". Если ядро одно, то на #0 будет несколько задач.
