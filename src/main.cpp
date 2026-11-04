@@ -386,13 +386,11 @@ void network_pool() {
 				// else errors_quotes = 0;
 			}
 			// обновление погоды с сервера
-			if(ws.weather && syncWeatherTimer.isReady()) {
+			if(ws.weather && syncWeatherTimer.isReady())
 				weatherUpdate();
-				// обновление прогноза погоды. Формируется только в паре с запросом текущей погоды
-				if(ws.forecast && syncForecastTimer.isReady()) {
-					weatherUpdate(FORECAST);
-				}
-			}
+			// обновление прогноза погоды.
+			if(ws.forecast && syncForecastTimer.isReady())
+				weatherUpdate(FORECAST);
 			// при сбоях сети будет выводится старая информация
 		}
 		// если был отправлен запрос на NTP сервер, то подождать и выполнить операции, как будто он выполнился
